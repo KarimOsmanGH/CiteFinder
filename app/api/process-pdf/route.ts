@@ -89,28 +89,31 @@ function extractTitle(text: string): string | undefined {
 function extractStatements(text: string): string[] {
   const statements: string[] = []
   
-  // Split text into sentences
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20)
+  // Split text into sentences more intelligently
+  const sentences = text
+    .split(/[.!?]+/)
+    .map(s => s.trim())
+    .filter(s => s.length > 30 && s.length < 500) // Better length filtering
   
   // Patterns that indicate claims or statements needing citations
   const claimPatterns = [
     // Factual statements
-    /\b(?:research shows|studies indicate|evidence suggests|data reveals|analysis demonstrates|results show|findings indicate|it has been|it is known|it has been found|it has been shown)\b/gi,
+    /\b(?:research shows|studies indicate|evidence suggests|data reveals|analysis demonstrates|results show|findings indicate|it has been|it is known|it has been found|it has been shown|according to|previous studies|recent research)\b/gi,
     
     // Comparative statements
-    /\b(?:better than|more effective|superior to|outperforms|improves|enhances|increases|reduces|decreases|significantly|substantially|dramatically)\b/gi,
+    /\b(?:better than|more effective|superior to|outperforms|improves|enhances|increases|reduces|decreases|significantly|substantially|dramatically|compared to|in contrast|however|nevertheless)\b/gi,
     
     // Methodological claims
-    /\b(?:method|technique|approach|system|algorithm|model|framework|protocol|procedure|strategy|solution)\b/gi,
+    /\b(?:method|technique|approach|system|algorithm|model|framework|protocol|procedure|strategy|solution|methodology|process)\b/gi,
     
     // Performance claims
-    /\b(?:accuracy|precision|efficiency|performance|reliability|validity|robustness|scalability|effectiveness|quality|speed|cost)\b/gi,
+    /\b(?:accuracy|precision|efficiency|performance|reliability|validity|robustness|scalability|effectiveness|quality|speed|cost|results|outcomes|benefits)\b/gi,
     
     // Technical specifications
-    /\b(?:sensors|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation)\b/gi,
+    /\b(?:sensors|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation|technology|applications)\b/gi,
     
     // Research findings
-    /\b(?:discovered|identified|developed|proposed|introduced|implemented|designed|created|built|constructed|established)\b/gi
+    /\b(?:discovered|identified|developed|proposed|introduced|implemented|designed|created|built|constructed|established|found|demonstrated|proven)\b/gi
   ]
   
   for (const sentence of sentences) {
@@ -120,11 +123,18 @@ function extractStatements(text: string): string[] {
     for (const pattern of claimPatterns) {
       if (pattern.test(lowerSentence)) {
         // Clean up the sentence and add it as a statement
-        const cleanStatement = sentence.trim()
+        const cleanStatement = sentence
           .replace(/^\s*[A-Z]\s*/, '') // Remove leading single letters
           .replace(/\s+/g, ' ') // Normalize whitespace
+          .replace(/^[^a-zA-Z]*/, '') // Remove leading non-letters
+          .trim()
         
-        if (cleanStatement.length > 30 && cleanStatement.length < 300 && !statements.includes(cleanStatement)) {
+        // Ensure it's a complete, readable statement
+        if (cleanStatement.length > 40 && 
+            cleanStatement.length < 400 && 
+            !statements.includes(cleanStatement) &&
+            cleanStatement.includes(' ') && // Has multiple words
+            /[a-zA-Z]/.test(cleanStatement)) { // Contains letters
           statements.push(cleanStatement)
         }
         break // Only add each sentence once, even if it matches multiple patterns
@@ -146,11 +156,17 @@ function extractStatements(text: string): string[] {
       
       for (const term of technicalTerms) {
         if (lowerSentence.includes(term)) {
-          const cleanStatement = sentence.trim()
+          const cleanStatement = sentence
             .replace(/^\s*[A-Z]\s*/, '')
             .replace(/\s+/g, ' ')
+            .replace(/^[^a-zA-Z]*/, '')
+            .trim()
           
-          if (cleanStatement.length > 30 && cleanStatement.length < 300 && !statements.includes(cleanStatement)) {
+          if (cleanStatement.length > 40 && 
+              cleanStatement.length < 400 && 
+              !statements.includes(cleanStatement) &&
+              cleanStatement.includes(' ') &&
+              /[a-zA-Z]/.test(cleanStatement)) {
             statements.push(cleanStatement)
           }
           break
@@ -159,7 +175,17 @@ function extractStatements(text: string): string[] {
     }
   }
   
-  return statements.slice(0, 8) // Limit to 8 statements for better quality
+  // Sort statements by length (prefer medium-length, readable statements)
+  statements.sort((a, b) => {
+    const aLength = a.length
+    const bLength = b.length
+    // Prefer statements between 50-200 characters
+    const aScore = Math.abs(aLength - 125)
+    const bScore = Math.abs(bLength - 125)
+    return aScore - bScore
+  })
+  
+  return statements.slice(0, 6) // Limit to 6 statements for better quality
 }
 
 // Find related papers from extracted statements
