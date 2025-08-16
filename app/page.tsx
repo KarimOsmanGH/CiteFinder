@@ -2,11 +2,15 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Upload, FileText, Search, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { Upload, FileText, Search, Loader2, ChevronDown, ChevronUp, User, LogOut } from 'lucide-react'
 import PDFUploader from '@/components/PDFUploader'
 import CitationList from '@/components/CitationList'
 import RelatedPapers from '@/components/RelatedPapers'
 import ReferencesGenerator from '@/components/ReferencesGenerator'
+import UsageLimit from '@/components/UsageLimit'
+import { useUsage } from '@/hooks/useUsage'
+import { useSession, signIn, signOut } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 interface Citation {
   id: string
@@ -40,8 +44,11 @@ interface ProcessResponse {
 }
 
 export default function Home() {
+  const router = useRouter()
+  const { data: session, status } = useSession()
   const [citations, setCitations] = useState<Citation[]>([])
   const [relatedPapers, setRelatedPapers] = useState<RelatedPaper[]>([])
+  const [selectedPapers, setSelectedPapers] = useState<RelatedPaper[]>([])
   const [pdfUrl, setPdfUrl] = useState<string>('')
   const [fileName, setFileName] = useState<string>('')
   const [statementsFound, setStatementsFound] = useState<string[]>([])
@@ -52,8 +59,22 @@ export default function Home() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
   const [searchText, setSearchText] = useState<string>('')
   const [searchMode, setSearchMode] = useState<'pdf' | 'text'>('pdf')
+  
+  // Usage tracking
+  const { sessionId, canUseService } = useUsage()
+  const [hasInteracted, setHasInteracted] = useState(false)
 
   const handleFileUpload = async (file: File) => {
+    // Mark that user has interacted
+    setHasInteracted(true)
+    
+    // Check usage limit first
+    const canUse = await canUseService('pdf_upload')
+    if (!canUse) {
+      alert('Usage limit exceeded. Anonymous users get 1 citation per 24 hours. Please sign up for unlimited access.')
+      return
+    }
+
     setIsProcessing(true)
     setCurrentStep('processing')
     
@@ -93,7 +114,18 @@ export default function Home() {
     setExpandedFaq(expandedFaq === index ? null : index)
   }
 
+  const handlePaperSelection = (paper: RelatedPaper, isSelected: boolean) => {
+    if (isSelected) {
+      setSelectedPapers(prev => [...prev, paper])
+    } else {
+      setSelectedPapers(prev => prev.filter(p => p.id !== paper.id))
+    }
+  }
+
   const handleTextSearch = async () => {
+    // Mark that user has interacted
+    setHasInteracted(true)
+    
     console.log('handleTextSearch called with text length:', searchText.length)
     if (!searchText.trim()) {
       console.log('Text is empty, returning')
@@ -172,12 +204,62 @@ export default function Home() {
               >
                 FAQ
               </button>
+              {session && (
+                <button 
+                  onClick={() => router.push('/dashboard')}
+                  className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200"
+                >
+                  Dashboard
+                </button>
+              )}
             </div>
           </div>
           
-          {/* Right side - could be used for login/signup later */}
-          <div className="w-32">
-            {/* Placeholder for future elements */}
+          {/* Right side - Auth */}
+          <div className="flex items-center">
+            {status === 'loading' ? (
+              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+            ) : session ? (
+              <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  {session.user?.image ? (
+                    <img 
+                      src={session.user.image} 
+                      alt={session.user.name || 'User'} 
+                      className="w-8 h-8 rounded-full"
+                    />
+                  ) : (
+                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <User className="w-4 h-4 text-white" />
+                    </div>
+                  )}
+                  <span className="text-sm font-medium text-gray-700 hidden sm:block">
+                    {session.user?.name || session.user?.email}
+                  </span>
+                </div>
+                <button
+                  onClick={() => router.push('/dashboard')}
+                  className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                  title="Dashboard"
+                >
+                  <User className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => signOut()}
+                  className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+                  title="Sign out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <button 
+                onClick={() => signIn()}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 hover-lift shadow-glow"
+              >
+                Sign In
+              </button>
+            )}
           </div>
         </nav>
 
@@ -211,6 +293,9 @@ export default function Home() {
         <section id="upload" className="max-w-6xl mx-auto" aria-label="Main Application">
           {currentStep === 'upload' && (
             <section className="animate-fade-in-up" aria-label="Search Options">
+              {/* Usage Limit Banner */}
+              <UsageLimit sessionId={sessionId} showAfterInteraction={hasInteracted} />
+              
               {/* Search Mode Toggle */}
               <div className="flex justify-center mb-8">
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-1 border border-gray-300 shadow-sm">
@@ -245,11 +330,7 @@ export default function Home() {
               
               {/* PDF Upload Option */}
               {searchMode === 'pdf' && (
-                <div className="glass rounded-2xl shadow-soft p-8 hover-lift animate-fade-in">
-                  <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Upload PDF Document</h3>
-                    <p className="text-gray-600">Upload a PDF file to extract citations and find related papers</p>
-                  </div>
+                <div className="glass rounded-2xl shadow-soft p-4 hover-lift animate-fade-in max-w-2xl mx-auto">
                   <PDFUploader onFileUpload={handleFileUpload} />
                 </div>
               )}
@@ -353,7 +434,12 @@ export default function Home() {
                     <p className="text-gray-600">{relatedPapers.length} papers found across academic databases</p>
                   </div>
                 </header>
-                <RelatedPapers papers={relatedPapers} />
+                <RelatedPapers 
+                  papers={relatedPapers} 
+                  statementsFound={statementsFound}
+                  selectedPapers={selectedPapers}
+                  onPaperSelection={handlePaperSelection}
+                />
               </article>
 
               {/* References Generator Section */}
@@ -369,21 +455,12 @@ export default function Home() {
                                 <p className="text-gray-600">Generate formatted references from your extracted citations</p>
                               </div>
                             </header>
-                            <ReferencesGenerator citations={citations} />
+                            <ReferencesGenerator citations={citations} selectedPapers={selectedPapers} />
                           </article>
 
 
 
-                          {/* Upload Another Button */}
-                          <footer className="text-center">
-                <button
-                  onClick={() => setCurrentStep('upload')}
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover-lift shadow-glow"
-                  aria-label="Upload another PDF file"
-                >
-                  Upload Another PDF
-                </button>
-              </footer>
+
             </section>
           )}
         </section>
@@ -396,8 +473,7 @@ export default function Home() {
                             Pricing
                           </h2>
               <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                CiteFinder is committed to keeping academic research accessible to everyone. 
-                Our core features are completely free, with premium options for power users.
+                We are committed to keeping academic research accessible to everyone. Our core features are free, with premium options for power users.
               </p>
             </div>
 
@@ -413,19 +489,19 @@ export default function Home() {
                 <div className="space-y-4 mb-8">
                   <div className="flex items-center">
                     <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">Unlimited PDF uploads</span>
+                    <span className="text-gray-700">1 citation per 24 hours</span>
                   </div>
                   <div className="flex items-center">
                     <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">Citation extraction from all formats</span>
+                    <span className="text-gray-700">PDF & text processing</span>
                   </div>
                   <div className="flex items-center">
                     <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">Search across 4 academic databases</span>
+                    <span className="text-gray-700">Search across academic databases</span>
                   </div>
                   <div className="flex items-center">
                     <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">Up to 15 related papers per search</span>
+                    <span className="text-gray-700">Up to 3 related papers per search</span>
                   </div>
                   <div className="flex items-center">
                     <span className="text-blue-500 mr-3">✅</span>
@@ -446,27 +522,27 @@ export default function Home() {
               </div>
 
               {/* Premium Plan */}
-              <div className="glass rounded-2xl shadow-soft p-8 hover-lift relative">
+              <div className="glass rounded-2xl shadow-soft p-8 hover-lift relative bg-gradient-to-br from-white/90 to-indigo-50/30 border-2 border-indigo-200/50 transform scale-105 z-10">
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
-                    Coming Soon
+                  <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                    Popular
                   </span>
                 </div>
 
                 <div className="text-center mb-8">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">Premium</h3>
-                  <div className="text-4xl font-bold text-gray-900 mb-2">$9.99</div>
-                  <p className="text-gray-600">Per month for power users</p>
+                  <h3 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">Premium</h3>
+                  <div className="text-5xl font-bold text-gray-900 mb-2">$15</div>
+                  <p className="text-gray-600 font-medium">Per month for unlimited access</p>
                 </div>
 
                 <div className="space-y-4 mb-8">
                   <div className="flex items-center">
                     <span className="text-indigo-500 mr-3">✅</span>
-                    <span className="text-gray-700">Everything in Free plan</span>
+                    <span className="text-gray-700">Unlimited citations per day</span>
                   </div>
                   <div className="flex items-center">
                     <span className="text-indigo-500 mr-3">✅</span>
-                    <span className="text-gray-700">Unlimited related papers</span>
+                    <span className="text-gray-700">Unlimited related papers per search</span>
                   </div>
                   <div className="flex items-center">
                     <span className="text-indigo-500 mr-3">✅</span>
@@ -478,23 +554,14 @@ export default function Home() {
                   </div>
                   <div className="flex items-center">
                     <span className="text-indigo-500 mr-3">✅</span>
-                    <span className="text-gray-700">Citation network visualization</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-indigo-500 mr-3">✅</span>
-                    <span className="text-gray-700">Priority API access</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-indigo-500 mr-3">✅</span>
-                    <span className="text-gray-700">Email support</span>
+                    <span className="text-gray-700">Priority support</span>
                   </div>
                 </div>
 
                 <button 
-                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover-lift shadow-glow opacity-50 cursor-not-allowed"
-                  disabled
+                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover-lift shadow-glow text-lg"
                 >
-                  Coming Soon
+                  Get Premium
                 </button>
               </div>
             </div>
@@ -587,46 +654,22 @@ export default function Home() {
                 )}
               </div>
 
-              {/* FAQ Item 4 */}
-              <div className="glass rounded-2xl shadow-soft overflow-hidden">
-                <button
-                  onClick={() => toggleFaq(3)}
-                  className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
-                >
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Do you store my PDF files?
-                  </h3>
-                  {expandedFaq === 3 ? (
-                    <ChevronUp className="w-6 h-6 text-gray-600" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-gray-600" />
-                  )}
-                </button>
-                {expandedFaq === 3 && (
-                  <div className="px-6 pb-6">
-                    <p className="text-gray-700 leading-relaxed">
-                      Yes, we store your PDFs securely in Vercel Blob storage and provide you with a public URL for future access. Your files are processed locally and stored securely for your convenience.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* FAQ Item 5 */}
-              <div className="glass rounded-2xl shadow-soft overflow-hidden">
-                <button
-                  onClick={() => toggleFaq(4)}
-                  className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
-                >
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Can I generate a references page from the extracted citations?
-                  </h3>
-                  {expandedFaq === 4 ? (
-                    <ChevronUp className="w-6 h-6 text-gray-600" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-gray-600" />
-                  )}
-                </button>
-                {expandedFaq === 4 && (
+                            {/* FAQ Item 4 */}
+                <div className="glass rounded-2xl shadow-soft overflow-hidden">
+                  <button
+                    onClick={() => toggleFaq(3)}
+                    className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
+                  >
+                    <h3 className="text-xl font-bold text-gray-900">
+                      Can I generate a references page from the extracted citations?
+                    </h3>
+                    {expandedFaq === 3 ? (
+                      <ChevronUp className="w-6 h-6 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-6 h-6 text-gray-600" />
+                    )}
+                  </button>
+                  {expandedFaq === 3 && (
                   <div className="px-6 pb-6">
                     <p className="text-gray-700 leading-relaxed">
                       Yes! CiteFinder includes a References Generator that can format your extracted citations into properly formatted reference lists in APA, MLA, Chicago, Harvard, or BibTeX formats. You can copy or download the formatted references.

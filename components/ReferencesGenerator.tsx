@@ -14,11 +14,22 @@ interface Citation {
 
 interface ReferencesGeneratorProps {
   citations: Citation[]
+  selectedPapers?: RelatedPaper[]
+}
+
+interface RelatedPaper {
+  id: string
+  title: string
+  authors: string[]
+  year: string
+  abstract: string
+  url: string
+  similarity: number
 }
 
 type ReferenceFormat = 'apa' | 'mla' | 'chicago' | 'harvard' | 'bibtex'
 
-export default function ReferencesGenerator({ citations }: ReferencesGeneratorProps) {
+export default function ReferencesGenerator({ citations, selectedPapers = [] }: ReferencesGeneratorProps) {
   const [selectedFormat, setSelectedFormat] = useState<ReferenceFormat>('apa')
   const [copied, setCopied] = useState(false)
   const [selectedCitationIndex, setSelectedCitationIndex] = useState(0)
@@ -45,15 +56,33 @@ export default function ReferencesGenerator({ citations }: ReferencesGeneratorPr
   }
 
   const generateSingleReference = (format: ReferenceFormat): string => {
-    if (citations.length === 0) return 'No citations available.'
+    if (selectedPapers.length === 0) return 'No papers selected. Please select papers from the Related Papers section above.'
     
-    const validCitations = citations.filter(citation => citation.confidence > 0.3)
-    if (validCitations.length === 0) return 'No valid citations available.'
-    
-    const selectedCitation = validCitations[selectedCitationIndex] || validCitations[0]
-    const formatted = formatCitation(selectedCitation, format)
+    const selectedPaper = selectedPapers[selectedCitationIndex] || selectedPapers[0]
+    const formatted = formatPaper(selectedPaper, format)
     
     return format === 'bibtex' ? formatted : formatted
+  }
+
+  const formatPaper = (paper: RelatedPaper, format: ReferenceFormat): string => {
+    const authors = paper.authors.join(', ')
+    const title = paper.title
+    const year = paper.year
+
+    switch (format) {
+      case 'apa':
+        return `${authors}. (${year}). ${title}.`
+      case 'mla':
+        return `${authors}. "${title}." ${year}.`
+      case 'chicago':
+        return `${authors}. "${title}." ${year}.`
+      case 'harvard':
+        return `${authors} (${year}) ${title}.`
+      case 'bibtex':
+        return `@article{${paper.id},\n  author = {${authors}},\n  title = {${title}},\n  year = {${year}},\n}`
+      default:
+        return `${authors}. (${year}). ${title}.`
+    }
   }
 
   const copyToClipboard = async () => {
@@ -88,33 +117,19 @@ export default function ReferencesGenerator({ citations }: ReferencesGeneratorPr
     { value: 'bibtex', label: 'BibTeX', description: 'LaTeX Bibliography Format' }
   ]
 
-  if (citations.length === 0) {
+  if (selectedPapers.length === 0) {
     return (
       <div className="text-center py-12">
         <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
           <FileText className="w-8 h-8 text-gray-400" />
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Citations Available</h3>
-        <p className="text-gray-600">Upload a PDF to extract citations and generate references.</p>
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Papers Selected</h3>
+        <p className="text-gray-600">Please select papers from the Related Papers section above to generate citations.</p>
       </div>
     )
   }
 
-  const validCitations = citations.filter(citation => citation.confidence > 0.3)
-
-  if (validCitations.length === 0) {
-    return (
-      <div className="text-center py-12">
-        <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-          <FileText className="w-8 h-8 text-gray-400" />
-        </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">No Valid Citations</h3>
-        <p className="text-gray-600">No citations with sufficient confidence were found.</p>
-      </div>
-    )
-  }
-
-  const selectedCitation = validCitations[selectedCitationIndex] || validCitations[0]
+  const selectedPaper = selectedPapers[selectedCitationIndex] || selectedPapers[0]
 
   return (
     <div className="space-y-6">
@@ -131,7 +146,7 @@ export default function ReferencesGenerator({ citations }: ReferencesGeneratorPr
             <BookOpen className="w-4 h-4 text-green-600" />
           </div>
           <span className="text-sm font-medium text-gray-700">
-            {validCitations.length} available
+            {selectedPapers.length} selected
           </span>
         </div>
       </div>
@@ -139,80 +154,91 @@ export default function ReferencesGenerator({ citations }: ReferencesGeneratorPr
       {/* Citation Selection */}
       <div className="bg-white/50 backdrop-blur-sm rounded-xl p-6 border border-white/30">
         <div className="flex items-center justify-between mb-4">
-          <h4 className="font-semibold text-gray-900">Select Citation</h4>
-          <div className="flex items-center space-x-2">
+          <h4 className="font-semibold text-gray-900">Paper Selection</h4>
+          <div className="flex items-center space-x-3">
             <button
               onClick={() => setSelectedCitationIndex(Math.max(0, selectedCitationIndex - 1))}
               disabled={selectedCitationIndex === 0}
-              className="px-3 py-1 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm"
+              className="px-4 py-2 bg-blue-100 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-blue-700 transition-all duration-200"
             >
               ← Previous
             </button>
-            <span className="text-sm text-gray-600">
-              {selectedCitationIndex + 1} of {validCitations.length}
-            </span>
+            <div className="bg-white px-4 py-2 rounded-lg border border-gray-200">
+              <span className="text-sm font-medium text-gray-700">
+                {selectedCitationIndex + 1} of {selectedPapers.length}
+              </span>
+            </div>
             <button
-              onClick={() => setSelectedCitationIndex(Math.min(validCitations.length - 1, selectedCitationIndex + 1))}
-              disabled={selectedCitationIndex === validCitations.length - 1}
-              className="px-3 py-1 bg-gray-100 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm"
+              onClick={() => setSelectedCitationIndex(Math.min(selectedPapers.length - 1, selectedCitationIndex + 1))}
+              disabled={selectedCitationIndex === selectedPapers.length - 1}
+              className="px-4 py-2 bg-blue-100 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-blue-700 transition-all duration-200"
             >
               Next →
             </button>
           </div>
         </div>
         
-        {/* Selected Citation Info */}
+        {/* Selected Paper Info */}
         <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
-          <h5 className="font-semibold text-gray-900 mb-2">{selectedCitation.title || 'Untitled'}</h5>
+          <h5 className="font-semibold text-gray-900 mb-2">{selectedPaper.title}</h5>
           <div className="text-sm text-gray-600 space-y-1">
-            <div><strong>Authors:</strong> {selectedCitation.authors || 'Unknown'}</div>
-            <div><strong>Year:</strong> {selectedCitation.year || 'Unknown'}</div>
-            <div><strong>Confidence:</strong> {Math.round(selectedCitation.confidence * 100)}%</div>
+            <div><strong>Authors:</strong> {selectedPaper.authors.join(', ')}</div>
+            <div><strong>Year:</strong> {selectedPaper.year}</div>
+            <div><strong>Similarity:</strong> {Math.round(selectedPaper.similarity)}%</div>
           </div>
         </div>
 
-        {/* Style Dropdown */}
+        {/* Style Buttons */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-2">Citation Style</label>
-          <select
-            value={selectedFormat}
-            onChange={(e) => setSelectedFormat(e.target.value as ReferenceFormat)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          >
+          <div className="flex flex-wrap gap-2">
             {formatOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label} - {option.description}
-              </option>
+              <button
+                key={option.value}
+                onClick={() => setSelectedFormat(option.value as ReferenceFormat)}
+                className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  selectedFormat === option.value
+                    ? 'bg-blue-500 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+                title={option.description}
+              >
+                {option.label}
+              </button>
             ))}
-          </select>
+          </div>
         </div>
 
         {/* Generated Citation */}
         <div className="bg-white rounded-lg p-4 border border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <h5 className="font-semibold text-gray-900">Generated Citation</h5>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
               <button
                 onClick={copyToClipboard}
-                className="inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
+                className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  copied 
+                    ? 'bg-green-100 text-green-700' 
+                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                }`}
               >
                 {copied ? (
                   <>
-                    <Check className="w-4 h-4 mr-1" />
+                    <Check className="w-4 h-4 mr-2" />
                     Copied!
                   </>
                 ) : (
                   <>
-                    <Copy className="w-4 h-4 mr-1" />
-                    Copy
+                    <Copy className="w-4 h-4 mr-2" />
+                    Copy Citation
                   </>
                 )}
               </button>
               <button
                 onClick={downloadReferences}
-                className="inline-flex items-center px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-colors"
+                className="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-all duration-200"
               >
-                <Download className="w-4 h-4 mr-1" />
+                <Download className="w-4 h-4 mr-2" />
                 Download
               </button>
             </div>

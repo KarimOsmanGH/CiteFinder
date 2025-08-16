@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import Footer from '@/components/Footer'
+import { Providers } from './providers'
 
 export const metadata: Metadata = {
   title: 'CiteFinder - Extract Citations & Find Related Papers | Free Academic Tool',
@@ -68,6 +69,13 @@ export const metadata: Metadata = {
     yandex: 'your-yandex-verification-code',
     yahoo: 'your-yahoo-verification-code',
   },
+  icons: {
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: 'any' }
+    ],
+    apple: '/apple-touch-icon.png',
+  }
 }
 
 export default function RootLayout({
@@ -78,6 +86,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
@@ -104,22 +113,17 @@ export default function RootLayout({
               },
               "author": {
                 "@type": "Organization",
-                "name": "CiteFinder Team"
-              },
-              "featureList": [
-                "PDF citation extraction",
-                "Academic database search",
-                "Related papers discovery",
-                "Free to use",
-                "No registration required"
-              ]
+                "name": "CiteFinder"
+              }
             })
           }}
         />
       </head>
-      <body className="font-sans">
-        {children}
-        <Footer />
+      <body className="antialiased">
+        <Providers>
+          {children}
+          <Footer />
+        </Providers>
       </body>
     </html>
   )

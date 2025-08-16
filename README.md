@@ -69,13 +69,79 @@ cd citefinder
 npm install
 ```
 
-3. **Run the development server:**
+3. **Set up environment variables:**
+```bash
+cp env.example .env.local
+```
+Then edit `.env.local` with your actual values (see Authentication Setup below).
+
+4. **Run the development server:**
 ```bash
 npm run dev
 ```
 
-4. **Open your browser:**
+5. **Open your browser:**
 Navigate to [http://localhost:3000](http://localhost:3000)
+
+## 🔐 Authentication Setup
+
+CiteFinder uses NextAuth.js with multiple authentication providers. Follow these steps to set up authentication:
+
+### 1. Supabase Setup
+1. Create a Supabase project at [supabase.com](https://supabase.com)
+2. Get your project URL and API keys from Settings > API
+3. Add them to your `.env.local`:
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+   ```
+
+### 2. OAuth Providers (Optional)
+#### Google OAuth
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project or select existing one
+3. Enable Google+ API
+4. Create OAuth 2.0 credentials
+5. Add authorized redirect URI: `http://localhost:3000/api/auth/callback/google`
+6. Add to `.env.local`:
+   ```
+   GOOGLE_CLIENT_ID=your-google-client-id
+   GOOGLE_CLIENT_SECRET=your-google-client-secret
+   ```
+
+#### GitHub OAuth
+1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
+2. Create a new OAuth App
+3. Set callback URL: `http://localhost:3000/api/auth/callback/github`
+4. Add to `.env.local`:
+   ```
+   GITHUB_ID=your-github-client-id
+   GITHUB_SECRET=your-github-client-secret
+   ```
+
+### 3. Email Provider (Optional)
+For passwordless email authentication:
+1. Set up SMTP credentials (Gmail, SendGrid, etc.)
+2. Add to `.env.local`:
+   ```
+   EMAIL_SERVER_HOST=smtp.gmail.com
+   EMAIL_SERVER_PORT=587
+   EMAIL_SERVER_USER=your-email@gmail.com
+   EMAIL_SERVER_PASSWORD=your-app-password
+   EMAIL_FROM=noreply@citefinder.app
+   ```
+
+### 4. NextAuth Secret
+Generate a secure random string for NextAuth:
+```bash
+openssl rand -base64 32
+```
+Add to `.env.local`:
+```
+NEXTAUTH_SECRET=your-generated-secret
+NEXTAUTH_URL=http://localhost:3000
+```
 
 ## 📖 How It Works
 

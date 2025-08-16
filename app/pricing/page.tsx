@@ -48,7 +48,7 @@ export default function PricingPage() {
               </div>
               <div className="flex items-center">
                 <Check className="w-5 h-5 text-green-500 mr-3" />
-                <span>Search across 4 academic databases</span>
+                <span>Search across academic databases</span>
               </div>
               <div className="flex items-center">
                 <Check className="w-5 h-5 text-green-500 mr-3" />

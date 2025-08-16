@@ -503,10 +503,10 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
     }
   }
 
-  // Sort by similarity score (highest first) and return top 15
+  // Sort by similarity score (highest first) and return top 3 for free users
   return allPapers
     .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, 15)
+    .slice(0, 3)
 }
 
 export async function POST(request: NextRequest) {

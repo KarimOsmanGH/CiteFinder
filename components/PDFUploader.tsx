@@ -32,7 +32,7 @@ export default function PDFUploader({ onFileUpload }: PDFUploaderProps) {
     <section className="w-full" aria-label="PDF Upload Interface">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-2xl p-16 text-center cursor-pointer transition-all duration-300 hover-lift ${
+        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 hover-lift ${
           isDragActive
             ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 shadow-glow'
             : 'border-gray-300 hover:border-blue-400 hover:bg-gradient-to-br from-gray-50 to-blue-50'
@@ -44,27 +44,27 @@ export default function PDFUploader({ onFileUpload }: PDFUploaderProps) {
         <input {...getInputProps()} aria-label="PDF file input" />
         
         <div className="flex flex-col items-center">
-          <div className="mb-6">
+          <div className="mb-4">
             {isDragActive ? (
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-glow" aria-hidden="true">
-                <Upload className="w-10 h-10 text-white" />
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-glow" aria-hidden="true">
+                <Upload className="w-8 h-8 text-white" />
               </div>
             ) : (
-              <div className="w-20 h-20 bg-gradient-to-br from-gray-400 to-gray-500 rounded-2xl flex items-center justify-center" aria-hidden="true">
-                <FileText className="w-10 h-10 text-white" />
+              <div className="w-16 h-16 bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl flex items-center justify-center" aria-hidden="true">
+                <FileText className="w-8 h-8 text-white" />
               </div>
             )}
           </div>
           
-          <h3 className="text-2xl font-bold text-gray-900 mb-3">
+          <h3 className="text-xl font-bold text-gray-900 mb-2">
             {isDragActive ? 'Drop your PDF here' : 'Upload your PDF'}
           </h3>
           
-          <p className="text-lg text-gray-600 mb-6 max-w-md">
+          <p className="text-base text-gray-600 mb-4 max-w-md">
             Drag and drop your PDF file here, or click to browse and select your research paper
           </p>
           
-          <div className="bg-white/50 backdrop-blur-sm rounded-xl p-6 w-full max-w-lg border border-white/20">
+          <div className="bg-white/50 backdrop-blur-sm rounded-lg p-4 w-full max-w-md border border-white/20">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm" role="list" aria-label="Upload features">
               <div className="text-center" role="listitem">
                 <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2" aria-hidden="true">
