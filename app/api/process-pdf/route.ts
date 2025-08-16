@@ -93,7 +93,7 @@ function extractStatements(text: string): string[] {
   const sentences = text
     .split(/[.!?]+/)
     .map(s => s.trim())
-    .filter(s => s.length > 30 && s.length < 500) // Better length filtering
+    .filter(s => s.length > 20 && s.length < 500) // Filter by length
   
   // Patterns that indicate claims or statements needing citations
   const claimPatterns = [
@@ -122,15 +122,13 @@ function extractStatements(text: string): string[] {
     // Check if sentence contains claim patterns
     for (const pattern of claimPatterns) {
       if (pattern.test(lowerSentence)) {
-        // Clean up the sentence and add it as a statement
+        // Use the complete sentence as-is, just clean up whitespace
         const cleanStatement = sentence
-          .replace(/^\s*[A-Z]\s*/, '') // Remove leading single letters
           .replace(/\s+/g, ' ') // Normalize whitespace
-          .replace(/^[^a-zA-Z]*/, '') // Remove leading non-letters
           .trim()
         
         // Ensure it's a complete, readable statement
-        if (cleanStatement.length > 40 && 
+        if (cleanStatement.length > 30 && 
             cleanStatement.length < 400 && 
             !statements.includes(cleanStatement) &&
             cleanStatement.includes(' ') && // Has multiple words
@@ -156,13 +154,12 @@ function extractStatements(text: string): string[] {
       
       for (const term of technicalTerms) {
         if (lowerSentence.includes(term)) {
+          // Use the complete sentence as-is, just clean up whitespace
           const cleanStatement = sentence
-            .replace(/^\s*[A-Z]\s*/, '')
             .replace(/\s+/g, ' ')
-            .replace(/^[^a-zA-Z]*/, '')
             .trim()
           
-          if (cleanStatement.length > 40 && 
+          if (cleanStatement.length > 30 && 
               cleanStatement.length < 400 && 
               !statements.includes(cleanStatement) &&
               cleanStatement.includes(' ') &&
