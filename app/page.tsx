@@ -118,7 +118,7 @@ export default function Home() {
             CiteFinder
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Transform your research workflow. Upload any PDF and instantly extract citations while discovering related papers from the world's largest academic databases. Generate a one-click references page for your research.
+            Upload any PDF and instantly extract citations while discovering related papers from the world's largest academic databases. Generate a one-click references page for your research.
           </p>
           
           {/* Feature highlights */}
