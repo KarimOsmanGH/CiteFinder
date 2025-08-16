@@ -34,6 +34,9 @@ interface ProcessResponse {
   pages: number
   pdfUrl?: string
   fileName?: string
+  topicsFound?: string[]
+  existingCitationsCount?: number
+  discoveredCitationsCount?: number
 }
 
 export default function Home() {
@@ -41,6 +44,9 @@ export default function Home() {
   const [relatedPapers, setRelatedPapers] = useState<RelatedPaper[]>([])
   const [pdfUrl, setPdfUrl] = useState<string>('')
   const [fileName, setFileName] = useState<string>('')
+  const [topicsFound, setTopicsFound] = useState<string[]>([])
+  const [existingCitationsCount, setExistingCitationsCount] = useState<number>(0)
+  const [discoveredCitationsCount, setDiscoveredCitationsCount] = useState<number>(0)
   const [isProcessing, setIsProcessing] = useState(false)
   const [currentStep, setCurrentStep] = useState<'upload' | 'processing' | 'results'>('upload')
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
@@ -67,6 +73,9 @@ export default function Home() {
       const data: ProcessResponse = await response.json()
       setCitations(data.citations)
       setRelatedPapers(data.relatedPapers)
+      setTopicsFound(data.topicsFound || [])
+      setExistingCitationsCount(data.existingCitationsCount || 0)
+      setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
       setPdfUrl(data.pdfUrl || '')
       setFileName(data.fileName || '')
       setCurrentStep('results')
@@ -112,6 +121,9 @@ export default function Home() {
       console.log('Text processing successful, citations found:', data.citations.length)
       setCitations(data.citations)
       setRelatedPapers(data.relatedPapers)
+      setTopicsFound(data.topicsFound || [])
+      setExistingCitationsCount(data.existingCitationsCount || 0)
+      setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
       setPdfUrl('')
       setFileName('')
       setCurrentStep('results')
@@ -142,6 +154,7 @@ export default function Home() {
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-3">
                 <FileText className="w-6 h-6 text-white" />
               </div>
+              <span className="text-xl font-bold text-gray-900">CiteFinder</span>
             </div>
             
             {/* Menu Items */}
@@ -175,15 +188,9 @@ export default function Home() {
 
         {/* Header */}
         <header className="text-center mb-16 animate-fade-in-up">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-glow mb-6" role="img" aria-label="CiteFinder Logo">
-            <FileText className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-5xl font-bold gradient-text mb-6">
-            CiteFinder
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold gradient-text mb-8 leading-tight">
+            Extract citations from PDF papers and discover related academic papers from the world's largest databases. Get instant citation analysis and generate a reference page.
           </h1>
-                                <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                        Extract citations from PDF papers and discover related academic papers from the world's largest databases. Get instant citation analysis and generate a reference page.
-                      </p>
           
           {/* Feature highlights */}
                                 <section className="flex justify-center items-center space-x-4 mt-8" aria-label="Key Features">
@@ -326,7 +333,13 @@ export default function Home() {
                     <p className="text-gray-600">{citations.length} citations extracted from your {searchMode === 'pdf' ? 'PDF' : 'text'}</p>
                   </div>
                 </header>
-                <CitationList citations={citations} searchMode={searchMode} />
+                <CitationList 
+                  citations={citations} 
+                  searchMode={searchMode}
+                  topicsFound={topicsFound}
+                  existingCitationsCount={existingCitationsCount}
+                  discoveredCitationsCount={discoveredCitationsCount}
+                />
               </article>
 
               {/* Related Papers Section */}
@@ -361,49 +374,7 @@ export default function Home() {
                             <ReferencesGenerator citations={citations} />
                           </article>
 
-                          {/* Stored PDF Information */}
-                          {pdfUrl && (
-                            <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                              <header className="flex items-center mb-8">
-                                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                                  <FileText className="w-6 h-6 text-white" />
-                                </div>
-                                <div>
-                                  <h2 className="text-3xl font-bold text-gray-900">
-                                    Stored PDF
-                                  </h2>
-                                  <p className="text-gray-600">Your PDF has been securely stored and is available for future access</p>
-                                </div>
-                              </header>
-                              
-                              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-6 border border-white/30">
-                                <div className="flex items-center justify-between mb-4">
-                                  <div>
-                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                      {fileName || 'Uploaded PDF'}
-                                    </h3>
-                                    <p className="text-sm text-gray-600">
-                                      Stored securely in Vercel Blob storage
-                                    </p>
-                                  </div>
-                                  <a
-                                    href={pdfUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-4 py-2 rounded-lg transition-all duration-300 hover-lift"
-                                  >
-                                    View PDF
-                                  </a>
-                                </div>
-                                
-                                <div className="bg-gray-50 rounded-lg p-3">
-                                  <p className="text-sm text-gray-600 font-mono break-all">
-                                    {pdfUrl}
-                                  </p>
-                                </div>
-                              </div>
-                            </article>
-                          )}
+
 
                           {/* Upload Another Button */}
                           <footer className="text-center">

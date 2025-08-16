@@ -84,6 +84,107 @@ function extractTitle(text: string): string | undefined {
   return undefined
 }
 
+// Extract key topics from text for intelligent paper discovery
+function extractKeyTopics(text: string): string[] {
+  // Extract key phrases and concepts that likely have academic papers
+  const topics: string[] = []
+  
+  // Common academic keywords and phrases
+  const academicKeywords = [
+    'sensors', 'imaging', 'spectral', 'thermal', 'multispectral', 'hyperspectral',
+    'monitoring', 'detection', 'analysis', 'assessment', 'evaluation',
+    'technology', 'methodology', 'technique', 'approach', 'system',
+    'application', 'implementation', 'development', 'research', 'study',
+    'investigation', 'examination', 'characterization', 'optimization',
+    'performance', 'efficiency', 'accuracy', 'precision', 'reliability',
+    'validation', 'verification', 'calibration', 'calibration'
+  ]
+  
+  // Extract sentences and phrases containing academic keywords
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10)
+  
+  for (const sentence of sentences) {
+    const lowerSentence = sentence.toLowerCase()
+    
+    // Check if sentence contains academic keywords
+    for (const keyword of academicKeywords) {
+      if (lowerSentence.includes(keyword)) {
+        // Extract the full phrase around the keyword
+        const keywordIndex = lowerSentence.indexOf(keyword)
+        const start = Math.max(0, keywordIndex - 50)
+        const end = Math.min(sentence.length, keywordIndex + keyword.length + 50)
+        const phrase = sentence.substring(start, end).trim()
+        
+        if (phrase.length > 20 && !topics.includes(phrase)) {
+          topics.push(phrase)
+        }
+      }
+    }
+  }
+  
+  // If no specific topics found, use the main themes from the text
+  if (topics.length === 0) {
+    const words = text.toLowerCase().split(/\s+/)
+    const wordFreq: { [key: string]: number } = {}
+    
+    words.forEach(word => {
+      if (word.length > 4 && !['with', 'that', 'this', 'they', 'have', 'been', 'from', 'their'].includes(word)) {
+        wordFreq[word] = (wordFreq[word] || 0) + 1
+      }
+    })
+    
+    const topWords = Object.entries(wordFreq)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 5)
+      .map(([word]) => word)
+    
+    topics.push(...topWords)
+  }
+  
+  return topics.slice(0, 10) // Limit to 10 topics
+}
+
+// Find related papers from extracted topics
+async function findRelatedPapersFromTopics(topics: string[]): Promise<Citation[]> {
+  const citations: Citation[] = []
+  let idCounter = 1
+  
+  for (const topic of topics) {
+    try {
+      // Search across all databases for each topic
+      const arxivResults = await searchArxiv(topic)
+      const openAlexResults = await searchOpenAlex(topic)
+      const crossRefResults = await searchCrossRef(topic)
+      const pubmedResults = await searchPubMed(topic)
+      
+      // Combine and deduplicate results
+      const allResults = [...arxivResults, ...openAlexResults, ...crossRefResults, ...pubmedResults]
+      const uniqueResults = allResults.filter((result, index, self) => 
+        index === self.findIndex(r => r.title === result.title)
+      )
+      
+      // Convert to citations with high confidence for content-based discovery
+      for (const result of uniqueResults.slice(0, 3)) { // Top 3 results per topic
+        const authors = result.authors.join(', ')
+        const year = result.year
+        
+        citations.push({
+          id: `discovered-${idCounter++}`,
+          text: `${authors} (${year}). ${result.title}.`,
+          authors,
+          year,
+          title: result.title,
+          confidence: 0.85 // High confidence for discovered papers
+        })
+      }
+    } catch (error) {
+      console.error(`Error searching for topic "${topic}":`, error)
+    }
+  }
+  
+  return citations
+}
+
 // Extract citations from text
 function extractCitations(text: string): Citation[] {
   const citations: Citation[] = []
@@ -426,19 +527,29 @@ export async function POST(request: NextRequest) {
     const pdfData = await pdf(buffer)
     const text = pdfData.text
     
-    // Extract citations
-    const citations = extractCitations(text)
+    // First, try to extract existing citations
+    const existingCitations = extractCitations(text)
     
-    // Search for related papers
-    const relatedPapers = await searchRelatedPapers(citations)
+    // Then, analyze content and find related papers
+    const keyTopics = extractKeyTopics(text)
+    const discoveredCitations = await findRelatedPapersFromTopics(keyTopics)
+    
+    // Combine both types of citations
+    const allCitations = [...existingCitations, ...discoveredCitations]
+    
+    // Get related papers for all citations
+    const relatedPapers = await searchRelatedPapers(allCitations)
     
     return NextResponse.json({
-      citations,
+      citations: allCitations,
       relatedPapers,
       textLength: text.length,
       pages: pdfData.numpages,
       pdfUrl, // Return the stored PDF URL
-      fileName: file.name
+      fileName: file.name,
+      topicsFound: keyTopics,
+      existingCitationsCount: existingCitations.length,
+      discoveredCitationsCount: discoveredCitations.length
     })
     
   } catch (error) {
