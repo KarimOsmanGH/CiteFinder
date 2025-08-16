@@ -27,9 +27,20 @@ interface RelatedPaper {
   similarity: number
 }
 
+interface ProcessResponse {
+  citations: Citation[]
+  relatedPapers: RelatedPaper[]
+  textLength: number
+  pages: number
+  pdfUrl?: string
+  fileName?: string
+}
+
 export default function Home() {
   const [citations, setCitations] = useState<Citation[]>([])
   const [relatedPapers, setRelatedPapers] = useState<RelatedPaper[]>([])
+  const [pdfUrl, setPdfUrl] = useState<string>('')
+  const [fileName, setFileName] = useState<string>('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [currentStep, setCurrentStep] = useState<'upload' | 'processing' | 'results'>('upload')
 
@@ -50,9 +61,11 @@ export default function Home() {
         throw new Error('Failed to process PDF')
       }
 
-      const data = await response.json()
+      const data: ProcessResponse = await response.json()
       setCitations(data.citations)
       setRelatedPapers(data.relatedPapers)
+      setPdfUrl(data.pdfUrl || '')
+      setFileName(data.fileName || '')
       setCurrentStep('results')
     } catch (error) {
       console.error('Error processing PDF:', error)
@@ -200,23 +213,67 @@ export default function Home() {
               </article>
 
               {/* References Generator Section */}
-              <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                <header className="flex items-center mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                    <FileText className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-gray-900">
-                      References Generator
-                    </h2>
-                    <p className="text-gray-600">Generate formatted references from your extracted citations</p>
-                  </div>
-                </header>
-                <ReferencesGenerator citations={citations} />
-              </article>
+                                        <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                            <header className="flex items-center mb-8">
+                              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                                <FileText className="w-6 h-6 text-white" />
+                              </div>
+                              <div>
+                                <h2 className="text-3xl font-bold text-gray-900">
+                                  References Generator
+                                </h2>
+                                <p className="text-gray-600">Generate formatted references from your extracted citations</p>
+                              </div>
+                            </header>
+                            <ReferencesGenerator citations={citations} />
+                          </article>
 
-              {/* Upload Another Button */}
-              <footer className="text-center">
+                          {/* Stored PDF Information */}
+                          {pdfUrl && (
+                            <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                              <header className="flex items-center mb-8">
+                                <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                                  <FileText className="w-6 h-6 text-white" />
+                                </div>
+                                <div>
+                                  <h2 className="text-3xl font-bold text-gray-900">
+                                    Stored PDF
+                                  </h2>
+                                  <p className="text-gray-600">Your PDF has been securely stored and is available for future access</p>
+                                </div>
+                              </header>
+                              
+                              <div className="bg-white/50 backdrop-blur-sm rounded-xl p-6 border border-white/30">
+                                <div className="flex items-center justify-between mb-4">
+                                  <div>
+                                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                                      {fileName || 'Uploaded PDF'}
+                                    </h3>
+                                    <p className="text-sm text-gray-600">
+                                      Stored securely in Vercel Blob storage
+                                    </p>
+                                  </div>
+                                  <a
+                                    href={pdfUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold px-4 py-2 rounded-lg transition-all duration-300 hover-lift"
+                                  >
+                                    View PDF
+                                  </a>
+                                </div>
+                                
+                                <div className="bg-gray-50 rounded-lg p-3">
+                                  <p className="text-sm text-gray-600 font-mono break-all">
+                                    {pdfUrl}
+                                  </p>
+                                </div>
+                              </div>
+                            </article>
+                          )}
+
+                          {/* Upload Another Button */}
+                          <footer className="text-center">
                 <button
                   onClick={() => setCurrentStep('upload')}
                   className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover-lift shadow-glow"

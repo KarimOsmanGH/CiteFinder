@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile } from 'fs/promises'
-import { join } from 'path'
-import { tmpdir } from 'os'
+import { put } from '@vercel/blob'
 import pdf from 'pdf-parse'
 import axios from 'axios'
 
@@ -396,12 +394,33 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    if (file.type !== 'application/pdf') {
+      return NextResponse.json(
+        { error: 'Only PDF files are allowed' },
+        { status: 400 }
+      )
+    }
+
+    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      return NextResponse.json(
+        { error: 'File size must be less than 50MB' },
+        { status: 400 }
+      )
+    }
     
-    // Save file to temp directory
+    // Convert file to buffer
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
-    const tempPath = join(tmpdir(), `pdf-${Date.now()}.pdf`)
-    await writeFile(tempPath, buffer)
+
+    // Store PDF in Vercel Blob storage
+    const timestamp = Date.now()
+    const fileName = `pdfs/${timestamp}-${file.name}`
+    
+    const { url: pdfUrl } = await put(fileName, buffer, {
+      access: 'public',
+      contentType: 'application/pdf'
+    })
     
     // Parse PDF
     const pdfData = await pdf(buffer)
@@ -417,7 +436,9 @@ export async function POST(request: NextRequest) {
       citations,
       relatedPapers,
       textLength: text.length,
-      pages: pdfData.numpages
+      pages: pdfData.numpages,
+      pdfUrl, // Return the stored PDF URL
+      fileName: file.name
     })
     
   } catch (error) {
