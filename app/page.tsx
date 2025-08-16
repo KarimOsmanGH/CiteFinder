@@ -122,24 +122,20 @@ export default function Home() {
           </p>
           
           {/* Feature highlights */}
-          <section className="flex justify-center items-center space-x-4 mt-8" aria-label="Key Features">
-            <div className="inline-flex items-center px-3 py-1 rounded-full border border-green-200 bg-green-50 text-green-700 text-sm font-medium">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2" aria-hidden="true"></div>
-              <span>Free & No Signup</span>
-            </div>
-            <div className="inline-flex items-center px-3 py-1 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-sm font-medium">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2" aria-hidden="true"></div>
-              <span>4 Academic Databases</span>
-            </div>
-            <div className="inline-flex items-center px-3 py-1 rounded-full border border-purple-200 bg-purple-50 text-purple-700 text-sm font-medium">
-              <div className="w-2 h-2 bg-purple-500 rounded-full mr-2" aria-hidden="true"></div>
-              <span>Instant Results</span>
-            </div>
-            <div className="inline-flex items-center px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-sm font-medium">
-              <div className="w-2 h-2 bg-orange-500 rounded-full mr-2" aria-hidden="true"></div>
-              <span>References Generator</span>
-            </div>
-          </section>
+                                <section className="flex justify-center items-center space-x-4 mt-8" aria-label="Key Features">
+                        <div className="inline-flex items-center px-3 py-1 rounded-full border border-green-200 bg-green-50 text-green-700 text-sm font-medium">
+                          <div className="w-2 h-2 bg-green-500 rounded-full mr-2" aria-hidden="true"></div>
+                          <span>Free & No Signup</span>
+                        </div>
+                        <div className="inline-flex items-center px-3 py-1 rounded-full border border-purple-200 bg-purple-50 text-purple-700 text-sm font-medium">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full mr-2" aria-hidden="true"></div>
+                          <span>Instant Results</span>
+                        </div>
+                        <div className="inline-flex items-center px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-sm font-medium">
+                          <div className="w-2 h-2 bg-orange-500 rounded-full mr-2" aria-hidden="true"></div>
+                          <span>References Generator</span>
+                        </div>
+                      </section>
         </header>
 
         {/* Main Content */}
