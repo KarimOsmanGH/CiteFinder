@@ -185,7 +185,13 @@ function extractStatements(text: string): string[] {
     return aScore - bScore
   })
   
-  return statements.slice(0, 6) // Limit to 6 statements for better quality
+  const finalStatements = statements.slice(0, 6) // Limit to 6 statements for better quality
+  
+  // Debug logging
+  console.log('Final statements to return:', finalStatements)
+  console.log('Number of statements:', finalStatements.length)
+  
+  return finalStatements
 }
 
 // Find related papers from extracted statements

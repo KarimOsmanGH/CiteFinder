@@ -80,9 +80,11 @@ export default function CitationList({
               >
                 <div className="flex items-start">
                   <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                  <p className="text-sm text-blue-900 leading-relaxed">
-                    {statement}
-                  </p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-blue-900 leading-relaxed break-words whitespace-normal">
+                      {statement}
+                    </p>
+                  </div>
                 </div>
               </div>
             ))}
