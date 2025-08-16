@@ -31,7 +31,9 @@ export default function RelatedPapers({ papers }: RelatedPapersProps) {
 
   return (
     <div className="space-y-6">
-      {papers.map((paper, index) => (
+      {papers.map((paper, index) => {
+        console.log(`Rendering paper: ${paper.title}, URL: ${paper.url}`);
+        return (
         <div
           key={paper.id}
           className="bg-white/70 backdrop-blur-sm border border-white/30 rounded-xl p-6 hover-lift transition-all duration-300 animate-slide-in-right"
@@ -103,22 +105,24 @@ export default function RelatedPapers({ papers }: RelatedPapersProps) {
             
             <div className="flex items-center space-x-2">
               {/* Primary link */}
-              <a
-                href={paper.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover-lift"
-                title={`Open: ${paper.url}`}
-              >
-                {paper.url.includes('doi.org') ? 'DOI Link' :
-                 paper.url.includes('arxiv.org') ? 'arXiv Abstract' :
-                 paper.url.includes('pubmed') ? 'PubMed' :
-                 'View Paper'}
-                <ExternalLink className="w-4 h-4 ml-2" />
-              </a>
+              {paper.url && paper.url !== '#' && (
+                <a
+                  href={paper.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover-lift"
+                  title={`Open: ${paper.url}`}
+                >
+                  {paper.url.includes('doi.org') ? 'DOI Link' :
+                   paper.url.includes('arxiv.org') ? 'arXiv Abstract' :
+                   paper.url.includes('pubmed') ? 'PubMed' :
+                   'View Paper'}
+                  <ExternalLink className="w-4 h-4 ml-2" />
+                </a>
+              )}
               
               {/* Additional source links based on paper type */}
-              {paper.url.includes('doi.org') && (
+              {paper.url && paper.url !== '#' && paper.url.includes('doi.org') && (
                 <a
                   href={paper.url.replace('https://doi.org/', 'https://scholar.google.com/scholar?q=')}
                   target="_blank"
@@ -130,7 +134,7 @@ export default function RelatedPapers({ papers }: RelatedPapersProps) {
                 </a>
               )}
               
-              {paper.url.includes('arxiv.org') && (
+              {paper.url && paper.url !== '#' && paper.url.includes('arxiv.org') && (
                 <a
                   href={paper.url.replace('/abs/', '/pdf/')}
                   target="_blank"
@@ -144,7 +148,7 @@ export default function RelatedPapers({ papers }: RelatedPapersProps) {
             </div>
           </div>
         </div>
-      ))}
+      )})}
     </div>
   )
 } 

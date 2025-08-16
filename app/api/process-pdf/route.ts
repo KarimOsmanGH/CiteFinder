@@ -372,7 +372,7 @@ async function searchOpenAlex(searchQuery: string): Promise<RelatedPaper[]> {
         authors,
         year,
         abstract: abstract.length > 200 ? abstract.substring(0, 200) + '...' : abstract,
-        url: work.doi ? `https://doi.org/${work.doi}` : work.openalex_url || '#',
+        url: work.doi ? `https://doi.org/${work.doi}` : work.openalex_url || work.url || 'https://openalex.org',
         similarity: 0.7 + Math.random() * 0.3
       });
     }
@@ -415,7 +415,7 @@ async function searchCrossRef(searchQuery: string): Promise<RelatedPaper[]> {
         authors,
         year,
         abstract: abstract.length > 200 ? abstract.substring(0, 200) + '...' : abstract,
-        url: item.DOI ? `https://doi.org/${item.DOI}` : '#',
+        url: item.DOI ? `https://doi.org/${item.DOI}` : item.URL || 'https://crossref.org',
         similarity: 0.6 + Math.random() * 0.4
       });
     }
@@ -563,6 +563,11 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
           // Calculate actual similarity score
           const similarityScore = calculateSimilarityScore(searchQuery, paper);
           paper.similarity = similarityScore;
+          
+          // Debug logging
+          console.log(`Paper: ${paper.title}`);
+          console.log(`URL: ${paper.url}`);
+          console.log(`Similarity: ${similarityScore}%`);
           
           allPapers.push(paper);
         }
