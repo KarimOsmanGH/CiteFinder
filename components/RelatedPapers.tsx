@@ -123,15 +123,26 @@ export default function RelatedPapers({ papers }: RelatedPapersProps) {
               
               {/* Additional source links based on paper type */}
               {paper.url && paper.url !== '#' && paper.url.includes('doi.org') && (
-                <a
-                  href={paper.url.replace('https://doi.org/', 'https://scholar.google.com/scholar?q=')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center bg-gray-100 text-gray-700 font-medium px-3 py-2 rounded-lg hover:bg-gray-200 transition-all duration-300 text-sm"
-                  title="Search on Google Scholar"
-                >
-                  Scholar
-                </a>
+                <>
+                  <a
+                    href={paper.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center bg-green-100 text-green-700 font-medium px-3 py-2 rounded-lg hover:bg-green-200 transition-all duration-300 text-sm"
+                    title="Open DOI Link"
+                  >
+                    DOI
+                  </a>
+                  <a
+                    href={paper.url.replace('https://doi.org/', 'https://scholar.google.com/scholar?q=')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center bg-gray-100 text-gray-700 font-medium px-3 py-2 rounded-lg hover:bg-gray-200 transition-all duration-300 text-sm"
+                    title="Search on Google Scholar"
+                  >
+                    Scholar
+                  </a>
+                </>
               )}
               
               {paper.url && paper.url !== '#' && paper.url.includes('arxiv.org') && (
