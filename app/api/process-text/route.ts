@@ -109,10 +109,15 @@ function extractStatements(text: string): string[] {
     // Check if sentence contains claim patterns
     for (const pattern of claimPatterns) {
       if (pattern.test(lowerSentence)) {
-        // Use the complete sentence as-is, just clean up whitespace
-        const cleanStatement = sentence
+        // Use the complete sentence as-is, just clean up whitespace and ensure it ends with a period
+        let cleanStatement = sentence
           .replace(/\s+/g, ' ') // Normalize whitespace
           .trim()
+        
+        // Ensure it ends with a period
+        if (!cleanStatement.endsWith('.') && !cleanStatement.endsWith('!') && !cleanStatement.endsWith('?')) {
+          cleanStatement += '.'
+        }
         
         // Ensure it's a complete, readable statement
         if (cleanStatement.length > 30 && 
@@ -141,10 +146,15 @@ function extractStatements(text: string): string[] {
       
       for (const term of technicalTerms) {
         if (lowerSentence.includes(term)) {
-          // Use the complete sentence as-is, just clean up whitespace
-          const cleanStatement = sentence
+          // Use the complete sentence as-is, just clean up whitespace and ensure it ends with a period
+          let cleanStatement = sentence
             .replace(/\s+/g, ' ')
             .trim()
+          
+          // Ensure it ends with a period
+          if (!cleanStatement.endsWith('.') && !cleanStatement.endsWith('!') && !cleanStatement.endsWith('?')) {
+            cleanStatement += '.'
+          }
           
           if (cleanStatement.length > 30 && 
               cleanStatement.length < 400 && 
@@ -169,7 +179,11 @@ function extractStatements(text: string): string[] {
     return aScore - bScore
   })
   
-  return statements.slice(0, 6) // Limit to 6 statements for better quality
+  // Remove duplicates and limit to 6 statements
+  const uniqueStatements = [...new Set(statements)]
+  const finalStatements = uniqueStatements.slice(0, 6) // Limit to 6 statements for better quality
+  
+  return finalStatements
 }
 
 // Find related papers from extracted statements
