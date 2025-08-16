@@ -61,7 +61,7 @@ export default function Home() {
   const [searchMode, setSearchMode] = useState<'pdf' | 'text'>('pdf')
   
   // Usage tracking
-  const { sessionId, canUseService } = useUsage()
+  const { sessionId, canUseService, subscriptionPlan, isAuthenticated } = useUsage()
   const [hasInteracted, setHasInteracted] = useState(false)
 
   const handleFileUpload = async (file: File) => {
@@ -71,7 +71,7 @@ export default function Home() {
     // Check usage limit first
     const canUse = await canUseService('pdf_upload')
     if (!canUse) {
-      alert('Usage limit exceeded. Anonymous users get 1 citation per 24 hours. Please sign up for unlimited access.')
+              alert('Usage limit exceeded. Anonymous users get 3 citations per 24 hours. Please sign up for unlimited access.')
       return
     }
 
@@ -330,7 +330,11 @@ export default function Home() {
                 <div className="glass rounded-2xl shadow-soft p-4 hover-lift animate-fade-in max-w-2xl mx-auto">
                   <PDFUploader onFileUpload={handleFileUpload} />
                   {/* Usage Limit Banner */}
-                  <UsageLimit sessionId={sessionId} />
+                  <UsageLimit 
+                    sessionId={sessionId} 
+                    isAuthenticated={isAuthenticated}
+                    subscriptionPlan={subscriptionPlan}
+                  />
                 </div>
               )}
 
@@ -338,8 +342,8 @@ export default function Home() {
               {searchMode === 'text' && (
                 <div className="glass rounded-2xl shadow-soft p-8 hover-lift animate-fade-in">
                   <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Enter Text with Citations</h3>
-                    <p className="text-gray-600">Paste text containing citations to extract and find related papers</p>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Enter Your Text</h3>
+                    <p className="text-gray-600">Paste your content and our AI will identify statements that need academic backing, then find sources to support them</p>
                   </div>
                   <div className="space-y-4">
                     <textarea
@@ -477,7 +481,7 @@ export default function Home() {
                 <div className="space-y-4 mb-8">
                   <div className="flex items-center">
                     <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">1 citation per 24 hours</span>
+                    <span className="text-gray-700">3 citations per 24 hours</span>
                   </div>
                   <div className="flex items-center">
                     <span className="text-blue-500 mr-3">✅</span>

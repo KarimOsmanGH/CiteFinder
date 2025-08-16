@@ -2,8 +2,8 @@
 
 ## Overview
 This implementation adds usage limits to CiteFinder:
-- **Anonymous users**: 1 citation per 24 hours
-- **Registered users**: 1 citation per 24 hours (free plan)
+- **Anonymous users**: 3 citations per 24 hours
+- **Registered users**: 3 citations per 24 hours (free plan)
 - **Premium users**: Unlimited citations ($15/month)
 
 ## Setup Instructions
@@ -52,9 +52,9 @@ SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 - `handle_new_user()` - Creates user profile on signup
 
 ### 5. Usage Limits by Action
-- **PDF Upload**: 1 per 24 hours (anonymous/free)
-- **Text Processing**: 1 per 24 hours (anonymous/free)
-- **Citation Generation**: 1 per 24 hours (anonymous/free)
+- **PDF Upload**: 3 per 24 hours (anonymous/free)
+- **Text Processing**: 3 per 24 hours (anonymous/free)
+- **Citation Generation**: 3 per 24 hours (anonymous/free)
 
 ### 6. Next Steps
 1. **Authentication**: Implement user signup/login

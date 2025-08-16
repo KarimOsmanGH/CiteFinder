@@ -3,11 +3,13 @@ import { useSession } from 'next-auth/react'
 
 export function useUsage() {
   const [sessionId, setSessionId] = useState<string>('')
-  const [usageLimit, setUsageLimit] = useState<number>(1)
+  const [usageLimit, setUsageLimit] = useState<number>(3)
   const [usageCount, setUsageCount] = useState<number>(0)
   const [isLoading, setIsLoading] = useState(false)
+  const [subscriptionPlan, setSubscriptionPlan] = useState<'anonymous' | 'free' | 'premium'>('anonymous')
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
 
-  // Generate session ID for anonymous users
+  // Generate session ID for anonymous users and fetch subscription status
   useEffect(() => {
     if (!sessionId) {
       const storedSessionId = localStorage.getItem('citefinder_session_id')
@@ -19,6 +21,24 @@ export function useUsage() {
         setSessionId(newSessionId)
       }
     }
+
+    // Fetch subscription status
+    const fetchSubscriptionStatus = async () => {
+      try {
+        const response = await fetch('/api/user/subscription-status')
+        if (response.ok) {
+          const data = await response.json()
+          setIsAuthenticated(data.isAuthenticated)
+          setSubscriptionPlan(data.subscriptionPlan)
+          setUsageLimit(data.usageLimit)
+          setUsageCount(data.usageCount)
+        }
+      } catch (error) {
+        console.error('Error fetching subscription status:', error)
+      }
+    }
+
+    fetchSubscriptionStatus()
   }, [sessionId])
 
   const checkUsage = async (action: 'pdf_upload' | 'text_process' | 'citation_generate') => {
@@ -101,6 +121,8 @@ export function useUsage() {
     usageLimit,
     usageCount,
     isLoading,
+    subscriptionPlan,
+    isAuthenticated,
     checkUsage,
     logUsage,
     canUseService

@@ -97,14 +97,14 @@ BEGIN
   is_anonymous := p_user_id IS NULL;
   
   IF is_anonymous THEN
-    -- For anonymous users: 1 citation per 24 hours
+    -- For anonymous users: 3 citations per 24 hours
     SELECT COUNT(*) INTO usage_count
     FROM public.usage_logs
     WHERE session_id = p_session_id
       AND action = 'citation_generate'
       AND timestamp > NOW() - INTERVAL '24 hours';
     
-    RETURN usage_count < 1;
+    RETURN usage_count < 3;
   ELSE
     -- For registered users: check subscription
     SELECT * INTO user_subscription
@@ -114,14 +114,14 @@ BEGIN
     IF user_subscription.plan = 'premium' AND user_subscription.status = 'active' THEN
       RETURN TRUE; -- Unlimited for premium users
     ELSE
-      -- Free users: 1 citation per 24 hours
+      -- Free users: 3 citations per 24 hours
       SELECT COUNT(*) INTO usage_count
       FROM public.usage_logs
       WHERE user_id = p_user_id
         AND action = 'citation_generate'
         AND timestamp > NOW() - INTERVAL '24 hours';
       
-      RETURN usage_count < 1;
+      RETURN usage_count < 3;
     END IF;
   END IF;
 END;
