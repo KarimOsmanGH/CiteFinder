@@ -74,22 +74,22 @@ export default function Home() {
       <div className="relative container mx-auto px-4 py-12">
         {/* Navigation */}
         <nav className="flex justify-end mb-8">
-          <div className="flex space-x-4">
+          <div className="flex space-x-3">
             <Link 
               href="/pricing" 
-              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              className="px-4 py-2 bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-700 hover:text-gray-900 font-medium rounded-lg border border-white/30 hover:border-white/50 transition-all duration-200 hover:shadow-md"
             >
               Pricing
             </Link>
             <Link 
               href="/faq" 
-              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              className="px-4 py-2 bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-700 hover:text-gray-900 font-medium rounded-lg border border-white/30 hover:border-white/50 transition-all duration-200 hover:shadow-md"
             >
               FAQ
             </Link>
             <Link 
               href="/contact" 
-              className="text-gray-600 hover:text-gray-900 font-medium transition-colors"
+              className="px-4 py-2 bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-700 hover:text-gray-900 font-medium rounded-lg border border-white/30 hover:border-white/50 transition-all duration-200 hover:shadow-md"
             >
               Contact
             </Link>

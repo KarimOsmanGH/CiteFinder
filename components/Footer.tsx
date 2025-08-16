@@ -65,17 +65,17 @@ export default function Footer() {
             <h4 className="text-lg font-semibold">Product</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/" className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm">
                   Home
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/pricing" className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm">
                   Pricing
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/faq" className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm">
                   FAQ
                 </Link>
               </li>
@@ -84,7 +84,7 @@ export default function Footer() {
                   href="https://github.com/KarimOsmanGH/CiteFinder" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-white transition-colors flex items-center"
+                  className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm flex items-center"
                 >
                   GitHub
                   <ExternalLink className="w-3 h-3 ml-1" />
@@ -98,19 +98,19 @@ export default function Footer() {
             <h4 className="text-lg font-semibold">Support</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/contact" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/contact" className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/faq" className="text-gray-300 hover:text-white transition-colors">
+                <Link href="/faq" className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm">
                   Help Center
                 </Link>
               </li>
               <li>
                 <a 
                   href="mailto:support@citefinder.app" 
-                  className="text-gray-300 hover:text-white transition-colors"
+                  className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm"
                 >
                   Email Support
                 </a>
@@ -120,7 +120,7 @@ export default function Footer() {
                   href="https://github.com/KarimOsmanGH/CiteFinder/issues" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-white transition-colors flex items-center"
+                  className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm flex items-center"
                 >
                   Report Issues
                   <ExternalLink className="w-3 h-3 ml-1" />
@@ -138,7 +138,7 @@ export default function Footer() {
                   href="https://arxiv.org" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-white transition-colors flex items-center"
+                  className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm flex items-center"
                 >
                   arXiv
                   <ExternalLink className="w-3 h-3 ml-1" />
@@ -149,7 +149,7 @@ export default function Footer() {
                   href="https://openalex.org" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-white transition-colors flex items-center"
+                  className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm flex items-center"
                 >
                   OpenAlex
                   <ExternalLink className="w-3 h-3 ml-1" />
@@ -160,7 +160,7 @@ export default function Footer() {
                   href="https://crossref.org" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-white transition-colors flex items-center"
+                  className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm flex items-center"
                 >
                   CrossRef
                   <ExternalLink className="w-3 h-3 ml-1" />
@@ -171,7 +171,7 @@ export default function Footer() {
                   href="https://pubmed.ncbi.nlm.nih.gov" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="text-gray-300 hover:text-white transition-colors flex items-center"
+                  className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm flex items-center"
                 >
                   PubMed
                   <ExternalLink className="w-3 h-3 ml-1" />
@@ -192,14 +192,14 @@ export default function Footer() {
             </div>
 
             {/* Legal Links */}
-            <div className="flex items-center space-x-6">
-              <Link href="/privacy" className="text-gray-400 hover:text-white transition-colors text-sm">
+            <div className="flex items-center space-x-4">
+              <Link href="/privacy" className="px-3 py-1.5 bg-gray-800/30 hover:bg-gray-700/30 text-gray-400 hover:text-white transition-all duration-200 text-sm rounded-md">
                 Privacy Policy
               </Link>
-              <Link href="/terms" className="text-gray-400 hover:text-white transition-colors text-sm">
+              <Link href="/terms" className="px-3 py-1.5 bg-gray-800/30 hover:bg-gray-700/30 text-gray-400 hover:text-white transition-all duration-200 text-sm rounded-md">
                 Terms of Service
               </Link>
-              <Link href="/cookies" className="text-gray-400 hover:text-white transition-colors text-sm">
+              <Link href="/cookies" className="px-3 py-1.5 bg-gray-800/30 hover:bg-gray-700/30 text-gray-400 hover:text-white transition-all duration-200 text-sm rounded-md">
                 Cookie Policy
               </Link>
             </div>
