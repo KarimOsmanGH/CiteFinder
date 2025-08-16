@@ -93,12 +93,10 @@ export default function UsageLimit({
             3 citations per 24 hours • Upgrade for unlimited access
           </p>
           
-          <div className="bg-white/50 backdrop-blur-sm rounded-lg p-4 w-full max-w-md border border-white/20">
-            <div className="flex justify-center">
-              <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-glow">
-                Upgrade to Premium
-              </button>
-            </div>
+          <div className="flex justify-center">
+            <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-glow">
+              Upgrade to Premium
+            </button>
           </div>
         </div>
       </div>
@@ -115,12 +113,10 @@ export default function UsageLimit({
           3 citations per 24 hours • Sign up for unlimited access
         </p>
         
-        <div className="bg-white/50 backdrop-blur-sm rounded-lg p-4 w-full max-w-md border border-white/20">
-          <div className="flex justify-center">
-            <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-glow">
-              Get unlimited access
-            </button>
-          </div>
+        <div className="flex justify-center">
+          <button className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-glow">
+            Get unlimited access
+          </button>
         </div>
       </div>
     </div>
