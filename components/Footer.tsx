@@ -32,7 +32,7 @@ export default function Footer() {
               <h3 className="text-xl font-bold">CiteFinder</h3>
             </div>
             <p className="text-gray-300 leading-relaxed">
-              Transform your research workflow with AI-powered citation extraction and academic paper discovery.
+              Find perfect academic sources to support your content with AI-powered citation generation and intelligent paper discovery.
             </p>
             <div className="flex space-x-4">
               <a 

@@ -1,6 +1,6 @@
 # CiteFinder 📄
 
-A modern academic research tool that automatically extracts citations from PDF papers and discovers related academic papers from the world's largest databases. Get instant citation analysis and paper discovery.
+Intelligent Citation Discovery - Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from the world's largest databases.
 
 ![CiteFinder](https://img.shields.io/badge/Next.js-14.0.0-black?style=for-the-badge&logo=next.js)
 ![React](https://img.shields.io/badge/React-18.0.0-blue?style=for-the-badge&logo=react)

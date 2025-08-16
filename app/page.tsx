@@ -138,11 +138,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500/20 to-indigo-600/20 rounded-full blur-3xl"></div>
-      </div>
 
       <div className="relative container mx-auto px-4 py-8">
         {/* Navigation */}
@@ -188,25 +183,28 @@ export default function Home() {
 
         {/* Header */}
         <header className="text-center mb-16 animate-fade-in-up">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold gradient-text mb-8 leading-tight">
-            Extract citations from PDF papers and discover related academic papers from the world's largest databases. Get instant citation analysis and generate a reference page.
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold gradient-text mb-8 mt-16 leading-relaxed py-4">
+            Intelligent Citation Discovery
           </h1>
+          <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
+            Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from the world's largest databases.
+          </p>
           
           {/* Feature highlights */}
-                                <section className="flex justify-center items-center space-x-4 mt-8" aria-label="Key Features">
-                        <div className="inline-flex items-center px-3 py-1 rounded-full border border-green-200 bg-green-50 text-green-700 text-sm font-medium">
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-2" aria-hidden="true"></div>
-                          <span>Free & No Signup</span>
-                        </div>
-                        <div className="inline-flex items-center px-3 py-1 rounded-full border border-purple-200 bg-purple-50 text-purple-700 text-sm font-medium">
-                          <div className="w-2 h-2 bg-purple-500 rounded-full mr-2" aria-hidden="true"></div>
-                          <span>Instant Results</span>
-                        </div>
-                        <div className="inline-flex items-center px-3 py-1 rounded-full border border-orange-200 bg-orange-50 text-orange-700 text-sm font-medium">
-                          <div className="w-2 h-2 bg-orange-500 rounded-full mr-2" aria-hidden="true"></div>
-                          <span>References Generator</span>
-                        </div>
-                      </section>
+          <section className="flex justify-center items-center space-x-4 mt-8" aria-label="Key Features">
+            <div className="inline-flex items-center px-3 py-1 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-sm font-medium">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2" aria-hidden="true"></div>
+              <span>Free & No Signup</span>
+            </div>
+            <div className="inline-flex items-center px-3 py-1 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-medium">
+              <div className="w-2 h-2 bg-indigo-500 rounded-full mr-2" aria-hidden="true"></div>
+              <span>Instant Results</span>
+            </div>
+            <div className="inline-flex items-center px-3 py-1 rounded-full border border-purple-200 bg-purple-50 text-purple-700 text-sm font-medium">
+              <div className="w-2 h-2 bg-purple-500 rounded-full mr-2" aria-hidden="true"></div>
+              <span>References Generator</span>
+            </div>
+          </section>
         </header>
 
         {/* Main Content */}
@@ -215,7 +213,7 @@ export default function Home() {
             <section className="animate-fade-in-up" aria-label="Search Options">
               {/* Search Mode Toggle */}
               <div className="flex justify-center mb-8">
-                <div className="bg-white/50 backdrop-blur-sm rounded-xl p-1 border border-white/30">
+                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-1 border border-gray-300 shadow-sm">
                   <button
                     onClick={() => {
                       console.log('Switching to PDF mode, current mode:', searchMode)
@@ -224,7 +222,7 @@ export default function Home() {
                     className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                       searchMode === 'pdf'
                         ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-                        : 'text-gray-600 hover:text-gray-900'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
                     Upload PDF
@@ -237,7 +235,7 @@ export default function Home() {
                     className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                       searchMode === 'text'
                         ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
-                        : 'text-gray-600 hover:text-gray-900'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
                     Enter Text
@@ -267,7 +265,7 @@ export default function Home() {
                     <textarea
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
-                      placeholder="Paste your text here... Include citations in APA, MLA, Chicago, or other formats."
+                      placeholder="Paste your paper content here... Our AI will find academic sources to support your ideas and generate proper citations."
                       className="w-full h-48 p-4 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm text-gray-900"
                     />
                     <button
@@ -275,7 +273,7 @@ export default function Home() {
                       disabled={!searchText.trim()}
                       className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover-lift shadow-glow disabled:cursor-not-allowed"
                     >
-                      Extract Citations & Find Papers
+                      Find Sources & Generate Citations
                     </button>
                   </div>
                 </div>
@@ -407,9 +405,6 @@ export default function Home() {
               {/* Free Plan */}
               <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
                 <div className="text-center mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white font-bold text-2xl">⚡</span>
-                  </div>
                   <h3 className="text-3xl font-bold text-gray-900 mb-2">Free</h3>
                   <div className="text-4xl font-bold text-gray-900 mb-2">$0</div>
                   <p className="text-gray-600">Forever free for academic research</p>
@@ -459,9 +454,6 @@ export default function Home() {
                 </div>
 
                 <div className="text-center mb-8">
-                  <div className="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <span className="text-white font-bold text-2xl">⭐</span>
-                  </div>
                   <h3 className="text-3xl font-bold text-gray-900 mb-2">Premium</h3>
                   <div className="text-4xl font-bold text-gray-900 mb-2">$9.99</div>
                   <p className="text-gray-600">Per month for power users</p>

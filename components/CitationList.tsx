@@ -189,21 +189,64 @@ export default function CitationList({
                 
                 <p className="text-gray-900 mb-4 text-lg leading-relaxed">{citation.text}</p>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {citation.authors && (
-                    <div className="bg-indigo-50 rounded-lg p-3">
-                      <p className="text-sm font-semibold text-indigo-900 mb-1">Authors</p>
-                      <p className="text-sm text-indigo-700">{citation.authors}</p>
-                    </div>
-                  )}
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {citation.authors && (
+                      <div className="bg-indigo-50 rounded-lg p-3">
+                        <p className="text-sm font-semibold text-indigo-900 mb-1">Authors</p>
+                        <p className="text-sm text-indigo-700">{citation.authors}</p>
+                      </div>
+                    )}
+                    
+                    {citation.title && (
+                      <div className="bg-indigo-50 rounded-lg p-3">
+                        <p className="text-sm font-semibold text-indigo-900 mb-1">Title</p>
+                        <p className="text-sm text-indigo-700">{citation.title}</p>
+                      </div>
+                    )}
+                  </div>
                   
-                  {citation.title && (
-                    <div className="bg-indigo-50 rounded-lg p-3">
-                      <p className="text-sm font-semibold text-indigo-900 mb-1">Title</p>
-                      <p className="text-sm text-indigo-700">{citation.title}</p>
+                  {/* Generated Citations */}
+                  <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                    <h4 className="text-sm font-semibold text-green-900 mb-2">Generated Citations:</h4>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <span className="font-medium text-green-800">APA:</span>
+                          <span className="text-green-700 ml-2">{citation.authors} ({citation.year}). {citation.title}.</span>
+                        </div>
+                        <button 
+                          onClick={() => navigator.clipboard.writeText(`${citation.authors} (${citation.year}). ${citation.title}.`)}
+                          className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <span className="font-medium text-green-800">MLA:</span>
+                          <span className="text-green-700 ml-2">{citation.authors}. "{citation.title}." {citation.year}.</span>
+                        </div>
+                        <button 
+                          onClick={() => navigator.clipboard.writeText(`${citation.authors}. "${citation.title}." ${citation.year}.`)}
+                          className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                        >
+                          Copy
+                        </button>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <span className="font-medium text-green-800">Chicago:</span>
+                          <span className="text-green-700 ml-2">{citation.authors}. "{citation.title}." {citation.year}.</span>
+                        </div>
+                        <button 
+                          onClick={() => navigator.clipboard.writeText(`${citation.authors}. "${citation.title}." ${citation.year}.`)}
+                          className="px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors"
+                        >
+                          Copy
+                        </button>
+                      </div>
                     </div>
-                  )}
-                </div>
+                  </div>
               </div>
             ))}
           </div>
