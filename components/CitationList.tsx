@@ -63,21 +63,22 @@ export default function CitationList({
         </div>
         <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
           <div className="text-2xl font-bold text-purple-600">{topicsFound.length}</div>
-          <div className="text-sm text-purple-700">Topics Analyzed</div>
+          <div className="text-sm text-purple-700">Statements Analyzed</div>
         </div>
       </div>
 
       {/* Topics Found */}
       {topicsFound.length > 0 && (
         <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 mb-6">
-          <h3 className="text-lg font-semibold text-blue-800 mb-3">Topics Analyzed</h3>
+          <h3 className="text-lg font-semibold text-blue-800 mb-3">Statements Analyzed</h3>
           <div className="flex flex-wrap gap-2">
-            {topicsFound.map((topic, index) => (
+            {topicsFound.map((statement, index) => (
               <span
                 key={index}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800"
+                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800 max-w-xs truncate"
+                title={statement}
               >
-                {topic}
+                {statement.length > 50 ? statement.substring(0, 50) + '...' : statement}
               </span>
             ))}
           </div>

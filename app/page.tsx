@@ -34,7 +34,7 @@ interface ProcessResponse {
   pages: number
   pdfUrl?: string
   fileName?: string
-  topicsFound?: string[]
+  statementsFound?: string[]
   existingCitationsCount?: number
   discoveredCitationsCount?: number
 }
@@ -44,7 +44,7 @@ export default function Home() {
   const [relatedPapers, setRelatedPapers] = useState<RelatedPaper[]>([])
   const [pdfUrl, setPdfUrl] = useState<string>('')
   const [fileName, setFileName] = useState<string>('')
-  const [topicsFound, setTopicsFound] = useState<string[]>([])
+  const [statementsFound, setStatementsFound] = useState<string[]>([])
   const [existingCitationsCount, setExistingCitationsCount] = useState<number>(0)
   const [discoveredCitationsCount, setDiscoveredCitationsCount] = useState<number>(0)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -73,7 +73,7 @@ export default function Home() {
       const data: ProcessResponse = await response.json()
       setCitations(data.citations)
       setRelatedPapers(data.relatedPapers)
-      setTopicsFound(data.topicsFound || [])
+      setStatementsFound(data.statementsFound || [])
       setExistingCitationsCount(data.existingCitationsCount || 0)
       setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
       setPdfUrl(data.pdfUrl || '')
@@ -121,7 +121,7 @@ export default function Home() {
       console.log('Text processing successful, citations found:', data.citations.length)
       setCitations(data.citations)
       setRelatedPapers(data.relatedPapers)
-      setTopicsFound(data.topicsFound || [])
+      setStatementsFound(data.statementsFound || [])
       setExistingCitationsCount(data.existingCitationsCount || 0)
       setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
       setPdfUrl('')
@@ -334,7 +334,7 @@ export default function Home() {
                 <CitationList 
                   citations={citations} 
                   searchMode={searchMode}
-                  topicsFound={topicsFound}
+                  topicsFound={statementsFound}
                   existingCitationsCount={existingCitationsCount}
                   discoveredCitationsCount={discoveredCitationsCount}
                 />

@@ -8,6 +8,7 @@ interface Citation {
   year?: string
   title?: string
   confidence: number
+  statement?: string // Added for context
 }
 
 interface RelatedPaper {
@@ -71,76 +72,98 @@ function extractTitle(text: string): string | undefined {
   return undefined
 }
 
-function extractKeyTopics(text: string): string[] {
-  // Extract key phrases and concepts that likely have academic papers
-  const topics: string[] = []
+// Extract statements/claims that need academic backing
+function extractStatements(text: string): string[] {
+  const statements: string[] = []
   
-  // Common academic keywords and phrases
-  const academicKeywords = [
-    'sensors', 'imaging', 'spectral', 'thermal', 'multispectral', 'hyperspectral',
-    'monitoring', 'detection', 'analysis', 'assessment', 'evaluation',
-    'technology', 'methodology', 'technique', 'approach', 'system',
-    'application', 'implementation', 'development', 'research', 'study',
-    'investigation', 'examination', 'characterization', 'optimization',
-    'performance', 'efficiency', 'accuracy', 'precision', 'reliability',
-    'validation', 'verification', 'calibration', 'calibration'
+  // Split text into sentences
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 20)
+  
+  // Patterns that indicate claims or statements needing citations
+  const claimPatterns = [
+    // Factual statements
+    /\b(?:research shows|studies indicate|evidence suggests|data reveals|analysis demonstrates|results show|findings indicate|it has been|it is known|it has been found|it has been shown)\b/gi,
+    
+    // Comparative statements
+    /\b(?:better than|more effective|superior to|outperforms|improves|enhances|increases|reduces|decreases|significantly|substantially|dramatically)\b/gi,
+    
+    // Methodological claims
+    /\b(?:method|technique|approach|system|algorithm|model|framework|protocol|procedure|strategy|solution)\b/gi,
+    
+    // Performance claims
+    /\b(?:accuracy|precision|efficiency|performance|reliability|validity|robustness|scalability|effectiveness|quality|speed|cost)\b/gi,
+    
+    // Technical specifications
+    /\b(?:sensors|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation)\b/gi,
+    
+    // Research findings
+    /\b(?:discovered|identified|developed|proposed|introduced|implemented|designed|created|built|constructed|established)\b/gi
   ]
-  
-  // Extract sentences and phrases containing academic keywords
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 10)
   
   for (const sentence of sentences) {
     const lowerSentence = sentence.toLowerCase()
     
-    // Check if sentence contains academic keywords
-    for (const keyword of academicKeywords) {
-      if (lowerSentence.includes(keyword)) {
-        // Extract the full phrase around the keyword
-        const keywordIndex = lowerSentence.indexOf(keyword)
-        const start = Math.max(0, keywordIndex - 50)
-        const end = Math.min(sentence.length, keywordIndex + keyword.length + 50)
-        const phrase = sentence.substring(start, end).trim()
+    // Check if sentence contains claim patterns
+    for (const pattern of claimPatterns) {
+      if (pattern.test(lowerSentence)) {
+        // Clean up the sentence and add it as a statement
+        const cleanStatement = sentence.trim()
+          .replace(/^\s*[A-Z]\s*/, '') // Remove leading single letters
+          .replace(/\s+/g, ' ') // Normalize whitespace
         
-        if (phrase.length > 20 && !topics.includes(phrase)) {
-          topics.push(phrase)
+        if (cleanStatement.length > 30 && cleanStatement.length < 300 && !statements.includes(cleanStatement)) {
+          statements.push(cleanStatement)
+        }
+        break // Only add each sentence once, even if it matches multiple patterns
+      }
+    }
+  }
+  
+  // If no specific statements found, look for sentences with technical terms
+  if (statements.length === 0) {
+    const technicalTerms = [
+      'sensors', 'imaging', 'spectral', 'thermal', 'multispectral', 'hyperspectral',
+      'monitoring', 'detection', 'analysis', 'assessment', 'evaluation',
+      'technology', 'methodology', 'technique', 'approach', 'system',
+      'application', 'implementation', 'development', 'research', 'study'
+    ]
+    
+    for (const sentence of sentences) {
+      const lowerSentence = sentence.toLowerCase()
+      
+      for (const term of technicalTerms) {
+        if (lowerSentence.includes(term)) {
+          const cleanStatement = sentence.trim()
+            .replace(/^\s*[A-Z]\s*/, '')
+            .replace(/\s+/g, ' ')
+          
+          if (cleanStatement.length > 30 && cleanStatement.length < 300 && !statements.includes(cleanStatement)) {
+            statements.push(cleanStatement)
+          }
+          break
         }
       }
     }
   }
   
-  // If no specific topics found, use the main themes from the text
-  if (topics.length === 0) {
-    const words = text.toLowerCase().split(/\s+/)
-    const wordFreq: { [key: string]: number } = {}
-    
-    words.forEach(word => {
-      if (word.length > 4 && !['with', 'that', 'this', 'they', 'have', 'been', 'from', 'their'].includes(word)) {
-        wordFreq[word] = (wordFreq[word] || 0) + 1
-      }
-    })
-    
-    const topWords = Object.entries(wordFreq)
-      .sort(([,a], [,b]) => b - a)
-      .slice(0, 5)
-      .map(([word]) => word)
-    
-    topics.push(...topWords)
-  }
-  
-  return topics.slice(0, 10) // Limit to 10 topics
+  return statements.slice(0, 8) // Limit to 8 statements for better quality
 }
 
-async function findRelatedPapersFromTopics(topics: string[]): Promise<Citation[]> {
+// Find related papers from extracted statements
+async function findRelatedPapersFromStatements(statements: string[]): Promise<Citation[]> {
   const citations: Citation[] = []
   let idCounter = 1
   
-  for (const topic of topics) {
+  for (const statement of statements) {
     try {
-      // Search across all databases for each topic
-      const arxivResults = await searchArxiv(topic)
-      const openAlexResults = await searchOpenAlex(topic)
-      const crossRefResults = await searchCrossRef(topic)
-      const pubmedResults = await searchPubMed(topic)
+      // Extract key terms from the statement for better search
+      const keyTerms = extractKeyTermsFromStatement(statement)
+      
+      // Search across all databases for each statement
+      const arxivResults = await searchArxiv(keyTerms)
+      const openAlexResults = await searchOpenAlex(keyTerms)
+      const crossRefResults = await searchCrossRef(keyTerms)
+      const pubmedResults = await searchPubMed(keyTerms)
       
       // Combine and deduplicate results
       const allResults = [...arxivResults, ...openAlexResults, ...crossRefResults, ...pubmedResults]
@@ -148,8 +171,8 @@ async function findRelatedPapersFromTopics(topics: string[]): Promise<Citation[]
         index === self.findIndex(r => r.title === result.title)
       )
       
-      // Convert to citations with high confidence for content-based discovery
-      for (const result of uniqueResults.slice(0, 3)) { // Top 3 results per topic
+      // Convert to citations with high confidence for statement-based discovery
+      for (const result of uniqueResults.slice(0, 2)) { // Top 2 results per statement
         const authors = result.authors.join(', ')
         const year = result.year
         
@@ -159,15 +182,41 @@ async function findRelatedPapersFromTopics(topics: string[]): Promise<Citation[]
           authors,
           year,
           title: result.title,
-          confidence: 0.85 // High confidence for discovered papers
+          confidence: 0.90, // Higher confidence for statement-based discovery
+          statement: statement // Add the original statement for context
         })
       }
     } catch (error) {
-      console.error(`Error searching for topic "${topic}":`, error)
+      console.error(`Error searching for statement "${statement}":`, error)
     }
   }
   
   return citations
+}
+
+// Extract key terms from a statement for better search
+function extractKeyTermsFromStatement(statement: string): string {
+  // Remove common words but preserve important context
+  const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them']
+  
+  // Clean the statement but preserve more context
+  const cleanedStatement = statement
+    .replace(/[^\w\s]/g, ' ') // Replace punctuation with spaces
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim()
+  
+  // Split into words and filter out stop words
+  const words = cleanedStatement.toLowerCase()
+    .split(/\s+/)
+    .filter(word => word.length > 2 && !stopWords.includes(word))
+  
+  // If we have enough meaningful words, use them all (up to 10)
+  if (words.length > 0) {
+    return words.slice(0, 10).join(' ')
+  }
+  
+  // Fallback: return the original statement cleaned up
+  return cleanedStatement.toLowerCase()
 }
 
 function extractCitations(text: string): Citation[] {
@@ -334,6 +383,49 @@ async function searchPubMed(searchQuery: string): Promise<RelatedPaper[]> {
   }
 }
 
+// Calculate similarity score between search query and paper content
+function calculateSimilarityScore(searchQuery: string, paper: RelatedPaper): number {
+  const query = searchQuery.toLowerCase();
+  const title = paper.title.toLowerCase();
+  const abstract = paper.abstract.toLowerCase();
+  
+  // Split into words for more detailed matching
+  const queryWords = query.split(/\s+/).filter(word => word.length > 2);
+  const titleWords = title.split(/\s+/).filter(word => word.length > 2);
+  const abstractWords = abstract.split(/\s+/).filter(word => word.length > 2);
+  
+  let score = 0;
+  let totalMatches = 0;
+  
+  // Check title matches (weighted higher)
+  for (const word of queryWords) {
+    if (titleWords.includes(word)) {
+      score += 3; // Title matches are worth more
+      totalMatches++;
+    }
+  }
+  
+  // Check abstract matches
+  for (const word of queryWords) {
+    if (abstractWords.includes(word)) {
+      score += 1; // Abstract matches
+      totalMatches++;
+    }
+  }
+  
+  // Calculate percentage match
+  const maxPossibleScore = queryWords.length * 4; // 3 for title + 1 for abstract
+  let percentage = maxPossibleScore > 0 ? (score / maxPossibleScore) * 100 : 0;
+  
+  // Bonus for exact phrase matches
+  if (title.includes(query) || abstract.includes(query)) {
+    percentage += 20;
+  }
+  
+  // Cap at 100%
+  return Math.min(percentage, 100);
+}
+
 // Search for related papers using multiple academic APIs
 async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[]> {
   const allPapers: RelatedPaper[] = []
@@ -357,10 +449,15 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
         .filter(result => result.status === 'fulfilled')
         .flatMap(result => (result as PromiseFulfilledResult<RelatedPaper[]>).value)
 
-      // Add unique papers
+      // Calculate similarity scores and add unique papers
       for (const paper of results) {
-        if (!seenTitles.has(paper.title.toLowerCase())) {
+        if (!seenTitles.has(paper.title.toLowerCase()) && allPapers.length < 20) {
           seenTitles.add(paper.title.toLowerCase())
+          
+          // Calculate actual similarity score
+          const similarityScore = calculateSimilarityScore(searchQuery, paper);
+          paper.similarity = similarityScore;
+          
           allPapers.push(paper)
         }
       }
@@ -369,7 +466,7 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
     }
   }
 
-  // Sort by similarity and limit results
+  // Sort by similarity score (highest first) and return top 15
   return allPapers
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, 15)
@@ -390,8 +487,8 @@ export async function POST(request: NextRequest) {
     const existingCitations = extractCitations(text)
     
     // Then, analyze content and find related papers
-    const keyTopics = extractKeyTopics(text)
-    const discoveredCitations = await findRelatedPapersFromTopics(keyTopics)
+    const statements = extractStatements(text)
+    const discoveredCitations = await findRelatedPapersFromStatements(statements)
     
     // Combine both types of citations
     const allCitations = [...existingCitations, ...discoveredCitations]
@@ -404,7 +501,7 @@ export async function POST(request: NextRequest) {
       relatedPapers,
       textLength: text.length,
       pages: Math.ceil(text.length / 2000),
-      topicsFound: keyTopics,
+      statementsFound: statements,
       existingCitationsCount: existingCitations.length,
       discoveredCitationsCount: discoveredCitations.length
     })

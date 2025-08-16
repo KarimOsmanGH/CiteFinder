@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Linkedin, Mail, Heart, ExternalLink } from 'lucide-react'
+import { Linkedin, Mail, Heart, ExternalLink, FileText } from 'lucide-react'
 
 // Custom X (Twitter) icon component
 const XIcon = ({ className }: { className?: string }) => (
@@ -27,7 +27,7 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center">
               <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-3">
-                <span className="text-white font-bold text-lg">C</span>
+                <FileText className="w-6 h-6 text-white" />
               </div>
               <h3 className="text-xl font-bold">CiteFinder</h3>
             </div>

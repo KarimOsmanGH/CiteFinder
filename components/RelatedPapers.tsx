@@ -52,12 +52,20 @@ export default function RelatedPapers({ papers }: RelatedPapersProps) {
               </div>
             </div>
             <div className="flex items-center ml-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-lg flex items-center justify-center">
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                paper.similarity >= 80 ? 'bg-gradient-to-br from-green-400 to-green-600' :
+                paper.similarity >= 60 ? 'bg-gradient-to-br from-yellow-400 to-orange-500' :
+                'bg-gradient-to-br from-red-400 to-red-600'
+              }`}>
                 <Star className="w-5 h-5 text-white" />
               </div>
               <div className="ml-3 text-right">
-                <span className="text-lg font-bold text-gray-900">
-                  {Math.round(paper.similarity * 100)}%
+                <span className={`text-lg font-bold ${
+                  paper.similarity >= 80 ? 'text-green-700' :
+                  paper.similarity >= 60 ? 'text-orange-700' :
+                  'text-red-700'
+                }`}>
+                  {Math.round(paper.similarity)}%
                 </span>
                 <p className="text-xs text-gray-500">match</p>
               </div>
@@ -71,9 +79,17 @@ export default function RelatedPapers({ papers }: RelatedPapersProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <div className="flex items-center">
-                <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                <span className="text-sm font-medium text-gray-700">
-                  Similarity: {Math.round(paper.similarity * 100)}%
+                <div className={`w-3 h-3 rounded-full mr-2 ${
+                  paper.similarity >= 80 ? 'bg-green-500' :
+                  paper.similarity >= 60 ? 'bg-yellow-500' :
+                  'bg-red-500'
+                }`}></div>
+                <span className={`text-sm font-medium ${
+                  paper.similarity >= 80 ? 'text-green-700' :
+                  paper.similarity >= 60 ? 'text-orange-700' :
+                  'text-red-700'
+                }`}>
+                  Similarity: {Math.round(paper.similarity)}%
                 </span>
               </div>
               <div className="w-px h-4 bg-gray-300"></div>
@@ -85,15 +101,47 @@ export default function RelatedPapers({ papers }: RelatedPapersProps) {
               </span>
             </div>
             
-            <a
-              href={paper.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover-lift"
-            >
-              View Paper
-              <ExternalLink className="w-4 h-4 ml-2" />
-            </a>
+            <div className="flex items-center space-x-2">
+              {/* Primary link */}
+              <a
+                href={paper.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover-lift"
+                title={`Open: ${paper.url}`}
+              >
+                {paper.url.includes('doi.org') ? 'DOI Link' :
+                 paper.url.includes('arxiv.org') ? 'arXiv Abstract' :
+                 paper.url.includes('pubmed') ? 'PubMed' :
+                 'View Paper'}
+                <ExternalLink className="w-4 h-4 ml-2" />
+              </a>
+              
+              {/* Additional source links based on paper type */}
+              {paper.url.includes('doi.org') && (
+                <a
+                  href={paper.url.replace('https://doi.org/', 'https://scholar.google.com/scholar?q=')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center bg-gray-100 text-gray-700 font-medium px-3 py-2 rounded-lg hover:bg-gray-200 transition-all duration-300 text-sm"
+                  title="Search on Google Scholar"
+                >
+                  Scholar
+                </a>
+              )}
+              
+              {paper.url.includes('arxiv.org') && (
+                <a
+                  href={paper.url.replace('/abs/', '/pdf/')}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center bg-gray-100 text-gray-700 font-medium px-3 py-2 rounded-lg hover:bg-gray-200 transition-all duration-300 text-sm"
+                  title="Download PDF"
+                >
+                  PDF
+                </a>
+              )}
+            </div>
           </div>
         </div>
       ))}
