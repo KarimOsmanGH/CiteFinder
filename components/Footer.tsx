@@ -70,14 +70,20 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/pricing" className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm">
+                <button 
+                  onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm"
+                >
                   Pricing
-                </Link>
+                </button>
               </li>
               <li>
-                <Link href="/faq" className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm">
+                <button 
+                  onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="inline-block px-3 py-1.5 bg-gray-800/50 hover:bg-gray-700/50 text-gray-300 hover:text-white rounded-md transition-all duration-200 text-sm"
+                >
                   FAQ
-                </Link>
+                </button>
               </li>
               <li>
                 <a 

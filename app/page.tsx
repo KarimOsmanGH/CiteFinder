@@ -88,18 +88,18 @@ export default function Home() {
         {/* Navigation */}
         <nav className="flex justify-end mb-8">
           <div className="flex space-x-3">
-            <Link 
-              href="/pricing" 
+            <button 
+              onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
               className="px-4 py-2 bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-700 hover:text-gray-900 font-medium rounded-lg border border-white/30 hover:border-white/50 transition-all duration-200 hover:shadow-md"
             >
               Pricing
-            </Link>
-            <Link 
-              href="/faq" 
+            </button>
+            <button 
+              onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })}
               className="px-4 py-2 bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-700 hover:text-gray-900 font-medium rounded-lg border border-white/30 hover:border-white/50 transition-all duration-200 hover:shadow-md"
             >
               FAQ
-            </Link>
+            </button>
             <Link 
               href="/contact" 
               className="px-4 py-2 bg-white/70 backdrop-blur-sm hover:bg-white/90 text-gray-700 hover:text-gray-900 font-medium rounded-lg border border-white/30 hover:border-white/50 transition-all duration-200 hover:shadow-md"
@@ -143,7 +143,7 @@ export default function Home() {
         </header>
 
         {/* Main Content */}
-        <section className="max-w-6xl mx-auto" aria-label="Main Application">
+        <section id="upload" className="max-w-6xl mx-auto" aria-label="Main Application">
           {currentStep === 'upload' && (
             <section className="animate-fade-in-up" aria-label="File Upload">
               <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
@@ -284,6 +284,210 @@ export default function Home() {
               </footer>
             </section>
           )}
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="py-16">
+          <div className="max-w-6xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold gradient-text mb-6">
+                Simple, Transparent Pricing
+              </h2>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                CiteFinder is committed to keeping academic research accessible to everyone. 
+                Our core features are completely free, with premium options for power users.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+              {/* Free Plan */}
+              <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <span className="text-white font-bold text-2xl">⚡</span>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-2">Free</h3>
+                  <div className="text-4xl font-bold text-gray-900 mb-2">$0</div>
+                  <p className="text-gray-600">Forever free for academic research</p>
+                </div>
+
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center">
+                    <span className="text-green-500 mr-3">✅</span>
+                    <span>Unlimited PDF uploads</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-green-500 mr-3">✅</span>
+                    <span>Citation extraction from all formats</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-green-500 mr-3">✅</span>
+                    <span>Search across 4 academic databases</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-green-500 mr-3">✅</span>
+                    <span>Up to 15 related papers per search</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-green-500 mr-3">✅</span>
+                    <span>No registration required</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-green-500 mr-3">✅</span>
+                    <span>References Generator</span>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover-lift shadow-glow"
+                >
+                  Start Using Free
+                </button>
+              </div>
+
+              {/* Premium Plan */}
+              <div className="glass rounded-2xl shadow-soft p-8 hover-lift relative">
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                    Coming Soon
+                  </span>
+                </div>
+
+                <div className="text-center mb-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <span className="text-white font-bold text-2xl">⭐</span>
+                  </div>
+                  <h3 className="text-3xl font-bold text-gray-900 mb-2">Premium</h3>
+                  <div className="text-4xl font-bold text-gray-900 mb-2">$9.99</div>
+                  <p className="text-gray-600">Per month for power users</p>
+                </div>
+
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center">
+                    <span className="text-purple-500 mr-3">✅</span>
+                    <span>Everything in Free plan</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-purple-500 mr-3">✅</span>
+                    <span>Unlimited related papers</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-purple-500 mr-3">✅</span>
+                    <span>Advanced citation validation</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-purple-500 mr-3">✅</span>
+                    <span>Export to BibTeX, EndNote, Mendeley</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-purple-500 mr-3">✅</span>
+                    <span>Citation network visualization</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-purple-500 mr-3">✅</span>
+                    <span>Priority API access</span>
+                  </div>
+                  <div className="flex items-center">
+                    <span className="text-purple-500 mr-3">✅</span>
+                    <span>Email support</span>
+                  </div>
+                </div>
+
+                <button 
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover-lift shadow-glow opacity-50 cursor-not-allowed"
+                  disabled
+                >
+                  Coming Soon
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section id="faq" className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold gradient-text mb-6">
+                Frequently Asked Questions
+              </h2>
+              <p className="text-xl text-gray-600">
+                Find answers to common questions about CiteFinder
+              </p>
+            </div>
+
+            <div className="space-y-6">
+              {/* FAQ Item 1 */}
+              <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  How do I use CiteFinder?
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Simply upload a PDF file using our drag-and-drop interface. CiteFinder will automatically extract citations from your document and search for related papers across multiple academic databases. No registration or signup required!
+                </p>
+              </div>
+
+              {/* FAQ Item 2 */}
+              <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  What citation formats does CiteFinder recognize?
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  CiteFinder recognizes multiple citation formats including APA, MLA, Chicago, Harvard, and simple author-year formats. We also detect citations with 'et al.' and various punctuation styles.
+                </p>
+              </div>
+
+              {/* FAQ Item 3 */}
+              <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Which academic databases does CiteFinder search?
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  CiteFinder searches across four major academic databases: arXiv (computer science, physics, math), OpenAlex (comprehensive academic database), CrossRef (journal articles and DOIs), and PubMed (biomedical papers).
+                </p>
+              </div>
+
+              {/* FAQ Item 4 */}
+              <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Is CiteFinder really free?
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Yes! Our core features are completely free and will remain free. We believe academic research tools should be accessible to everyone. Premium features will be optional add-ons.
+                </p>
+              </div>
+
+              {/* FAQ Item 5 */}
+              <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Do you store my PDF files?
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Yes, we store your PDFs securely in Vercel Blob storage and provide you with a public URL for future access. Your files are processed locally and stored securely for your convenience.
+                </p>
+              </div>
+
+              {/* FAQ Item 6 */}
+              <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Can I generate a references page from the extracted citations?
+                </h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Yes! CiteFinder includes a References Generator that can format your extracted citations into properly formatted reference lists in APA, MLA, Chicago, Harvard, or BibTeX formats. You can copy or download the formatted references.
+                </p>
+              </div>
+            </div>
+
+            <div className="text-center mt-12">
+              <Link 
+                href="/contact"
+                className="inline-flex items-center bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover-lift shadow-glow"
+              >
+                Still Need Help? Contact Us
+              </Link>
+            </div>
+          </div>
         </section>
       </div>
     </main>
