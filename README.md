@@ -12,7 +12,7 @@ Intelligent Citation Discovery - Upload your paper or paste text, and our AI fin
 ### 🎯 **Core Functionality**
 - **Smart PDF Upload**: Drag & drop interface with instant file validation
 - **Citation Extraction**: Automatically extracts citations using multiple styles (APA, MLA, Chicago, etc.)
-- **Multi-Database Search**: Searches across 4 major academic databases simultaneously
+- **Multi-Database Search**: Searches across major academic databases simultaneously
 - **Real-time Processing**: Live status updates with beautiful animations
 - **Confidence Scoring**: Intelligent confidence ratings for extracted citations
 

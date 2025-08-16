@@ -4,19 +4,21 @@ import Footer from '@/components/Footer'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'CiteFinder - Extract Citations & Find Related Papers | Free Academic Tool',
-  description: 'Upload any PDF and instantly extract citations while discovering related papers from arXiv, OpenAlex, CrossRef, and PubMed. Free academic research tool with no signup required.',
+  title: 'CiteFinder - AI-Powered Academic Source Finder | Free Citation Tool',
+  description: 'Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from academic databases.',
   keywords: [
-    'citation extractor',
-    'PDF citation finder',
-    'academic research tool',
-    'citation analysis',
-    'related papers finder',
+    'academic source finder',
+    'AI citation tool',
+    'research paper sources',
+    'academic reference generator',
+    'citation finder',
     'academic database search',
     'research paper citations',
     'free citation tool',
     'academic PDF processor',
-    'citation extraction software'
+    'statement-based analysis',
+    'academic writing support',
+    'research citation tool'
   ],
   authors: [{ name: 'CiteFinder Team' }],
   creator: 'CiteFinder',
@@ -31,8 +33,8 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'CiteFinder - Extract Citations & Find Related Papers',
-    description: 'Upload any PDF and instantly extract citations while discovering related papers from the world\'s largest academic databases. Free, no signup required.',
+    title: 'CiteFinder - AI-Powered Academic Source Finder',
+    description: 'Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from academic databases.',
     url: 'https://citefinder.app',
     siteName: 'CiteFinder',
     images: [
@@ -48,8 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CiteFinder - Extract Citations & Find Related Papers',
-    description: 'Upload any PDF and instantly extract citations while discovering related papers from the world\'s largest academic databases.',
+    title: 'CiteFinder - AI-Powered Academic Source Finder',
+    description: 'Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from academic databases.',
     images: ['/twitter-image.png'],
     creator: '@citefinder',
   },

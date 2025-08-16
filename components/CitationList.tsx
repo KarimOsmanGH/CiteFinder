@@ -131,12 +131,7 @@ export default function CitationList({
       {/* Discovered Papers */}
       {discoveredCitations.length > 0 && (
         <div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
-            <div className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center mr-2">
-              <span className="text-white text-xs font-bold">{discoveredCitations.length}</span>
-            </div>
-            Related Papers Found
-          </h3>
+
           <div className="space-y-4">
             {discoveredCitations.map((citation, index) => (
               <div

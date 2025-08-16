@@ -179,9 +179,9 @@ function extractStatements(text: string): string[] {
     return aScore - bScore
   })
   
-  // Remove duplicates and limit to 6 statements
+  // Remove duplicates and limit to 3 statements for free users
   const uniqueStatements = [...new Set(statements)]
-  const finalStatements = uniqueStatements.slice(0, 6) // Limit to 6 statements for better quality
+  const finalStatements = uniqueStatements.slice(0, 3) // Limit to 3 statements for free users
   
   return finalStatements
 }

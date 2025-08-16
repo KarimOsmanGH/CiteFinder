@@ -88,22 +88,29 @@ export default function UsageLimit({
 
   // Anonymous user - permanent banner
   return (
-    <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 shadow-sm">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center">
-          <Lock className="w-5 h-5 text-orange-600 mr-3 flex-shrink-0" />
-          <div>
-            <h4 className="font-semibold text-orange-800 text-base">Anonymous User</h4>
-            <p className="text-orange-700 text-sm mt-1">1 citation per 24 hours • Sign up for unlimited access</p>
+    <div className="border-2 border-dashed border-orange-300 rounded-xl p-8 text-center bg-gradient-to-br from-orange-50 to-red-50 shadow-sm mt-4">
+      <div className="flex flex-col items-center">
+        <div className="mb-4">
+          <div className="w-16 h-16 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center" aria-hidden="true">
+            <Lock className="w-8 h-8 text-white" />
           </div>
         </div>
-        <div className="flex space-x-3">
-          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-all duration-200">
-            Sign Up Free
-          </button>
-          <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
-            Premium $15/mo
-          </button>
+        
+        <h3 className="text-xl font-bold text-orange-900 mb-2">Anonymous User</h3>
+        
+        <p className="text-base text-orange-700 mb-4 max-w-md">
+          1 citation per 24 hours • Sign up for unlimited access
+        </p>
+        
+        <div className="bg-white/50 backdrop-blur-sm rounded-lg p-4 w-full max-w-md border border-white/20">
+          <div className="flex space-x-3 justify-center">
+            <button className="bg-blue-500 text-white px-6 py-3 rounded-lg text-sm font-medium hover:bg-blue-600 transition-all duration-200">
+              Sign Up Free
+            </button>
+            <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-6 py-3 rounded-lg text-sm font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
+              Premium $15/mo
+            </button>
+          </div>
         </div>
       </div>
     </div>

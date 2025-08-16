@@ -87,7 +87,7 @@ export default function FAQPage() {
       items: [
         {
           question: "Which academic databases does CiteFinder search?",
-          answer: "CiteFinder searches across four major academic databases: arXiv (computer science, physics, math), OpenAlex (comprehensive academic database), CrossRef (journal articles and DOIs), and PubMed (biomedical papers)."
+          answer: "CiteFinder searches across major academic databases including arXiv (computer science, physics, math), OpenAlex (comprehensive academic database), CrossRef (journal articles and DOIs), and PubMed (biomedical papers)."
         },
         {
           question: "How does CiteFinder find related papers?",

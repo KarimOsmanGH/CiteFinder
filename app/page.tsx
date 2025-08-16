@@ -293,9 +293,6 @@ export default function Home() {
         <section id="upload" className="max-w-6xl mx-auto" aria-label="Main Application">
           {currentStep === 'upload' && (
             <section className="animate-fade-in-up" aria-label="Search Options">
-              {/* Usage Limit Banner */}
-              <UsageLimit sessionId={sessionId} />
-              
               {/* Search Mode Toggle */}
               <div className="flex justify-center mb-8">
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-1 border border-gray-300 shadow-sm">
@@ -332,6 +329,8 @@ export default function Home() {
               {searchMode === 'pdf' && (
                 <div className="glass rounded-2xl shadow-soft p-4 hover-lift animate-fade-in max-w-2xl mx-auto">
                   <PDFUploader onFileUpload={handleFileUpload} />
+                  {/* Usage Limit Banner */}
+                  <UsageLimit sessionId={sessionId} />
                 </div>
               )}
 
@@ -375,7 +374,7 @@ export default function Home() {
                   Processing your {searchMode === 'pdf' ? 'PDF' : 'text'}...
                 </h2>
                 <p className="text-lg text-gray-600 max-w-md mx-auto">
-                  Extracting citations and searching across 4 academic databases. This may take a few moments.
+                  Extracting citations and searching across academic databases. This may take a few moments.
                 </p>
                 
                 {/* Progress indicators */}
@@ -637,7 +636,7 @@ export default function Home() {
                 {expandedFaq === 2 && (
                   <div className="px-6 pb-6">
                     <p className="text-gray-700 leading-relaxed">
-                      CiteFinder searches across four major academic databases: arXiv (computer science, physics, math), OpenAlex (comprehensive academic database), CrossRef (journal articles and DOIs), and PubMed (biomedical papers).
+                      CiteFinder searches across major academic databases including arXiv (computer science, physics, math), OpenAlex (comprehensive academic database), CrossRef (journal articles and DOIs), and PubMed (biomedical papers).
                     </p>
                   </div>
                 )}

@@ -32,7 +32,6 @@ type ReferenceFormat = 'apa' | 'mla' | 'chicago' | 'harvard' | 'bibtex'
 export default function ReferencesGenerator({ citations, selectedPapers = [] }: ReferencesGeneratorProps) {
   const [selectedFormat, setSelectedFormat] = useState<ReferenceFormat>('apa')
   const [copied, setCopied] = useState(false)
-  const [selectedCitationIndex, setSelectedCitationIndex] = useState(0)
 
   const formatCitation = (citation: Citation, format: ReferenceFormat): string => {
     const authors = citation.authors || 'Unknown Author'
@@ -55,13 +54,21 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
     }
   }
 
-  const generateSingleReference = (format: ReferenceFormat): string => {
+  const generateAllReferences = (format: ReferenceFormat): string => {
     if (selectedPapers.length === 0) return 'No papers selected. Please select papers from the Related Papers section above.'
     
-    const selectedPaper = selectedPapers[selectedCitationIndex] || selectedPapers[0]
-    const formatted = formatPaper(selectedPaper, format)
+    if (selectedPapers.length === 1) {
+      // Single paper - return just that citation
+      return formatPaper(selectedPapers[0], format)
+    }
     
-    return format === 'bibtex' ? formatted : formatted
+    // Multiple papers - return all citations with numbering
+    const references = selectedPapers.map((paper, index) => {
+      const citation = formatPaper(paper, format)
+      return `${index + 1}. ${citation}`
+    })
+    
+    return references.join('\n\n')
   }
 
   const formatPaper = (paper: RelatedPaper, format: ReferenceFormat): string => {
@@ -86,7 +93,7 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
   }
 
   const copyToClipboard = async () => {
-    const reference = generateSingleReference(selectedFormat)
+    const reference = generateAllReferences(selectedFormat)
     try {
       await navigator.clipboard.writeText(reference)
       setCopied(true)
@@ -97,7 +104,7 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
   }
 
   const downloadReferences = () => {
-    const reference = generateSingleReference(selectedFormat)
+    const reference = generateAllReferences(selectedFormat)
     const blob = new Blob([reference], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -129,7 +136,7 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
     )
   }
 
-  const selectedPaper = selectedPapers[selectedCitationIndex] || selectedPapers[0]
+
 
   return (
     <div className="space-y-6">
@@ -151,40 +158,20 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
         </div>
       </div>
 
-      {/* Citation Selection */}
+      {/* Citation Generator */}
       <div className="bg-white/50 backdrop-blur-sm rounded-xl p-6 border border-white/30">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="font-semibold text-gray-900">Paper Selection</h4>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => setSelectedCitationIndex(Math.max(0, selectedCitationIndex - 1))}
-              disabled={selectedCitationIndex === 0}
-              className="px-4 py-2 bg-blue-100 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-blue-700 transition-all duration-200"
-            >
-              ← Previous
-            </button>
-            <div className="bg-white px-4 py-2 rounded-lg border border-gray-200">
-              <span className="text-sm font-medium text-gray-700">
-                {selectedCitationIndex + 1} of {selectedPapers.length}
-              </span>
-            </div>
-            <button
-              onClick={() => setSelectedCitationIndex(Math.min(selectedPapers.length - 1, selectedCitationIndex + 1))}
-              disabled={selectedCitationIndex === selectedPapers.length - 1}
-              className="px-4 py-2 bg-blue-100 hover:bg-blue-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-blue-700 transition-all duration-200"
-            >
-              Next →
-            </button>
-          </div>
-        </div>
-        
-        {/* Selected Paper Info */}
+        {/* Selected Papers Summary */}
         <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
-          <h5 className="font-semibold text-gray-900 mb-2">{selectedPaper.title}</h5>
-          <div className="text-sm text-gray-600 space-y-1">
-            <div><strong>Authors:</strong> {selectedPaper.authors.join(', ')}</div>
-            <div><strong>Year:</strong> {selectedPaper.year}</div>
-            <div><strong>Similarity:</strong> {Math.round(selectedPaper.similarity)}%</div>
+          <h4 className="font-semibold text-gray-900 mb-2">Selected Papers ({selectedPapers.length})</h4>
+          <div className="space-y-2">
+            {selectedPapers.map((paper, index) => (
+              <div key={paper.id} className="text-sm text-gray-600 border-l-2 border-blue-200 pl-3">
+                <div className="font-medium">{index + 1}. {paper.title}</div>
+                <div className="text-xs text-gray-500">
+                  {paper.authors.join(', ')} • {paper.year} • {Math.round(paper.similarity)}% match
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -209,10 +196,12 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
           </div>
         </div>
 
-        {/* Generated Citation */}
+        {/* Generated References */}
         <div className="bg-white rounded-lg p-4 border border-gray-200">
           <div className="flex items-center justify-between mb-3">
-            <h5 className="font-semibold text-gray-900">Generated Citation</h5>
+            <h5 className="font-semibold text-gray-900">
+              {selectedPapers.length === 1 ? 'Generated Citation' : 'Generated References'}
+            </h5>
             <div className="flex items-center space-x-3">
               <button
                 onClick={copyToClipboard}
@@ -230,7 +219,7 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
                 ) : (
                   <>
                     <Copy className="w-4 h-4 mr-2" />
-                    Copy Citation
+                    {selectedPapers.length === 1 ? 'Copy Citation' : 'Copy All References'}
                   </>
                 )}
               </button>
@@ -246,7 +235,7 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
           
           <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
             <pre className="text-sm text-gray-800 whitespace-pre-wrap font-mono">
-              {generateSingleReference(selectedFormat)}
+              {generateAllReferences(selectedFormat)}
             </pre>
           </div>
         </div>

@@ -23,6 +23,9 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   // Filter papers to only show those with 60% or higher similarity
   const filteredPapers = papers.filter(paper => paper.similarity >= 60)
   
+  // Limit to 3 papers for free users
+  const limitedPapers = filteredPapers.slice(0, 3)
+  
   if (filteredPapers.length === 0) {
     return (
       <div className="text-center py-12">
@@ -36,6 +39,11 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
             : 'No related papers were found in the academic databases'
           }
         </p>
+        {filteredPapers.length > 3 && (
+          <p className="text-gray-500 text-sm mt-2">
+            Free users can see up to 3 papers. Upgrade to Premium for unlimited access.
+          </p>
+        )}
       </div>
     )
   }
@@ -44,20 +52,26 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   const papersByStatement = statementsFound.length > 0 
     ? statementsFound.map((statement, index) => {
         // For now, distribute papers evenly across statements
-        const papersPerStatement = Math.ceil(filteredPapers.length / statementsFound.length)
+        const papersPerStatement = Math.ceil(limitedPapers.length / statementsFound.length)
         const startIndex = index * papersPerStatement
-        const endIndex = Math.min(startIndex + papersPerStatement, filteredPapers.length)
-        const statementPapers = filteredPapers.slice(startIndex, endIndex)
+        const endIndex = Math.min(startIndex + papersPerStatement, limitedPapers.length)
+        const statementPapers = limitedPapers.slice(startIndex, endIndex)
         
         return {
           statement,
           papers: statementPapers
         }
       }).filter(group => group.papers.length > 0)
-    : [{ statement: 'Related Papers', papers: filteredPapers }]
+    : [{ statement: 'Related Papers', papers: limitedPapers }]
 
   return (
     <div className="space-y-8">
+      {/* Related Papers Header */}
+      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 mb-6">
+        <h3 className="text-lg font-semibold text-blue-800 mb-2">Related Papers Found</h3>
+        <p className="text-blue-700 text-sm">Showing top {limitedPapers.length} papers (60%+ match)</p>
+      </div>
+      
       {papersByStatement.map((group, groupIndex) => (
         <div key={groupIndex} className="space-y-4">
           {/* Statement Header */}

@@ -1,7 +1,7 @@
 {
-  "name": "CiteFinder - Extract Citations & Find Related Papers",
+  "name": "CiteFinder - AI-Powered Academic Source Finder",
   "short_name": "CiteFinder",
-  "description": "Upload any PDF and instantly extract citations while discovering related papers from the world's largest academic databases.",
+  "description": "Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from academic databases.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
