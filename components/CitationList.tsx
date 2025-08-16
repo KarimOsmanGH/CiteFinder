@@ -13,9 +13,10 @@ interface Citation {
 
 interface CitationListProps {
   citations: Citation[]
+  searchMode?: 'pdf' | 'text'
 }
 
-export default function CitationList({ citations }: CitationListProps) {
+export default function CitationList({ citations, searchMode = 'pdf' }: CitationListProps) {
   if (citations.length === 0) {
     return (
       <div className="text-center py-12">
@@ -23,7 +24,12 @@ export default function CitationList({ citations }: CitationListProps) {
           <AlertCircle className="w-8 h-8 text-gray-400" />
         </div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">No Citations Found</h3>
-        <p className="text-gray-600">No citations were detected in the uploaded PDF</p>
+        <p className="text-gray-600">
+          {searchMode === 'pdf' 
+            ? 'No citations were detected in the uploaded PDF'
+            : 'No citations were detected in the entered text'
+          }
+        </p>
       </div>
     )
   }

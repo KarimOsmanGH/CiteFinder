@@ -1,6 +1,6 @@
-# CiteFinder 🚀
+# CiteFinder 📄
 
-A modern, free academic research tool that automatically extracts citations from PDF papers and discovers related academic papers from the world's largest databases. Get instant citation analysis and paper discovery.
+A modern academic research tool that automatically extracts citations from PDF papers and discovers related academic papers from the world's largest databases. Get instant citation analysis and paper discovery.
 
 ![CiteFinder](https://img.shields.io/badge/Next.js-14.0.0-black?style=for-the-badge&logo=next.js)
 ![React](https://img.shields.io/badge/React-18.0.0-blue?style=for-the-badge&logo=react)
@@ -272,7 +272,9 @@ npm run build
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is proprietary software owned by CiteFinder. All rights reserved. See the [LICENSE](LICENSE) file for details.
+
+For licensing inquiries, contact: support@citefinder.app
 
 ## 🙏 Acknowledgments
 
@@ -286,8 +288,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Documentation**: [Read the docs](https://citefinder.app/docs)
-- **Issues**: [GitHub Issues](https://github.com/your-username/citefinder/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/citefinder/discussions)
 - **Email**: support@citefinder.app
 
  
