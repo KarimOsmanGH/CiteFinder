@@ -177,7 +177,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-600">Member Since</label>
-                  <p className="text-gray-900">{formatDate(session.user?.createdAt || new Date().toISOString())}</p>
+                  <p className="text-gray-900">{formatDate(new Date().toISOString())}</p>
                 </div>
               </div>
             </div>
