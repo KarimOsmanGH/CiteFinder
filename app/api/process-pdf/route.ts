@@ -362,7 +362,7 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
           const year = published ? new Date(published).getFullYear().toString() : 'Unknown';
           
           papers.push({
-            id: `arxiv-${papers.length}`,
+            id: `arxiv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             title,
             authors: authors.length > 0 ? authors : ['Unknown Author'],
             year,
@@ -409,7 +409,7 @@ async function searchOpenAlex(searchQuery: string): Promise<RelatedPaper[]> {
         'No abstract available';
       
       papers.push({
-        id: `openalex-${papers.length}`,
+        id: `openalex-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title: work.title || 'Untitled',
         authors,
         year,
@@ -452,7 +452,7 @@ async function searchCrossRef(searchQuery: string): Promise<RelatedPaper[]> {
       const abstract = item.abstract || 'No abstract available';
       
       papers.push({
-        id: `crossref-${papers.length}`,
+        id: `crossref-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title: item.title?.[0] || 'Untitled',
         authors,
         year,
@@ -510,7 +510,7 @@ async function searchPubMed(searchQuery: string): Promise<RelatedPaper[]> {
       const abstract = article.abstract || 'No abstract available';
       
       papers.push({
-        id: `pubmed-${papers.length}`,
+        id: `pubmed-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title: article.title || 'Untitled',
         authors,
         year,

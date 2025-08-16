@@ -1,7 +1,6 @@
 import NextAuth from "next-auth"
 import { SupabaseAdapter } from "@auth/supabase-adapter"
 import GoogleProvider from "next-auth/providers/google"
-import GitHubProvider from "next-auth/providers/github"
 import EmailProvider from "next-auth/providers/email"
 
 const handler = NextAuth({
@@ -12,12 +11,7 @@ const handler = NextAuth({
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       })
     ] : []),
-    ...(process.env.GITHUB_ID && process.env.GITHUB_SECRET ? [
-      GitHubProvider({
-        clientId: process.env.GITHUB_ID,
-        clientSecret: process.env.GITHUB_SECRET,
-      })
-    ] : []),
+
     ...(process.env.EMAIL_SERVER_HOST && process.env.EMAIL_SERVER_USER ? [
       EmailProvider({
         server: {

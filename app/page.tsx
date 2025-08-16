@@ -294,7 +294,7 @@ export default function Home() {
           {currentStep === 'upload' && (
             <section className="animate-fade-in-up" aria-label="Search Options">
               {/* Usage Limit Banner */}
-              <UsageLimit sessionId={sessionId} showAfterInteraction={hasInteracted} />
+              <UsageLimit sessionId={sessionId} />
               
               {/* Search Mode Toggle */}
               <div className="flex justify-center mb-8">
@@ -423,17 +423,6 @@ export default function Home() {
 
               {/* Related Papers Section */}
               <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                <header className="flex items-center mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                    <Search className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-gray-900">
-                      Related Papers
-                    </h2>
-                    <p className="text-gray-600">{relatedPapers.length} papers found across academic databases</p>
-                  </div>
-                </header>
                 <RelatedPapers 
                   papers={relatedPapers} 
                   statementsFound={statementsFound}

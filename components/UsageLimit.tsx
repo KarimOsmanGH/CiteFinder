@@ -86,36 +86,25 @@ export default function UsageLimit({
     return null // Don't show anything for authenticated users in development
   }
 
-  // Only show for anonymous users after interaction
-  if (!isVisible) {
-    return null
-  }
-
-  // Anonymous user - small notification
+  // Anonymous user - permanent banner
   return (
-    <div className="fixed top-4 right-4 bg-orange-50 border border-orange-200 rounded-lg p-3 shadow-lg max-w-sm z-50 animate-slide-in-right">
-      <div className="flex items-start justify-between">
-        <div className="flex items-start">
-          <Lock className="w-4 h-4 text-orange-600 mr-2 mt-0.5 flex-shrink-0" />
+    <div className="bg-orange-50 border border-orange-200 rounded-xl p-4 mb-6 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <Lock className="w-5 h-5 text-orange-600 mr-3 flex-shrink-0" />
           <div>
-            <h4 className="font-medium text-orange-800 text-sm">Anonymous User</h4>
-            <p className="text-orange-700 text-xs mt-1">1 citation per 24 hours • Sign up for unlimited access</p>
+            <h4 className="font-semibold text-orange-800 text-base">Anonymous User</h4>
+            <p className="text-orange-700 text-sm mt-1">1 citation per 24 hours • Sign up for unlimited access</p>
           </div>
         </div>
-        <button 
-          onClick={() => setIsVisible(false)}
-          className="text-orange-400 hover:text-orange-600 ml-2"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-      <div className="flex space-x-2 mt-3">
-        <button className="bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-medium hover:bg-blue-600 transition-all duration-200">
-          Sign Up Free
-        </button>
-        <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1.5 rounded text-xs font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
-          Premium $15/mo
-        </button>
+        <div className="flex space-x-3">
+          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-600 transition-all duration-200">
+            Sign Up Free
+          </button>
+          <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:from-purple-600 hover:to-pink-600 transition-all duration-200">
+            Premium $15/mo
+          </button>
+        </div>
       </div>
     </div>
   )

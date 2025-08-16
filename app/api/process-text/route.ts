@@ -320,7 +320,7 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
           const url = idMatch[1]
           
           papers.push({
-            id: `arxiv-${papers.length + 1}`,
+            id: `arxiv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             title,
             authors: ['arXiv Author'], // Simplified for demo
             year,
@@ -348,7 +348,7 @@ async function searchOpenAlex(searchQuery: string): Promise<RelatedPaper[]> {
     if (response.data.results) {
       for (const work of response.data.results.slice(0, 5)) {
         papers.push({
-          id: `openalex-${papers.length + 1}`,
+          id: `openalex-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           title: work.title || 'Unknown Title',
           authors: work.authorships?.map((a: any) => a.author.display_name) || ['Unknown Author'],
           year: work.publication_year?.toString() || 'Unknown',
@@ -375,7 +375,7 @@ async function searchCrossRef(searchQuery: string): Promise<RelatedPaper[]> {
     if (response.data.message.items) {
       for (const item of response.data.message.items.slice(0, 5)) {
         papers.push({
-          id: `crossref-${papers.length + 1}`,
+          id: `crossref-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           title: item.title?.[0] || 'Unknown Title',
           authors: item.author?.map((a: any) => `${a.given} ${a.family}`) || ['Unknown Author'],
           year: item.published?.['date-parts']?.[0]?.[0]?.toString() || 'Unknown',
@@ -402,7 +402,7 @@ async function searchPubMed(searchQuery: string): Promise<RelatedPaper[]> {
     if (response.data.esearchresult?.idlist) {
       for (const id of response.data.esearchresult.idlist.slice(0, 5)) {
         papers.push({
-          id: `pubmed-${papers.length + 1}`,
+          id: `pubmed-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           title: 'PubMed Article', // Simplified for demo
           authors: ['PubMed Author'],
           year: 'Unknown',

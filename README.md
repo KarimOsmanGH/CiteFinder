@@ -110,15 +110,7 @@ CiteFinder uses NextAuth.js with multiple authentication providers. Follow these
    GOOGLE_CLIENT_SECRET=your-google-client-secret
    ```
 
-#### GitHub OAuth
-1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
-2. Create a new OAuth App
-3. Set callback URL: `http://localhost:3000/api/auth/callback/github`
-4. Add to `.env.local`:
-   ```
-   GITHUB_ID=your-github-client-id
-   GITHUB_SECRET=your-github-client-secret
-   ```
+
 
 ### 3. Email Provider (Optional)
 For passwordless email authentication:

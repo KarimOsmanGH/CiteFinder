@@ -3,7 +3,7 @@
 import { signIn, getSession } from 'next-auth/react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FileText, Mail, Github } from 'lucide-react'
+import { FileText, Mail } from 'lucide-react'
 
 export default function SignIn() {
   const [email, setEmail] = useState('')
@@ -77,14 +77,7 @@ export default function SignIn() {
               <span>Continue with Google</span>
             </button>
 
-            <button
-              onClick={() => handleProviderSignIn('github')}
-              disabled={isLoading}
-              className="w-full bg-gray-900 text-white font-medium py-3 px-4 rounded-lg hover:bg-gray-800 transition-colors duration-200 flex items-center justify-center space-x-3 disabled:opacity-50"
-            >
-              <Github className="w-5 h-5" />
-              <span>Continue with GitHub</span>
-            </button>
+
           </div>
 
           {/* Divider */}

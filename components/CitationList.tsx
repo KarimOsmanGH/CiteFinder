@@ -52,7 +52,7 @@ export default function CitationList({
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Citations Found</h2>
       
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
           <div className="text-2xl font-bold text-blue-600">{existingCitations.length}</div>
           <div className="text-sm text-blue-700">Existing Citations</div>
@@ -61,36 +61,9 @@ export default function CitationList({
           <div className="text-2xl font-bold text-indigo-600">{discoveredCitations.length}</div>
           <div className="text-sm text-indigo-700">Discovered Papers</div>
         </div>
-        <div className="bg-purple-50 rounded-xl p-4 border border-purple-200">
-          <div className="text-2xl font-bold text-purple-600">{topicsFound.length}</div>
-          <div className="text-sm text-purple-700">Statements Analyzed</div>
-        </div>
       </div>
 
-      {/* Topics Found */}
-      {topicsFound.length > 0 && (
-        <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 mb-6">
-          <h3 className="text-lg font-semibold text-blue-800 mb-3">Statements Analyzed</h3>
-          <div className="space-y-3">
-            {topicsFound.map((statement, index) => (
-              <div
-                key={index}
-                className="bg-white/50 backdrop-blur-sm border border-blue-200 rounded-lg p-3 hover:bg-white/70 transition-all duration-200"
-                title={statement}
-              >
-                <div className="flex items-start">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-blue-900 leading-relaxed break-words whitespace-normal">
-                      {statement}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {/* Existing Citations */}
       {existingCitations.length > 0 && (
