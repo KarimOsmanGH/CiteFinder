@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
   title: 'CiteFinder - Extract Citations & Find Related Papers | Free Academic Tool',
@@ -116,7 +117,10 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-sans">{children}</body>
+      <body className="font-sans">
+        {children}
+        <Footer />
+      </body>
     </html>
   )
 } 
