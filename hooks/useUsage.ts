@@ -107,6 +107,12 @@ export function useUsage() {
   }
 
   const canUseService = async (action: 'pdf_upload' | 'text_process' | 'citation_generate') => {
+    // Premium users have unlimited access
+    if (subscriptionPlan === 'premium') {
+      await logUsage(action)
+      return true
+    }
+    
     const canUse = await checkUsage(action)
     
     if (canUse) {

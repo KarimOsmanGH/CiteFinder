@@ -218,7 +218,13 @@ export default function Home() {
           {/* Right side - Auth */}
           <div className="flex items-center">
             {status === 'loading' ? (
-              <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              <button 
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-6 rounded-lg opacity-50 cursor-not-allowed"
+                disabled
+              >
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block mr-2"></div>
+                Loading...
+              </button>
             ) : session ? (
               <div className="flex items-center space-x-3">
                 <div className="flex items-center space-x-2">

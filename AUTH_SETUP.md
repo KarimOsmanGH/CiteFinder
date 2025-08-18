@@ -12,10 +12,7 @@ NEXTAUTH_SECRET=your-development-secret-key-change-in-production
 # Optional: Leave empty for basic functionality
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-EMAIL_SERVER_HOST=
-EMAIL_SERVER_PORT=
-EMAIL_SERVER_USER=
-EMAIL_SERVER_PASSWORD=
+RESEND_API_KEY=
 EMAIL_FROM=
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
@@ -52,9 +49,10 @@ If you want to enable actual authentication:
 5. Add your domain to authorized origins
 6. Set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env.local`
 
-### Email Authentication
-1. Configure SMTP settings (Gmail, SendGrid, etc.)
-2. Set the email environment variables in `.env.local`
+### Email Authentication (Resend)
+1. Sign up at [Resend](https://resend.com) and get your API key
+2. Set `RESEND_API_KEY` and `EMAIL_FROM` in your environment variables
+3. The email will have a beautiful, branded design with your logo
 
 ### Supabase (Database)
 1. Create a Supabase project
