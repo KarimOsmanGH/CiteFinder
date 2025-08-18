@@ -39,7 +39,7 @@ export default function SignIn() {
     try {
       await signIn(provider, { callbackUrl: '/' })
     } catch (error) {
-      setMessage('An error occurred. Please try again.')
+      setMessage('Authentication provider not configured. Please contact support.')
       setIsLoading(false)
     }
   }
@@ -77,7 +77,14 @@ export default function SignIn() {
               <span>Continue with Google</span>
             </button>
 
-
+            {/* Development Notice */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800 text-center">
+                  <strong>Development Mode:</strong> Authentication providers need to be configured. See setup documentation.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Divider */}

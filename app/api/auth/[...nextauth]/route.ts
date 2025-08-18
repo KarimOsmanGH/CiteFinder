@@ -3,8 +3,12 @@ import { SupabaseAdapter } from "@auth/supabase-adapter"
 import GoogleProvider from "next-auth/providers/google"
 import EmailProvider from "next-auth/providers/email"
 
+// Check if we have the minimum required environment variables
+const hasRequiredEnvVars = process.env.NEXTAUTH_SECRET && process.env.NEXTAUTH_URL
+
 const handler = NextAuth({
   providers: [
+    // Only add Google provider if credentials are configured
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET ? [
       GoogleProvider({
         clientId: process.env.GOOGLE_CLIENT_ID,
@@ -12,20 +16,22 @@ const handler = NextAuth({
       })
     ] : []),
 
-    ...(process.env.EMAIL_SERVER_HOST && process.env.EMAIL_SERVER_USER ? [
+    // Only add Email provider if SMTP is configured
+    ...(process.env.EMAIL_SERVER_HOST && process.env.EMAIL_SERVER_USER && process.env.EMAIL_SERVER_PASSWORD ? [
       EmailProvider({
         server: {
           host: process.env.EMAIL_SERVER_HOST,
-          port: process.env.EMAIL_SERVER_PORT,
+          port: parseInt(process.env.EMAIL_SERVER_PORT || '587'),
           auth: {
             user: process.env.EMAIL_SERVER_USER,
             pass: process.env.EMAIL_SERVER_PASSWORD,
           },
         },
-        from: process.env.EMAIL_FROM,
+        from: process.env.EMAIL_FROM || 'noreply@citefinder.app',
       })
     ] : []),
   ],
+  // Only use Supabase adapter if configured
   adapter: process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY ? 
     SupabaseAdapter({
       url: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -47,10 +53,13 @@ const handler = NextAuth({
   },
   pages: {
     signIn: '/auth/signin',
+    error: '/auth/error', // Add custom error page
   },
   session: {
     strategy: "jwt",
   },
+  // Add debug mode for development
+  debug: process.env.NODE_ENV === 'development',
 })
 
 export { handler as GET, handler as POST } 

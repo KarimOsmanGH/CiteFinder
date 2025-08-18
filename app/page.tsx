@@ -254,7 +254,7 @@ export default function Home() {
               </div>
             ) : (
               <button 
-                onClick={() => signIn()}
+                onClick={() => router.push('/auth/signin')}
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 hover-lift shadow-glow"
               >
                 Sign In
