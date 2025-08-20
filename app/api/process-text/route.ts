@@ -83,16 +83,25 @@ function extractStatements(text: string): string[] {
   console.log('🔍 Text preview:', text.substring(0, 300))
   
   // Normalize bullet points into sentence-like lines
-  const normalized = text
+  let normalized = text
     .replace(/\r/g, '\n')
     .replace(/\n{2,}/g, '\n')
     // Fix: put '-' at the end of the character class to avoid creating a range
     .replace(/^[\s>*•–-]+/gm, '')
 
+  if (!normalized.trim()) {
+    // Guard: if normalization removed everything, fall back to original text
+    normalized = text
+  }
+
   console.log('🔍 Normalized text preview:', normalized.substring(0, 300))
   
   // Split into candidate sentences
-  const candidates = normalized.split(/(?<=[.!?])\s+|\n+/)
+  let candidates = normalized.split(/(?<=[.!?])\s+|\n+/)
+  if (!candidates || candidates.every(s => !s || !s.trim())) {
+    // Guard: if splitting yielded only empties, fallback to using raw text as one candidate
+    candidates = [text.trim()]
+  }
   console.log('🔍 Total candidates found:', candidates.length)
   console.log('🔍 First few candidates:', candidates.slice(0, 3))
   

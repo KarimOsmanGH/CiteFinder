@@ -141,6 +141,13 @@ export default function Home() {
       return
     }
     
+    // Check usage limit first
+    const canUse = await canUseService('text_process')
+    if (!canUse) {
+      alert('Usage limit exceeded. Anonymous users get 3 citations per 24 hours. Please sign up for unlimited access.')
+      return
+    }
+    
     console.log('Starting text processing...')
     setIsProcessing(true)
     setCurrentStep('processing')
