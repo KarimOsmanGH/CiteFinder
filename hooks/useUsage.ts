@@ -109,17 +109,18 @@ export function useUsage() {
   const canUseService = async (action: 'pdf_upload' | 'text_process' | 'citation_generate') => {
     // Premium users have unlimited access
     if (subscriptionPlan === 'premium') {
-      await logUsage(action)
       return true
     }
     
     const canUse = await checkUsage(action)
-    
-    if (canUse) {
-      await logUsage(action)
-    }
-    
     return canUse
+  }
+
+  const logUsageIfResults = async (action: 'pdf_upload' | 'text_process' | 'citation_generate', hasResults: boolean, metadata?: any) => {
+    // Only log usage if user actually got results
+    if (hasResults) {
+      await logUsage(action, metadata)
+    }
   }
 
   return {
@@ -131,6 +132,7 @@ export function useUsage() {
     isAuthenticated,
     checkUsage,
     logUsage,
-    canUseService
+    canUseService,
+    logUsageIfResults
   }
 } 

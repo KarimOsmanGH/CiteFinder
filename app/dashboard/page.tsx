@@ -71,7 +71,7 @@ export default function Dashboard() {
   const [searchMode, setSearchMode] = useState<'pdf' | 'text'>('pdf')
   
   // Usage tracking
-  const { sessionId, canUseService, subscriptionPlan, isAuthenticated } = useUsage()
+  const { sessionId, canUseService, logUsageIfResults, subscriptionPlan, isAuthenticated } = useUsage()
   const [hasInteracted, setHasInteracted] = useState(false)
 
   useEffect(() => {
@@ -151,6 +151,15 @@ export default function Dashboard() {
       setPdfUrl(data.pdfUrl || '')
       setFileName(data.fileName || '')
       setCurrentStep('results')
+      
+      // Log usage only if we got results (papers with 60%+ similarity)
+      const hasResults = data.relatedPapers && data.relatedPapers.some(paper => paper.similarity >= 60)
+      await logUsageIfResults('pdf_upload', hasResults, {
+        fileName: data.fileName,
+        citationsFound: data.citations.length,
+        papersFound: data.relatedPapers.length,
+        hasQualityResults: hasResults
+      })
     } catch (error) {
       console.error('Error processing PDF:', error)
       alert('Failed to process PDF. Please try again.')
@@ -196,6 +205,15 @@ export default function Dashboard() {
       setExistingCitationsCount(data.existingCitationsCount || 0)
       setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
       setCurrentStep('results')
+      
+      // Log usage only if we got results (papers with 60%+ similarity)
+      const hasResults = data.relatedPapers && data.relatedPapers.some(paper => paper.similarity >= 60)
+      await logUsageIfResults('text_process', hasResults, {
+        textLength: searchText.length,
+        citationsFound: data.citations.length,
+        papersFound: data.relatedPapers.length,
+        hasQualityResults: hasResults
+      })
     } catch (error) {
       console.error('Error processing text:', error)
       alert('Failed to process text. Please try again.')
