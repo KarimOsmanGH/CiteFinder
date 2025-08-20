@@ -28,13 +28,16 @@ CREATE TABLE public.usage_logs (
   session_id TEXT NOT NULL,
   action TEXT NOT NULL CHECK (action IN ('pdf_upload', 'text_process', 'citation_generate')),
   timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  metadata JSONB
+  metadata JSONB,
+  ip_hash TEXT,
+  user_agent TEXT
 );
 
 -- Create indexes
 CREATE INDEX idx_usage_logs_user_id ON public.usage_logs(user_id);
 CREATE INDEX idx_usage_logs_session_id ON public.usage_logs(session_id);
 CREATE INDEX idx_usage_logs_timestamp ON public.usage_logs(timestamp);
+CREATE INDEX idx_usage_logs_ip_hash ON public.usage_logs(ip_hash);
 CREATE INDEX idx_subscriptions_user_id ON public.subscriptions(user_id);
 
 -- Enable Row Level Security
@@ -85,7 +88,8 @@ CREATE TRIGGER on_auth_user_created
 -- Function to check usage limits
 CREATE OR REPLACE FUNCTION public.check_usage_limit(
   p_user_id UUID DEFAULT NULL,
-  p_session_id TEXT DEFAULT NULL
+  p_session_id TEXT DEFAULT NULL,
+  p_ip_hash TEXT DEFAULT NULL
 )
 RETURNS BOOLEAN AS $$
 DECLARE
@@ -97,10 +101,10 @@ BEGIN
   is_anonymous := p_user_id IS NULL;
   
   IF is_anonymous THEN
-    -- For anonymous users: 3 citations per 24 hours
+    -- For anonymous users: 3 citations per 24 hours by either session or ip_hash
     SELECT COUNT(*) INTO usage_count
     FROM public.usage_logs
-    WHERE session_id = p_session_id
+    WHERE (session_id = p_session_id OR (p_ip_hash IS NOT NULL AND ip_hash = p_ip_hash))
       AND action = 'citation_generate'
       AND timestamp > NOW() - INTERVAL '24 hours';
     

@@ -89,117 +89,71 @@ function extractTitle(text: string): string | undefined {
 function extractStatements(text: string): string[] {
   const statements: string[] = []
   
-  // Split text into sentences more intelligently
-  const sentences = text
-    .split(/[.!?]+/)
+  // Normalize bullet points into sentence-like lines
+  const normalized = text
+    .replace(/\r/g, '\n')
+    .replace(/\n{2,}/g, '\n')
+    .replace(/^[\s>*-–•]+/gm, '')
+
+  // Split text into sentences and bullet lines
+  const candidates = normalized
+    .split(/(?<=[.!?])\s+|\n+/)
     .map(s => s.trim())
-    .filter(s => s.length > 20 && s.length < 500) // Filter by length
+    .filter(s => s.length > 20 && s.length < 500)
   
-  // Patterns that indicate claims or statements needing citations
   const claimPatterns = [
-    // Factual statements
-    /\b(?:research shows|studies indicate|evidence suggests|data reveals|analysis demonstrates|results show|findings indicate|it has been|it is known|it has been found|it has been shown|according to|previous studies|recent research)\b/gi,
-    
-    // Comparative statements
-    /\b(?:better than|more effective|superior to|outperforms|improves|enhances|increases|reduces|decreases|significantly|substantially|dramatically|compared to|in contrast|however|nevertheless)\b/gi,
-    
-    // Methodological claims
-    /\b(?:method|technique|approach|system|algorithm|model|framework|protocol|procedure|strategy|solution|methodology|process)\b/gi,
-    
-    // Performance claims
-    /\b(?:accuracy|precision|efficiency|performance|reliability|validity|robustness|scalability|effectiveness|quality|speed|cost|results|outcomes|benefits)\b/gi,
-    
-    // Technical specifications
-    /\b(?:sensors|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation|technology|applications)\b/gi,
-    
-    // Research findings
-    /\b(?:discovered|identified|developed|proposed|introduced|implemented|designed|created|built|constructed|established|found|demonstrated|proven)\b/gi
+    /\b(?:according to|previous studies|recent research|meta[- ]analysis)\b/gi,
+    /\b(?:research shows|studies indicate|evidence suggests|data reveals|analysis demonstrates|results show|findings indicate|has been shown|has been found|we (?:found|observed)|was (?:found|observed))\b/gi,
+    /\b(?:better than|more effective|superior to|outperforms|improves|enhances|increases|reduces|decreases|significantly|substantially|dramatically|compared (?:to|with)|in contrast)\b/gi,
+    /\b(?:method|technique|approach|algorithm|model|framework|protocol|procedure|strategy|process|dataset|sample|participants?)\b/gi,
+    /\b(?:accuracy|precision|recall|f1(?:-score)?|auc|performance|reliability|validity|robustness|scalability|effectiveness|quality|speed|cost)\b/gi,
+    /\b(?:significant|p-?value|p\s*<\s*0\.?\d+|confidence interval|ci\s*[:=]|odds ratio|hazard ratio|r\s*=|r2|r\^2|correlation|mean|median|average|std(?:dev|\.?)|standard deviation|%|percent|\d+\s*(?:%|percent|participants|subjects|samples))\b/gi,
+    /\b(?:associated with|linked to|correlated with|leads to|results in|is caused by|is related to)\b/gi,
+    /\b(?:sensors|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation|application|implementation|development|study|trial|experiment)\b/gi
   ]
   
-  for (const sentence of sentences) {
+  for (const sentence of candidates) {
     const lowerSentence = sentence.toLowerCase()
-    
-    // Check if sentence contains claim patterns
+
     for (const pattern of claimPatterns) {
       if (pattern.test(lowerSentence)) {
-        // Use the complete sentence as-is, just clean up whitespace and ensure it ends with a period
         let cleanStatement = sentence
-          .replace(/\s+/g, ' ') // Normalize whitespace
+          .replace(/\s+/g, ' ')
           .trim()
-        
-        // Ensure it ends with a period
-        if (!cleanStatement.endsWith('.') && !cleanStatement.endsWith('!') && !cleanStatement.endsWith('?')) {
+
+        if (!/[.!?]$/.test(cleanStatement)) {
           cleanStatement += '.'
         }
-        
-        // Ensure it's a complete, readable statement
-        if (cleanStatement.length > 30 && 
-            cleanStatement.length < 400 && 
-            !statements.includes(cleanStatement) &&
-            cleanStatement.includes(' ') && // Has multiple words
-            /[a-zA-Z]/.test(cleanStatement)) { // Contains letters
+
+        if (
+          cleanStatement.length > 30 && 
+          cleanStatement.length < 400 && 
+          !statements.includes(cleanStatement) &&
+          cleanStatement.includes(' ') && 
+          /[a-zA-Z]/.test(cleanStatement)
+        ) {
           statements.push(cleanStatement)
         }
-        break // Only add each sentence once, even if it matches multiple patterns
+        break
       }
     }
   }
   
-  // If no specific statements found, look for sentences with technical terms
+  // Fallback: include colon-led factual lines
   if (statements.length === 0) {
-    const technicalTerms = [
-      'sensors', 'imaging', 'spectral', 'thermal', 'multispectral', 'hyperspectral',
-      'monitoring', 'detection', 'analysis', 'assessment', 'evaluation',
-      'technology', 'methodology', 'technique', 'approach', 'system',
-      'application', 'implementation', 'development', 'research', 'study'
-    ]
-    
-    for (const sentence of sentences) {
-      const lowerSentence = sentence.toLowerCase()
-      
-      for (const term of technicalTerms) {
-        if (lowerSentence.includes(term)) {
-          // Use the complete sentence as-is, just clean up whitespace and ensure it ends with a period
-          let cleanStatement = sentence
-            .replace(/\s+/g, ' ')
-            .trim()
-          
-          // Ensure it ends with a period
-          if (!cleanStatement.endsWith('.') && !cleanStatement.endsWith('!') && !cleanStatement.endsWith('?')) {
-            cleanStatement += '.'
-          }
-          
-          if (cleanStatement.length > 30 && 
-              cleanStatement.length < 400 && 
-              !statements.includes(cleanStatement) &&
-              cleanStatement.includes(' ') &&
-              /[a-zA-Z]/.test(cleanStatement)) {
-            statements.push(cleanStatement)
-          }
-          break
-        }
-      }
+    const colonLines = normalized.split(/\n+/)
+      .map(l => l.trim())
+      .filter(l => /\w+\s*:\s*\w+/.test(l) && l.length < 300)
+    for (const l of colonLines.slice(0, 5)) {
+      const s = l.endsWith('.') ? l : l + '.'
+      if (!statements.includes(s)) statements.push(s)
     }
   }
-  
-  // Sort statements by length (prefer medium-length, readable statements)
-  statements.sort((a, b) => {
-    const aLength = a.length
-    const bLength = b.length
-    // Prefer statements between 50-200 characters
-    const aScore = Math.abs(aLength - 125)
-    const bScore = Math.abs(bLength - 125)
-    return aScore - bScore
-  })
-  
-  // Remove duplicates and limit to 3 statements for free users
+
+  statements.sort((a, b) => Math.abs(a.length - 125) - Math.abs(b.length - 125))
+
   const uniqueStatements = [...new Set(statements)]
-  const finalStatements = uniqueStatements.slice(0, 3) // Limit to 3 statements for free users
-  
-  // Debug logging
-  console.log('Final statements to return:', finalStatements)
-  console.log('Number of statements:', finalStatements.length)
-  console.log('Removed duplicates:', statements.length - uniqueStatements.length)
+  const finalStatements = uniqueStatements.slice(0, 6)
   
   return finalStatements
 }

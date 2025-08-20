@@ -75,9 +75,19 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
       {papersByStatement.map((group, groupIndex) => (
         <div key={groupIndex} className="space-y-4">
           {/* Statement Header */}
-          <div className="bg-white rounded-xl p-4 border border-gray-200">
-            <h3 className="text-lg font-semibold text-blue-800 mb-2">Statement {groupIndex + 1}</h3>
-            <p className="text-blue-900 leading-relaxed">{group.statement}</p>
+          <div className="relative overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-5 shadow-sm">
+            <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-blue-400 to-indigo-400 opacity-10 rounded-full" aria-hidden="true"></div>
+            <div className="flex items-start">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mr-3" aria-hidden="true">
+                <span className="text-white text-sm font-bold">{groupIndex + 1}</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-base font-bold text-blue-900 tracking-wide uppercase">Statement</h3>
+                <p className="mt-1 text-lg leading-relaxed text-blue-900 font-medium">
+                  {group.statement}
+                </p>
+              </div>
+            </div>
           </div>
           
           {/* Papers for this statement */}
@@ -175,8 +185,22 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      {/* Primary link */}
-                      {paper.url && paper.url !== '#' && (
+                      {/* Only show a single DOI Link button when a DOI URL is available */}
+                      {paper.url && paper.url.includes('doi.org') && (
+                        <a
+                          href={paper.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover-lift"
+                          title={`Open DOI: ${paper.url}`}
+                        >
+                          DOI Link
+                          <ExternalLink className="w-4 h-4 ml-2" />
+                        </a>
+                      )}
+
+                      {/* Fallback: if no DOI, show a single generic link when available */}
+                      {!((paper.url && paper.url.includes('doi.org'))) && paper.url && paper.url !== '#' && (
                         <a
                           href={paper.url}
                           target="_blank"
@@ -184,60 +208,8 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                           className="inline-flex items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold px-4 py-2 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 hover-lift"
                           title={`Open: ${paper.url}`}
                         >
-                          {paper.url.includes('doi.org') ? 'DOI Link' :
-                           paper.url.includes('arxiv.org') ? 'arXiv Abstract' :
-                           paper.url.includes('pubmed') ? 'PubMed' :
-                           'View Paper'}
+                          Open Link
                           <ExternalLink className="w-4 h-4 ml-2" />
-                        </a>
-                      )}
-                      
-                      {/* Additional source links based on paper type */}
-                      {paper.url && paper.url !== '#' && (paper.url.includes('doi.org') || paper.id.startsWith('crossref') || paper.id.startsWith('openalex')) && (
-                        <>
-                          <a
-                            href={paper.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center bg-green-100 text-green-700 font-medium px-3 py-2 rounded-lg hover:bg-green-200 transition-all duration-300 text-sm"
-                            title="Open DOI Link"
-                          >
-                            DOI
-                          </a>
-                          <a
-                            href={paper.url.replace('https://doi.org/', 'https://scholar.google.com/scholar?q=')}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center bg-gray-100 text-gray-700 font-medium px-3 py-2 rounded-lg hover:bg-gray-200 transition-all duration-300 text-sm"
-                            title="Search on Google Scholar"
-                          >
-                            Scholar
-                          </a>
-                        </>
-                      )}
-                      
-                      {paper.url && paper.url !== '#' && paper.url.includes('arxiv.org') && (
-                        <a
-                          href={paper.url.replace('/abs/', '/pdf/')}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center bg-gray-100 text-gray-700 font-medium px-3 py-2 rounded-lg hover:bg-gray-200 transition-all duration-300 text-sm"
-                          title="Download PDF"
-                        >
-                          PDF
-                        </a>
-                      )}
-                      
-                      {/* Fallback DOI link for papers that should have DOIs but don't have doi.org URLs */}
-                      {paper.url && paper.url !== '#' && !paper.url.includes('doi.org') && !paper.url.includes('arxiv.org') && !paper.url.includes('pubmed') && (
-                        <a
-                          href={`https://doi.org/${paper.title?.replace(/\s+/g, ' ').trim()}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center bg-orange-100 text-orange-700 font-medium px-3 py-2 rounded-lg hover:bg-orange-200 transition-all duration-300 text-sm"
-                          title="Search DOI"
-                        >
-                          Find DOI
                         </a>
                       )}
                     </div>

@@ -408,27 +408,6 @@ export default function Home() {
                   ← Back to Upload
                 </button>
               </div>
-              {/* Citations Section */}
-              <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                <header className="flex items-center mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                    <FileText className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-gray-900">
-                      Citations Found
-                    </h2>
-                    <p className="text-gray-600">{citations.length} citations extracted from your {searchMode === 'pdf' ? 'PDF' : 'text'}</p>
-                  </div>
-                </header>
-                <CitationList 
-                  citations={citations} 
-                  searchMode={searchMode}
-                  topicsFound={statementsFound}
-                  existingCitationsCount={existingCitationsCount}
-                  discoveredCitationsCount={discoveredCitationsCount}
-                />
-              </article>
 
               {/* Related Papers Section */}
               <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
@@ -441,23 +420,28 @@ export default function Home() {
               </article>
 
               {/* References Generator Section */}
-                                        <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                            <header className="flex items-center mb-8">
-                              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                                <FileText className="w-6 h-6 text-white" />
-                              </div>
-                              <div>
-                                <h2 className="text-3xl font-bold text-gray-900">
-                                  References Generator
-                                </h2>
-                                <p className="text-gray-600">Generate formatted references from your extracted citations</p>
-                              </div>
-                            </header>
-                            <ReferencesGenerator citations={citations} selectedPapers={selectedPapers} />
-                          </article>
+              <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                <header className="flex items-center mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                    <FileText className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      References Generator
+                    </h2>
+                    <p className="text-gray-600">Generate formatted references from your extracted citations</p>
+                  </div>
+                </header>
+                <ReferencesGenerator citations={citations} selectedPapers={selectedPapers} />
+              </article>
 
-
-
+              {/* Usage Limit / CTA */}
+              <UsageLimit 
+                sessionId={sessionId}
+                isAuthenticated={isAuthenticated}
+                subscriptionPlan={subscriptionPlan}
+                showAfterInteraction
+              />
 
             </section>
           )}

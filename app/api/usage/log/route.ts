@@ -1,9 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import crypto from 'crypto'
+
+export const runtime = 'nodejs'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 const supabase = supabaseUrl && supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey) : null
+
+function getClientIp(request: NextRequest): string {
+  const xff = request.headers.get('x-forwarded-for') || ''
+  const ipFromXff = xff.split(',')[0]?.trim()
+  if (ipFromXff) return ipFromXff
+  // NextRequest.ip may exist depending on runtime; fallback to localhost in dev
+  // @ts-ignore
+  return (request as any).ip || '127.0.0.1'
+}
+
+function getUserAgent(request: NextRequest): string {
+  return request.headers.get('user-agent') || 'unknown'
+}
+
+function hashIpAndUa(ip: string, userAgent: string): string {
+  const salt = process.env.USAGE_HASH_SALT || 'default_salt_change_me'
+  return crypto.createHmac('sha256', salt).update(`${ip}|${userAgent}`).digest('hex')
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,6 +39,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true, message: 'Supabase not configured, skipping log' })
     }
 
+    const ip = getClientIp(request)
+    const userAgent = getUserAgent(request)
+    const ipHash = hashIpAndUa(ip, userAgent)
+
     // Log the usage
     const { data, error } = await supabase
       .from('usage_logs')
@@ -25,7 +50,9 @@ export async function POST(request: NextRequest) {
         user_id: userId || null,
         session_id: sessionId,
         action: action,
-        metadata: metadata || null
+        metadata: metadata || null,
+        ip_hash: ipHash,
+        user_agent: userAgent
       })
 
     if (error) {
