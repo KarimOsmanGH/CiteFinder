@@ -369,125 +369,161 @@ function extractCitations(text: string): Citation[] {
   return citations
 }
 
-// Search arXiv API (manual XML parsing)
-async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
+// Search arXiv API
+async function searchArxiv(query: string): Promise<RelatedPaper[]> {
+  console.log('🔍 Searching arXiv for:', query.substring(0, 50))
   try {
-    const response = await axios.get(`http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(searchQuery)}&start=0&max_results=5`)
-    const xmlText = response.data
+    const response = await axios.get(`http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&start=0&max_results=5&sortBy=relevance&sortOrder=descending`)
     
     const papers: RelatedPaper[] = []
-    const entries = xmlText.match(/<entry>([\s\S]*?)<\/entry>/g)
+    const entries = response.data.feed.entry || []
     
-    if (entries) {
-      for (const entry of entries.slice(0, 5)) {
-        const titleMatch = entry.match(/<title>([\s\S]*?)<\/title>/)
-        const summaryMatch = entry.match(/<summary>([\s\S]*?)<\/summary>/)
-        const publishedMatch = entry.match(/<published>(\d{4}-\d{2}-\d{2})/)
-        const idMatch = entry.match(/<id>([\s\S]*?)<\/id>/)
+    console.log('🔍 arXiv found:', entries.length, 'papers')
+    
+    for (const entry of entries) {
+      if (entry.title && entry.summary) {
+        const authors = entry.author ? entry.author.map((a: any) => a.name) : ['Unknown Author']
+        const year = new Date(entry.published).getFullYear().toString()
         
-        if (titleMatch && idMatch) {
-          const title = titleMatch[1].replace(/\s+/g, ' ').trim()
-          const abstract = summaryMatch ? summaryMatch[1].replace(/\s+/g, ' ').trim() : ''
-          const year = publishedMatch ? publishedMatch[1].split('-')[0] : 'Unknown'
-          const url = idMatch[1]
-          
-          papers.push({
-            id: `arxiv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            title,
-            authors: ['arXiv Author'], // Simplified for demo
-            year,
-            abstract,
-            url,
-            similarity: 0.8
-          })
-        }
+        papers.push({
+          id: `arxiv-${entry.id.split('/').pop()}`,
+          title: entry.title.replace(/\s+/g, ' ').trim(),
+          authors: authors,
+          year: year,
+          abstract: entry.summary.replace(/\s+/g, ' ').trim(),
+          url: entry.id,
+          similarity: 0 // Will be calculated later
+        })
       }
     }
     
+    console.log('🔍 arXiv papers processed:', papers.length)
     return papers
   } catch (error) {
-    console.error('ArXiv search error:', error)
+    console.error('❌ arXiv search failed:', error instanceof Error ? error.message : String(error))
     return []
   }
 }
 
 // Search OpenAlex API
-async function searchOpenAlex(searchQuery: string): Promise<RelatedPaper[]> {
+async function searchOpenAlex(query: string): Promise<RelatedPaper[]> {
+  console.log('🔍 Searching OpenAlex for:', query.substring(0, 50))
   try {
-    const response = await axios.get(`https://api.openalex.org/works?search=${encodeURIComponent(searchQuery)}&per_page=5`)
-    const papers: RelatedPaper[] = []
+    const response = await axios.get(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&per_page=5&sort=cited_by_count:desc`)
     
-    if (response.data.results) {
-      for (const work of response.data.results.slice(0, 5)) {
+    const papers: RelatedPaper[] = []
+    const results = response.data.results || []
+    
+    console.log('🔍 OpenAlex found:', results.length, 'papers')
+    
+    for (const work of results) {
+      if (work.title && work.abstract_inverted_index) {
+        const authors = work.authorships ? work.authorships.map((a: any) => a.author.display_name) : ['Unknown Author']
+        const year = work.publication_year ? work.publication_year.toString() : 'Unknown'
+        
+        // Convert inverted index back to text
+        const abstractWords = work.abstract_inverted_index || {}
+        const abstract = Object.keys(abstractWords)
+          .sort((a, b) => Math.min(...abstractWords[a]) - Math.min(...abstractWords[b]))
+          .join(' ')
+        
         papers.push({
-          id: `openalex-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          title: work.title || 'Unknown Title',
-          authors: work.authorships?.map((a: any) => a.author.display_name) || ['Unknown Author'],
-          year: work.publication_year?.toString() || 'Unknown',
-          abstract: work.abstract_inverted_index ? Object.keys(work.abstract_inverted_index).join(' ') : '',
-          url: work.doi ? `https://doi.org/${work.doi}` : work.openalex_url,
-          similarity: 0.85
+          id: `openalex-${work.id.split('/').pop()}`,
+          title: work.title,
+          authors: authors,
+          year: year,
+          abstract: abstract,
+          url: work.doi ? `https://doi.org/${work.doi}` : work.open_access?.oa_url || '#',
+          similarity: 0 // Will be calculated later
         })
       }
     }
     
+    console.log('🔍 OpenAlex papers processed:', papers.length)
     return papers
   } catch (error) {
-    console.error('OpenAlex search error:', error)
+    console.error('❌ OpenAlex search failed:', error instanceof Error ? error.message : String(error))
     return []
   }
 }
 
 // Search CrossRef API
-async function searchCrossRef(searchQuery: string): Promise<RelatedPaper[]> {
+async function searchCrossRef(query: string): Promise<RelatedPaper[]> {
+  console.log('🔍 Searching CrossRef for:', query.substring(0, 50))
   try {
-    const response = await axios.get(`https://api.crossref.org/works?query=${encodeURIComponent(searchQuery)}&rows=5`)
-    const papers: RelatedPaper[] = []
+    const response = await axios.get(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=5&sort=relevance`)
     
-    if (response.data.message.items) {
-      for (const item of response.data.message.items.slice(0, 5)) {
+    const papers: RelatedPaper[] = []
+    const items = response.data.message.items || []
+    
+    console.log('🔍 CrossRef found:', items.length, 'papers')
+    
+    for (const item of items) {
+      if (item.title && item.title[0]) {
+        const authors = item.author ? item.author.map((a: any) => `${a.given} ${a.family}`.trim()) : ['Unknown Author']
+        const year = item.published ? item.published['date-parts'][0][0].toString() : 'Unknown'
+        
         papers.push({
-          id: `crossref-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          title: item.title?.[0] || 'Unknown Title',
-          authors: item.author?.map((a: any) => `${a.given} ${a.family}`) || ['Unknown Author'],
-          year: item.published?.['date-parts']?.[0]?.[0]?.toString() || 'Unknown',
-          abstract: item.abstract || '',
-          url: item.DOI ? `https://doi.org/${item.DOI}` : item.URL,
-          similarity: 0.8
+          id: `crossref-${item.DOI}`,
+          title: item.title[0],
+          authors: authors,
+          year: year,
+          abstract: item.abstract || 'No abstract available.',
+          url: item.DOI ? `https://doi.org/${item.DOI}` : '#',
+          similarity: 0 // Will be calculated later
         })
       }
     }
     
+    console.log('🔍 CrossRef papers processed:', papers.length)
     return papers
   } catch (error) {
-    console.error('CrossRef search error:', error)
+    console.error('❌ CrossRef search failed:', error instanceof Error ? error.message : String(error))
     return []
   }
 }
 
 // Search PubMed API
-async function searchPubMed(searchQuery: string): Promise<RelatedPaper[]> {
+async function searchPubMed(query: string): Promise<RelatedPaper[]> {
+  console.log('🔍 Searching PubMed for:', query.substring(0, 50))
   try {
-    const response = await axios.get(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(searchQuery)}&retmode=json&retmax=5`)
-    const papers: RelatedPaper[] = []
+    const response = await axios.get(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmode=json&retmax=5&sort=relevance`)
     
-    if (response.data.esearchresult?.idlist) {
-      for (const id of response.data.esearchresult.idlist.slice(0, 5)) {
-        papers.push({
-          id: `pubmed-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-          title: 'PubMed Article', // Simplified for demo
-          authors: ['PubMed Author'],
-          year: 'Unknown',
-          abstract: 'Abstract available on PubMed',
-          url: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
-          similarity: 0.75
-        })
+    const papers: RelatedPaper[] = []
+    const idList = response.data.esearchresult.idlist || []
+    
+    console.log('🔍 PubMed found:', idList.length, 'papers')
+    
+    if (idList.length > 0) {
+      // Get details for the first few papers
+      const ids = idList.slice(0, 3).join(',')
+      const detailResponse = await axios.get(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids}&retmode=json`)
+      
+      const summaries = detailResponse.data.result
+      
+      for (const id of idList.slice(0, 3)) {
+        const summary = summaries[id]
+        if (summary && summary.title) {
+          const authors = summary.authors ? summary.authors.map((a: any) => a.name) : ['Unknown Author']
+          const year = summary.pubdate ? summary.pubdate.split(' ')[0] : 'Unknown'
+          
+          papers.push({
+            id: `pubmed-${id}`,
+            title: summary.title,
+            authors: authors,
+            year: year,
+            abstract: summary.abstract || 'No abstract available.',
+            url: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
+            similarity: 0 // Will be calculated later
+          })
+        }
       }
     }
     
+    console.log('🔍 PubMed papers processed:', papers.length)
     return papers
   } catch (error) {
-    console.error('PubMed search error:', error)
+    console.error('❌ PubMed search failed:', error instanceof Error ? error.message : String(error))
     return []
   }
 }
