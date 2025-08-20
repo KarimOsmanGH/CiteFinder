@@ -89,8 +89,12 @@ function extractStatements(text: string): string[] {
     // Fix: put '-' at the end of the character class to avoid creating a range
     .replace(/^[\s>*•–-]+/gm, '')
 
+  console.log('🔍 After normalization, text length:', normalized.length)
+  console.log('🔍 Normalized text preview:', normalized.substring(0, 200))
+
   if (!normalized.trim()) {
     // Guard: if normalization removed everything, fall back to original text
+    console.log('🔍 Normalization removed everything, using original text')
     normalized = text
   }
 
@@ -232,6 +236,17 @@ function extractStatements(text: string): string[] {
         console.log('✅ Fallback statement found (generic):', withPunct.substring(0, 100))
       }
     }
+  }
+
+  // Ultimate fallback: if user typed a single statement, just use it
+  if (statements.length === 0 && text.trim().length > 10) {
+    console.log('🔍 Ultimate fallback: using user input as statement')
+    let userStatement = text.trim()
+    if (!/[.!?]$/.test(userStatement)) {
+      userStatement += '.'
+    }
+    statements.push(userStatement)
+    console.log('✅ Ultimate fallback statement:', userStatement)
   }
 
   // Sort by closeness to ideal readable length and uniqueness

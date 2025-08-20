@@ -92,17 +92,33 @@ function extractTitle(text: string): string | undefined {
 function extractStatements(text: string): string[] {
   const statements: string[] = []
   
+  console.log('🔍 extractStatements called with text length:', text.length)
+  console.log('🔍 Text preview:', text.substring(0, 300))
+  
   // Normalize bullet points into sentence-like lines
-  const normalized = text
+  let normalized = text
     .replace(/\r/g, '\n')
     .replace(/\n{2,}/g, '\n')
-    .replace(/^[\s>*-–•]+/gm, '')
+    // Fix: put '-' at the end of the character class to avoid creating a range
+    .replace(/^[\s>*•–-]+/gm, '')
 
-  // Split text into sentences and bullet lines
-  const candidates = normalized
-    .split(/(?<=[.!?])\s+|\n+/)
-    .map(s => s.trim())
-    .filter(s => s.length > 20 && s.length < 500)
+  console.log('🔍 After normalization, text length:', normalized.length)
+  console.log('🔍 Normalized text preview:', normalized.substring(0, 200))
+
+  if (!normalized.trim()) {
+    // Guard: if normalization removed everything, fall back to original text
+    console.log('🔍 Normalization removed everything, using original text')
+    normalized = text
+  }
+
+  // Split into candidate sentences
+  let candidates = normalized.split(/(?<=[.!?])\s+|\n+/)
+  if (!candidates || candidates.every(s => !s || !s.trim())) {
+    // Guard: if splitting yielded only empties, fallback to using raw text as one candidate
+    candidates = [text.trim()]
+  }
+  console.log('🔍 Total candidates found:', candidates.length)
+  console.log('🔍 First few candidates:', candidates.slice(0, 3))
   
   const claimPatterns = [
     /\b(?:according to|previous studies|recent research|meta[- ]analysis)\b/gi,
@@ -115,8 +131,12 @@ function extractStatements(text: string): string[] {
     /\b(?:sensors|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation|application|implementation|development|study|trial|experiment)\b/gi
   ]
   
+  let processedCount = 0
+  let skippedCount = 0
+  
   for (const sentence of candidates) {
     const lowerSentence = sentence.toLowerCase()
+    processedCount++
 
     // Skip incomplete phrases and section headers
     if (
@@ -134,11 +154,14 @@ function extractStatements(text: string): string[] {
       // Skip if it's just a single word or very short phrase
       sentence.trim().length < 30
     ) {
+      skippedCount++
       continue
     }
 
+    let patternMatched = false
     for (const pattern of claimPatterns) {
       if (pattern.test(lowerSentence)) {
+        patternMatched = true
         let cleanStatement = sentence
           .replace(/\s+/g, ' ')
           .trim()
@@ -148,10 +171,10 @@ function extractStatements(text: string): string[] {
         }
 
         if (
-          cleanStatement.length > 30 && 
-          cleanStatement.length < 400 && 
+          cleanStatement.length > 30 &&
+          cleanStatement.length < 400 &&
           !statements.includes(cleanStatement) &&
-          cleanStatement.includes(' ') && 
+          cleanStatement.includes(' ') &&
           /[a-zA-Z]/.test(cleanStatement) &&
           // Additional quality checks
           cleanStatement.split(' ').length >= 6 && // At least 6 words
@@ -159,14 +182,25 @@ function extractStatements(text: string): string[] {
           !/^[•\-\*]\s*[a-z\s]+$/i.test(cleanStatement) // Not just a bullet point
         ) {
           statements.push(cleanStatement)
+          console.log('✅ Statement found:', cleanStatement.substring(0, 100))
         }
         break
       }
     }
+    
+    if (!patternMatched && processedCount <= 5) {
+      console.log('❌ No pattern matched for:', sentence.substring(0, 100))
+    }
   }
+
+  console.log('🔍 Processing summary:')
+  console.log('  - Total candidates processed:', processedCount)
+  console.log('  - Candidates skipped:', skippedCount)
+  console.log('  - Statements found:', statements.length)
   
   // Fallback: include colon-led factual lines (definitions/claims) but only if they're substantial
   if (statements.length === 0) {
+    console.log('🔍 No statements found, trying fallback with colon lines...')
     const colonLines = normalized.split(/\n+/)
       .map(l => l.trim())
       .filter(l => 
@@ -176,16 +210,53 @@ function extractStatements(text: string): string[] {
         l.split(' ').length >= 8 && // At least 8 words
         !/^[a-z\s]+:$/i.test(l) // Not just a header
       )
+    console.log('🔍 Colon lines found:', colonLines.length)
     for (const l of colonLines.slice(0, 3)) {
       const s = l.endsWith('.') ? l : l + '.'
-      if (!statements.includes(s)) statements.push(s)
+      if (!statements.includes(s)) {
+        statements.push(s)
+        console.log('✅ Fallback statement found (colon):', s.substring(0, 100))
+      }
     }
   }
 
+  // New generic fallback: if still nothing, accept reasonable sentences the user typed
+  if (statements.length === 0) {
+    console.log('🔍 No statements after colon fallback, trying generic sentence fallback...')
+    const generic = candidates
+      .map(s => s.trim())
+      .filter(s => s.length >= 30 && s.split(/\s+/).length >= 6 && /[.!?]$/.test(s))
+      .slice(0, 3)
+    for (const s of generic) {
+      const withPunct = /[.!?]$/.test(s) ? s : s + '.'
+      if (!statements.includes(withPunct)) {
+        statements.push(withPunct)
+        console.log('✅ Fallback statement found (generic):', withPunct.substring(0, 100))
+      }
+    }
+  }
+
+  // Ultimate fallback: if user typed a single statement, just use it
+  if (statements.length === 0 && text.trim().length > 10) {
+    console.log('🔍 Ultimate fallback: using user input as statement')
+    let userStatement = text.trim()
+    if (!/[.!?]$/.test(userStatement)) {
+      userStatement += '.'
+    }
+    statements.push(userStatement)
+    console.log('✅ Ultimate fallback statement:', userStatement)
+  }
+
+  // Sort by closeness to ideal readable length and uniqueness
   statements.sort((a, b) => Math.abs(a.length - 125) - Math.abs(b.length - 125))
 
+  // Remove duplicates preserving order
   const uniqueStatements = [...new Set(statements)]
+  // Return up to 6 for better coverage
   const finalStatements = uniqueStatements.slice(0, 6)
+
+  console.log('🔍 Final statements:', finalStatements.length)
+  console.log('🔍 Final statements:', finalStatements.map(s => s.substring(0, 80)))
   
   return finalStatements
 }
