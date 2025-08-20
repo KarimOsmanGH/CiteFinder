@@ -101,8 +101,8 @@ export default function Home() {
       setFileName(data.fileName || '')
       setCurrentStep('results')
       
-      // Log usage only if we got results (papers with 60%+ similarity)
-      const hasResults = data.relatedPapers && data.relatedPapers.some(paper => paper.similarity >= 60)
+      // Log usage only if we got results (papers with 30%+ similarity)
+      const hasResults = data.relatedPapers && data.relatedPapers.some(paper => paper.similarity >= 30)
       await logUsageIfResults('pdf_upload', hasResults, {
         fileName: data.fileName,
         citationsFound: data.citations.length,
@@ -169,8 +169,8 @@ export default function Home() {
       setFileName('')
       setCurrentStep('results')
       
-      // Log usage only if we got results (papers with 60%+ similarity)
-      const hasResults = data.relatedPapers && data.relatedPapers.some(paper => paper.similarity >= 60)
+      // Log usage only if we got results (papers with 30%+ similarity)
+      const hasResults = data.relatedPapers && data.relatedPapers.some(paper => paper.similarity >= 30)
       await logUsageIfResults('text_process', hasResults, {
         textLength: searchText.length,
         citationsFound: data.citations.length,

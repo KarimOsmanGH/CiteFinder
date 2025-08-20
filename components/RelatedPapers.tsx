@@ -22,11 +22,19 @@ interface RelatedPapersProps {
 }
 
 export default function RelatedPapers({ papers, statementsFound = [], selectedPapers = [], onPaperSelection }: RelatedPapersProps) {
-  // Filter papers to only show those with 60% or higher similarity
-  const filteredPapers = papers.filter(paper => paper.similarity >= 60)
+  // Filter papers to only show those with 30% or higher similarity (lowered from 60%)
+  const filteredPapers = papers.filter(paper => paper.similarity >= 30)
   
   // Allow up to 9 papers total (3 per statement) for free users
   const limitedPapers = filteredPapers.slice(0, 9)
+  
+  // Debug logging
+  console.log('RelatedPapers Debug:', {
+    totalPapers: papers.length,
+    papersWithSimilarity: papers.map(p => ({ title: p.title, similarity: p.similarity, statement: p.statement })),
+    filteredPapersCount: filteredPapers.length,
+    statementsFound: statementsFound
+  })
   
   if (filteredPapers.length === 0) {
     return (
@@ -37,10 +45,18 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
         <h3 className="text-lg font-semibold text-gray-900 mb-2">No High-Quality Matches Found</h3>
         <p className="text-gray-600">
           {papers.length > 0 
-            ? `Found ${papers.length} papers, but none meet the 60% similarity threshold for quality matches.`
+            ? `Found ${papers.length} papers, but none meet the 30% similarity threshold for quality matches.`
             : 'No related papers were found in the academic databases'
           }
         </p>
+        {papers.length > 0 && (
+          <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm text-gray-600 mb-2">Debug Info:</p>
+            <p className="text-xs text-gray-500">Total papers: {papers.length}</p>
+            <p className="text-xs text-gray-500">Highest similarity: {Math.max(...papers.map(p => p.similarity || 0))}%</p>
+            <p className="text-xs text-gray-500">Papers with statements: {papers.filter(p => p.statement).length}</p>
+          </div>
+        )}
         {filteredPapers.length > 9 && (
           <p className="text-gray-500 text-sm mt-2">
             Free users can see up to 9 papers (3 per statement). Upgrade to Premium for unlimited access.
