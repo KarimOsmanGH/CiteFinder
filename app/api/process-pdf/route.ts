@@ -121,14 +121,36 @@ function extractStatements(text: string): string[] {
   console.log('🔍 First few candidates:', candidates.slice(0, 3))
   
   const claimPatterns = [
+    // Academic research patterns
     /\b(?:according to|previous studies|recent research|meta[- ]analysis)\b/gi,
     /\b(?:research shows|studies indicate|evidence suggests|data reveals|analysis demonstrates|results show|findings indicate|has been shown|has been found|we (?:found|observed)|was (?:found|observed))\b/gi,
+    
+    // Comparative/performance patterns
     /\b(?:better than|more effective|superior to|outperforms|improves|enhances|increases|reduces|decreases|significantly|substantially|dramatically|compared (?:to|with)|in contrast)\b/gi,
+    
+    // Technical method patterns
     /\b(?:method|technique|approach|algorithm|model|framework|protocol|procedure|strategy|process|dataset|sample|participants?)\b/gi,
+    
+    // Performance/metrics patterns
     /\b(?:accuracy|precision|recall|f1(?:-score)?|auc|performance|reliability|validity|robustness|scalability|effectiveness|quality|speed|cost)\b/gi,
+    
+    // Statistical patterns
     /\b(?:significant|p-?value|p\s*<\s*0\.?\d+|confidence interval|ci\s*[:=]|odds ratio|hazard ratio|r\s*=|r2|r\^2|correlation|mean|median|average|std(?:dev|\.?)|standard deviation|%|percent|\d+\s*(?:%|percent|participants|subjects|samples))\b/gi,
+    
+    // Association/causation patterns
     /\b(?:associated with|linked to|correlated with|leads to|results in|is caused by|is related to)\b/gi,
-    /\b(?:sensors|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation|application|implementation|development|study|trial|experiment)\b/gi
+    
+    // Remote sensing/drone specific patterns
+    /\b(?:drones?|uav|unmanned aerial vehicle|remote sensing|earth observation|satellite|aerial|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation|application|implementation|development|study|trial|experiment)\b/gi,
+    
+    // Software/technology patterns
+    /\b(?:software|open[- ]source|platform|system|tool|application|solution|technology|innovation|advancement|breakthrough|development)\b/gi,
+    
+    // Environmental/geographic patterns
+    /\b(?:environmental|climate|agriculture|forestry|urban|rural|landscape|ecosystem|biodiversity|conservation|mapping|survey|inventory)\b/gi,
+    
+    // Data collection patterns
+    /\b(?:data collection|field survey|ground truth|validation|calibration|measurement|observation|sampling|monitoring|tracking|surveillance)\b/gi
   ]
   
   let processedCount = 0
@@ -152,7 +174,15 @@ function extractStatements(text: string): string[] {
       // Skip if it's just a list item without context
       /^[•\-\*]\s*[a-z\s]+$/i.test(sentence) ||
       // Skip if it's just a single word or very short phrase
-      sentence.trim().length < 30
+      sentence.trim().length < 30 ||
+      // Skip metadata sections
+      /^(?:see discussions|doi:|citations:|reads:|author|preprint|publication)/i.test(sentence.trim()) ||
+      /^(?:https?:\/\/|www\.)/i.test(sentence.trim()) ||
+      /^(?:figure|table|fig\.|tab\.)/i.test(sentence.trim()) ||
+      // Skip very short or incomplete sentences
+      sentence.trim().length < 20 ||
+      // Skip sentences that are mostly numbers or special characters
+      /^[\d\s\-\.\/]+$/.test(sentence.trim())
     ) {
       skippedCount++
       continue

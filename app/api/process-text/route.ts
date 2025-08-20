@@ -111,7 +111,7 @@ function extractStatements(text: string): string[] {
   
   // Patterns that indicate factual claims or statements
   const claimPatterns = [
-    // Research findings
+    // Academic research patterns
     /\b(?:research shows|studies indicate|evidence suggests|data reveals|analysis demonstrates|results show|findings indicate|has been shown|has been found|we (?:found|observed)|was (?:found|observed))\b/gi,
 
     // Comparative/contrastive
@@ -129,8 +129,17 @@ function extractStatements(text: string): string[] {
     // Association/causation phrasing
     /\b(?:associated with|linked to|correlated with|leads to|results in|is caused by|is related to)\b/gi,
 
-    // Technical domain terms
-    /\b(?:sensors|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation|application|implementation|development|study|trial|experiment)\b/gi
+    // Remote sensing/drone specific patterns
+    /\b(?:drones?|uav|unmanned aerial vehicle|remote sensing|earth observation|satellite|aerial|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation|application|implementation|development|study|trial|experiment)\b/gi,
+
+    // Software/technology patterns
+    /\b(?:software|open[- ]source|platform|system|tool|application|solution|technology|innovation|advancement|breakthrough|development)\b/gi,
+
+    // Environmental/geographic patterns
+    /\b(?:environmental|climate|agriculture|forestry|urban|rural|landscape|ecosystem|biodiversity|conservation|mapping|survey|inventory)\b/gi,
+
+    // Data collection patterns
+    /\b(?:data collection|field survey|ground truth|validation|calibration|measurement|observation|sampling|monitoring|tracking|surveillance)\b/gi
   ]
   
   let processedCount = 0
