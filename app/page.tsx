@@ -135,24 +135,29 @@ export default function Home() {
     // Mark that user has interacted
     setHasInteracted(true)
     
-    console.log('handleTextSearch called with text length:', searchText.length)
+    console.log('🔍 handleTextSearch called with text length:', searchText.length)
+    console.log('🔍 Search text:', searchText)
     if (!searchText.trim()) {
-      console.log('Text is empty, returning')
+      console.log('❌ Text is empty, returning')
       return
     }
     
     // Check usage limit first
+    console.log('🔍 Checking usage limit...')
     const canUse = await canUseService('text_process')
+    console.log('🔍 Usage limit check result:', canUse)
     if (!canUse) {
+      console.log('❌ Usage limit exceeded')
       alert('Usage limit exceeded. Anonymous users get 3 citations per 24 hours. Please sign up for unlimited access.')
       return
     }
     
-    console.log('Starting text processing...')
+    console.log('✅ Usage limit check passed, starting text processing...')
     setIsProcessing(true)
     setCurrentStep('processing')
     
     try {
+      console.log('🔍 Making API call to /api/process-text...')
       const response = await fetch('/api/process-text', {
         method: 'POST',
         headers: {
@@ -161,14 +166,25 @@ export default function Home() {
         body: JSON.stringify({ text: searchText }),
       })
 
+      console.log('🔍 API response status:', response.status)
+      console.log('🔍 API response ok:', response.ok)
+
       if (!response.ok) {
+        const errorText = await response.text()
+        console.error('❌ API error response:', errorText)
         throw new Error('Failed to process text')
       }
 
       const data: ProcessResponse = await response.json()
-      console.log('Text processing successful, citations found:', data.citations.length)
-      setCitations(data.citations)
-      setRelatedPapers(data.relatedPapers)
+      console.log('✅ API response received:')
+      console.log('  - Citations:', data.citations?.length || 0)
+      console.log('  - Related papers:', data.relatedPapers?.length || 0)
+      console.log('  - Statements found:', data.statementsFound?.length || 0)
+      console.log('  - Existing citations:', data.existingCitationsCount || 0)
+      console.log('  - Discovered citations:', data.discoveredCitationsCount || 0)
+      
+      setCitations(data.citations || [])
+      setRelatedPapers(data.relatedPapers || [])
       setStatementsFound(data.statementsFound || [])
       setExistingCitationsCount(data.existingCitationsCount || 0)
       setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
@@ -178,14 +194,15 @@ export default function Home() {
       
       // Log usage only if we got results (papers with 60%+ similarity)
       const hasResults = data.relatedPapers && data.relatedPapers.some(paper => paper.similarity >= 60)
+      console.log('🔍 Has quality results (60%+ similarity):', hasResults)
       await logUsageIfResults('text_process', hasResults, {
         textLength: searchText.length,
-        citationsFound: data.citations.length,
-        papersFound: data.relatedPapers.length,
+        citationsFound: data.citations?.length || 0,
+        papersFound: data.relatedPapers?.length || 0,
         hasQualityResults: hasResults
       })
     } catch (error) {
-      console.error('Error processing text:', error)
+      console.error('❌ Error processing text:', error)
       alert('Error processing text. Please try again.')
       setCurrentStep('upload')
     } finally {

@@ -22,11 +22,22 @@ interface RelatedPapersProps {
 }
 
 export default function RelatedPapers({ papers, statementsFound = [], selectedPapers = [], onPaperSelection }: RelatedPapersProps) {
+  console.log('🔍 RelatedPapers component received:')
+  console.log('  - Papers:', papers?.length || 0)
+  console.log('  - Statements found:', statementsFound?.length || 0)
+  console.log('  - Selected papers:', selectedPapers?.length || 0)
+  console.log('  - Papers data:', papers?.map(p => ({ title: p.title.substring(0, 30), similarity: p.similarity })))
+  console.log('  - Statements data:', statementsFound)
+  
   // Filter papers to only show those with 60% or higher similarity (back to quality threshold)
   const filteredPapers = papers.filter(paper => paper.similarity >= 60)
   
   // Allow up to 9 papers total (3 per statement) for free users
   const limitedPapers = filteredPapers.slice(0, 9)
+  
+  console.log('🔍 RelatedPapers processing:')
+  console.log('  - Filtered papers (60%+):', filteredPapers.length)
+  console.log('  - Limited papers:', limitedPapers.length)
   
   // Debug logging
   console.log('RelatedPapers Debug:', {
