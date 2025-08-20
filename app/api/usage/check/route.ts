@@ -40,15 +40,15 @@ export async function POST(request: NextRequest) {
 
     const ipHash = hashIpAndUa(getClientIp(request), getUserAgent(request))
 
-    // Check usage limit using the database function
-    const { data: canUse, error } = await supabase.rpc('check_usage_limit', {
-      p_user_id: userId || null,
-      p_session_id: sessionId,
-      p_ip_hash: ipHash
+    // Check usage limit
+    const { data: canUse, error: usageError } = await supabase.rpc('check_usage_limit', {
+      p_user_id: userId,
+      p_session_id: sessionId
+      // Temporarily removed p_ip_hash until database is updated
     })
 
-    if (error) {
-      console.error('Error checking usage limit:', error)
+    if (usageError) {
+      console.error('Error checking usage limit:', usageError)
       return NextResponse.json({ error: 'Failed to check usage limit' }, { status: 500 })
     }
 
