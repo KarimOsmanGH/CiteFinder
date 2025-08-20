@@ -10,6 +10,7 @@ interface RelatedPaper {
   abstract: string
   url: string
   similarity: number
+  statement?: string
 }
 
 interface RelatedPapersProps {
@@ -66,16 +67,15 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
 
   return (
     <div className="space-y-8">
-      {/* Related Papers Header */}
-      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 mb-6">
-        <h3 className="text-lg font-semibold text-blue-800 mb-2">Related Papers Found</h3>
-        <p className="text-blue-700 text-sm">Showing top {limitedPapers.length} papers (60%+ match)</p>
+      <div className="bg-white rounded-xl p-4 border border-gray-200 mb-2">
+        <h3 className="text-lg font-semibold text-blue-800 mb-1">Build your References page</h3>
+        <p className="text-blue-700 text-sm">Select the relevant papers under each statement below, then use the References Generator to create your references.</p>
       </div>
-      
+      {/* Statement Groups */}
       {papersByStatement.map((group, groupIndex) => (
         <div key={groupIndex} className="space-y-4">
           {/* Statement Header */}
-          <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+          <div className="bg-white rounded-xl p-4 border border-gray-200">
             <h3 className="text-lg font-semibold text-blue-800 mb-2">Statement {groupIndex + 1}</h3>
             <p className="text-blue-900 leading-relaxed">{group.statement}</p>
           </div>
@@ -87,8 +87,8 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
               return (
                 <div
                   key={paper.id}
-                  className={`bg-white/70 backdrop-blur-sm border rounded-xl p-6 hover-lift transition-all duration-300 animate-slide-in-right ${
-                    isSelected ? 'border-green-300 bg-green-50/50' : 'border-white/30'
+                  className={`bg-white border rounded-xl p-6 hover-lift transition-all duration-300 animate-slide-in-right ${
+                    isSelected ? 'border-green-300' : 'border-gray-200'
                   }`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
@@ -136,7 +136,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                       {/* Selection Checkbox */}
                       {onPaperSelection && (
                         <button
-                          onClick={() => onPaperSelection(paper, !isSelected)}
+                          onClick={() => onPaperSelection({ ...paper, statement: group.statement }, !isSelected)}
                           className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
                             isSelected 
                               ? 'bg-green-500 border-green-500 text-white' 

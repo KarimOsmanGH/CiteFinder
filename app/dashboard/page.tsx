@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { FileText, Upload, Clock, Crown, User, LogOut, ArrowLeft, Loader2, ChevronDown, ChevronUp, Settings } from 'lucide-react'
 import PDFUploader from '@/components/PDFUploader'
-import CitationList from '@/components/CitationList'
 import RelatedPapers from '@/components/RelatedPapers'
 import ReferencesGenerator from '@/components/ReferencesGenerator'
 import UsageLimit from '@/components/UsageLimit'
@@ -35,6 +34,7 @@ interface RelatedPaper {
   abstract: string
   url: string
   similarity: number
+  statement?: string
 }
 
 interface ProcessResponse {
@@ -444,30 +444,10 @@ export default function Dashboard() {
                   ← Back to Upload
                 </button>
               </div>
-              {/* Citations Section */}
-              <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                <header className="flex items-center mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                    <FileText className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-gray-900">
-                      Citations Found
-                    </h2>
-                    <p className="text-gray-600">{citations.length} citations extracted from your {searchMode === 'pdf' ? 'PDF' : 'text'}</p>
-                  </div>
-                </header>
-                <CitationList 
-                  citations={citations} 
-                  searchMode={searchMode}
-                  topicsFound={statementsFound}
-                  existingCitationsCount={existingCitationsCount}
-                  discoveredCitationsCount={discoveredCitationsCount}
-                />
-              </article>
+              {/* Citations list removed per new UX: we only show statements with related papers below */}
 
               {/* Related Papers Section */}
-              <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+              <article className="bg-white rounded-2xl shadow-soft p-8 hover-lift border border-gray-200">
                 <RelatedPapers 
                   papers={relatedPapers} 
                   statementsFound={statementsFound}
@@ -477,7 +457,7 @@ export default function Dashboard() {
               </article>
 
               {/* References Generator Section */}
-              <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+              <article className="bg-white rounded-2xl shadow-soft p-8 hover-lift border border-gray-200">
                 <header className="flex items-center mb-8">
                   <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
                     <FileText className="w-6 h-6 text-white" />

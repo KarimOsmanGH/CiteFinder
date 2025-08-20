@@ -1,1 +1,3 @@
- 
+# This is a placeholder for favicon.ico
+# Convert the SVG favicon to ICO format using an online converter
+# or use a tool like ImageMagick: convert favicon.svg favicon.ico 

@@ -1,1 +1,4 @@
- 
+# This is a placeholder for favicon-32x32.png
+# Convert the SVG favicon to PNG format using an online converter
+# or use a tool like ImageMagick: convert favicon.svg favicon-32x32.png
+# The PNG should be a blue document icon matching the SVG design 

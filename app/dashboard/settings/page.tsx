@@ -126,20 +126,20 @@ export default function DashboardSettings() {
               <User className="w-5 h-5 mr-2" />
               Account Information
             </h2>
-            <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium text-gray-600">Name</label>
-                <p className="text-gray-900">{session?.user?.name || 'Dev User'}</p>
+                          <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Name</label>
+                  <p className="text-gray-900 font-medium">{session?.user?.name || 'Dev User'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Email</label>
+                  <p className="text-gray-900 font-medium">{session?.user?.email || 'dev@citefinder.app'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-600">Member Since</label>
+                  <p className="text-gray-900 font-medium">{formatDate(new Date().toISOString())}</p>
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Email</label>
-                <p className="text-gray-900">{session?.user?.email || 'dev@citefinder.app'}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-600">Member Since</label>
-                <p className="text-gray-900">{formatDate(new Date().toISOString())}</p>
-              </div>
-            </div>
           </div>
 
           {/* Subscription Status */}

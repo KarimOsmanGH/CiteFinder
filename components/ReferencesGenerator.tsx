@@ -25,6 +25,7 @@ interface RelatedPaper {
   abstract: string
   url: string
   similarity: number
+  statement?: string
 }
 
 type ReferenceFormat = 'apa' | 'mla' | 'chicago' | 'harvard' | 'bibtex'
@@ -89,6 +90,32 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
         return `@article{${paper.id},\n  author = {${authors}},\n  title = {${title}},\n  year = {${year}},\n}`
       default:
         return `${authors}. (${year}). ${title}.`
+    }
+  }
+
+  const getPrimaryAuthorLastName = (authors: string[]) => {
+    if (!authors || authors.length === 0) return 'Author';
+    const first = authors[0];
+    const parts = first.split(' ').filter(Boolean);
+    return parts.length ? parts[parts.length - 1] : first;
+  }
+
+  const formatInTextCitation = (paper: RelatedPaper, format: ReferenceFormat): string => {
+    const primaryLast = getPrimaryAuthorLastName(paper.authors);
+    const year = paper.year || 'n.d.';
+    switch (format) {
+      case 'apa':
+        return `(${primaryLast}, ${year})`;
+      case 'mla':
+        return `(${primaryLast})`;
+      case 'chicago':
+        return `(${primaryLast} ${year})`;
+      case 'harvard':
+        return `(${primaryLast}, ${year})`;
+      case 'bibtex':
+        return `\\cite{${paper.id}}`;
+      default:
+        return `(${primaryLast}, ${year})`;
     }
   }
 
@@ -159,7 +186,7 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
       </div>
 
       {/* Citation Generator */}
-      <div className="bg-white/50 backdrop-blur-sm rounded-xl p-6 border border-white/30">
+      <div className="bg-white rounded-xl p-6 border border-gray-200">
         {/* Selected Papers Summary */}
         <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
           <h4 className="font-semibold text-gray-900 mb-2">Selected Papers ({selectedPapers.length})</h4>
@@ -174,6 +201,30 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
             ))}
           </div>
         </div>
+
+        {/* Statements with In-text Citations */}
+        {selectedPapers.some(p => p.statement) && (
+          <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
+            <h4 className="font-semibold text-gray-900 mb-2">Statements with in-text citations</h4>
+            <div className="space-y-3">
+              {selectedPapers.map((paper) => (
+                paper.statement ? (
+                  <div key={`stmt-${paper.id}`} className="flex items-start justify-between">
+                    <p className="text-sm text-gray-800 mr-4">
+                      {paper.statement} {formatInTextCitation(paper, selectedFormat)}
+                    </p>
+                    <button
+                      onClick={() => navigator.clipboard.writeText(`${paper.statement} ${formatInTextCitation(paper, selectedFormat)}`)}
+                      className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded transition-colors"
+                    >
+                      Copy
+                    </button>
+                  </div>
+                ) : null
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Style Buttons */}
         <div className="mb-4">

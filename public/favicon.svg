@@ -1,1 +1,21 @@
- 
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background with gradient -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Rounded rectangle background -->
+  <rect x="2" y="2" width="28" height="28" rx="6" fill="url(#gradient)" />
+  
+  <!-- FileText icon -->
+  <path d="M14.5 2H6C5.44772 2 5 2.44772 5 3V29C5 29.5523 5.44772 30 6 30H26C26.5523 30 27 29.5523 27 29V11.5L14.5 2Z" fill="white" opacity="0.9"/>
+  <path d="M14.5 2V11.5H27" fill="white" opacity="0.7"/>
+  
+  <!-- Document lines -->
+  <rect x="8" y="16" width="12" height="1.5" rx="0.75" fill="white"/>
+  <rect x="8" y="19" width="10" height="1.5" rx="0.75" fill="white"/>
+  <rect x="8" y="22" width="8" height="1.5" rx="0.75" fill="white"/>
+</svg> 
