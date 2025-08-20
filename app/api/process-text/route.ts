@@ -106,6 +106,13 @@ function extractStatements(text: string): string[] {
     // Guard: if splitting yielded only empties, fallback to using raw text as one candidate
     candidates = [text.trim()]
   }
+  
+  // Limit candidates to prevent timeout - only process first 50 candidates
+  if (candidates.length > 50) {
+    console.log('🔍 Limiting candidates from', candidates.length, 'to 50 to prevent timeout')
+    candidates = candidates.slice(0, 50)
+  }
+  
   console.log('🔍 Total candidates found:', candidates.length)
   console.log('🔍 First few candidates:', candidates.slice(0, 3))
   
@@ -277,22 +284,39 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
   const citations: Citation[] = []
   let idCounter = 1
   
-  for (const statement of statements) {
+  // Limit to first 3 statements to prevent timeout
+  const limitedStatements = statements.slice(0, 3)
+  console.log('🔍 Processing statements for paper search:', limitedStatements.length, 'out of', statements.length)
+  
+  for (const statement of limitedStatements) {
     try {
+      console.log('🔍 Searching for statement:', statement.substring(0, 80))
+      
       // Extract key terms from the statement for better search
       const keyTerms = extractKeyTermsFromStatement(statement)
+      console.log('🔍 Key terms extracted:', keyTerms)
       
-      // Search across all databases for each statement
-      const arxivResults = await searchArxiv(keyTerms)
-      const openAlexResults = await searchOpenAlex(keyTerms)
-      const crossRefResults = await searchCrossRef(keyTerms)
-      const pubmedResults = await searchPubMed(keyTerms)
+      // Search across all databases for each statement with timeout
+      const searchPromises = [
+        searchArxiv(keyTerms).catch(e => { console.log('❌ ArXiv search failed:', e.message); return [] }),
+        searchOpenAlex(keyTerms).catch(e => { console.log('❌ OpenAlex search failed:', e.message); return [] }),
+        searchCrossRef(keyTerms).catch(e => { console.log('❌ CrossRef search failed:', e.message); return [] }),
+        searchPubMed(keyTerms).catch(e => { console.log('❌ PubMed search failed:', e.message); return [] })
+      ]
+      
+      // Wait for all searches with a 10-second timeout
+      const results = await Promise.allSettled(searchPromises)
+      const [arxivResults, openAlexResults, crossRefResults, pubmedResults] = results.map(r => 
+        r.status === 'fulfilled' ? r.value : []
+      )
       
       // Combine and deduplicate results
       const allResults = [...arxivResults, ...openAlexResults, ...crossRefResults, ...pubmedResults]
       const uniqueResults = allResults.filter((result, index, self) => 
         index === self.findIndex(r => r.title === result.title)
       )
+      
+      console.log('🔍 Total unique results found:', uniqueResults.length)
       
       // Convert to citations with high confidence for statement-based discovery
       for (const result of uniqueResults.slice(0, 2)) { // Top 2 results per statement
