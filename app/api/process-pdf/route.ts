@@ -117,6 +117,25 @@ function extractStatements(text: string): string[] {
   for (const sentence of candidates) {
     const lowerSentence = sentence.toLowerCase()
 
+    // Skip incomplete phrases and section headers
+    if (
+      // Skip if it's just a topic/section header
+      /^[a-z\s]+:$/i.test(sentence) ||
+      /^[a-z\s]+:$/i.test(sentence.trim()) ||
+      // Skip if it's too short or incomplete
+      sentence.split(' ').length < 5 ||
+      // Skip if it ends with a colon (likely a header)
+      sentence.trim().endsWith(':') ||
+      // Skip if it's just a repeated word or phrase
+      /^([a-z]+\s*:?\s*)+$/i.test(sentence) ||
+      // Skip if it's just a list item without context
+      /^[•\-\*]\s*[a-z\s]+$/i.test(sentence) ||
+      // Skip if it's just a single word or very short phrase
+      sentence.trim().length < 30
+    ) {
+      continue
+    }
+
     for (const pattern of claimPatterns) {
       if (pattern.test(lowerSentence)) {
         let cleanStatement = sentence
@@ -132,7 +151,11 @@ function extractStatements(text: string): string[] {
           cleanStatement.length < 400 && 
           !statements.includes(cleanStatement) &&
           cleanStatement.includes(' ') && 
-          /[a-zA-Z]/.test(cleanStatement)
+          /[a-zA-Z]/.test(cleanStatement) &&
+          // Additional quality checks
+          cleanStatement.split(' ').length >= 6 && // At least 6 words
+          !/^[a-z\s]+:$/i.test(cleanStatement) && // Not just a header
+          !/^[•\-\*]\s*[a-z\s]+$/i.test(cleanStatement) // Not just a bullet point
         ) {
           statements.push(cleanStatement)
         }
@@ -141,12 +164,18 @@ function extractStatements(text: string): string[] {
     }
   }
   
-  // Fallback: include colon-led factual lines
+  // Fallback: include colon-led factual lines (definitions/claims) but only if they're substantial
   if (statements.length === 0) {
     const colonLines = normalized.split(/\n+/)
       .map(l => l.trim())
-      .filter(l => /\w+\s*:\s*\w+/.test(l) && l.length < 300)
-    for (const l of colonLines.slice(0, 5)) {
+      .filter(l => 
+        /\w+\s*:\s*\w+/.test(l) && 
+        l.length < 300 && 
+        l.length > 50 && // Must be substantial
+        l.split(' ').length >= 8 && // At least 8 words
+        !/^[a-z\s]+:$/i.test(l) // Not just a header
+      )
+    for (const l of colonLines.slice(0, 3)) {
       const s = l.endsWith('.') ? l : l + '.'
       if (!statements.includes(s)) statements.push(s)
     }
