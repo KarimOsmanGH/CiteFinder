@@ -9,6 +9,7 @@ interface Citation {
   title?: string
   confidence: number
   statement?: string // Added for context
+  supportingQuote?: string
 }
 
 interface RelatedPaper {
@@ -19,6 +20,7 @@ interface RelatedPaper {
   abstract: string
   url: string
   similarity: number
+  supportingQuote?: string
 }
 
 // Citation extraction patterns
@@ -191,6 +193,9 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
         const authors = result.authors.join(', ')
         const year = result.year
         
+        // Extract supporting quote from abstract
+        const supportingQuote = extractSupportingQuote(statement, result.abstract)
+        
         citations.push({
           id: `discovered-${idCounter++}`,
           text: `${authors} (${year}). ${result.title}.`,
@@ -198,7 +203,8 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
           year,
           title: result.title,
           confidence: 0.90, // Higher confidence for statement-based discovery
-          statement: statement // Add the original statement for context
+          statement: statement, // Add the original statement for context
+          supportingQuote: supportingQuote
         })
       }
     } catch (error) {
@@ -207,6 +213,38 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
   }
   
   return citations
+}
+
+// Extract supporting quote from abstract that relates to the statement
+function extractSupportingQuote(statement: string, abstract: string): string | undefined {
+  if (!abstract || abstract.length < 50) return undefined
+  
+  // Extract key terms from statement
+  const statementTerms = extractKeyTermsFromStatement(statement).toLowerCase().split(' ')
+  
+  // Split abstract into sentences
+  const sentences = abstract.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 20)
+  
+  // Find sentences that contain statement terms
+  const relevantSentences = sentences.filter(sentence => {
+    const lowerSentence = sentence.toLowerCase()
+    return statementTerms.some(term => lowerSentence.includes(term))
+  })
+  
+  if (relevantSentences.length === 0) {
+    // Fallback: return first meaningful sentence
+    const firstSentence = sentences.find(s => s.length > 30 && s.length < 200)
+    return firstSentence ? firstSentence + '.' : undefined
+  }
+  
+  // Return the most relevant sentence (longest match or first match)
+  const bestSentence = relevantSentences.reduce((best, current) => {
+    const currentScore = statementTerms.filter(term => current.toLowerCase().includes(term)).length
+    const bestScore = statementTerms.filter(term => best.toLowerCase().includes(term)).length
+    return currentScore > bestScore ? current : best
+  })
+  
+  return bestSentence + '.'
 }
 
 // Extract key terms from a statement for better search
@@ -472,6 +510,11 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
           // Calculate actual similarity score
           const similarityScore = calculateSimilarityScore(searchQuery, paper);
           paper.similarity = similarityScore;
+          
+          // Extract supporting quote if this is a discovered citation with a statement
+          if (citation.statement && citation.statement.length > 0) {
+            paper.supportingQuote = extractSupportingQuote(citation.statement, paper.abstract)
+          }
           
           allPapers.push(paper)
         }
