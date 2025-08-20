@@ -61,34 +61,11 @@ export default function PDFUploader({ onFileUpload }: PDFUploaderProps) {
           </h3>
           
           <p className="text-base text-gray-600 mb-4 max-w-md">
-            Drag and drop your PDF file here, or click to browse and select your research paper
+            Drag and drop your PDF file (max 50MB) here, or click to browse and select your research paper
           </p>
           
-          <div className="bg-white/50 backdrop-blur-sm rounded-lg p-4 w-full max-w-md border border-white/20">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm" role="list" aria-label="Upload features">
-              <div className="text-center" role="listitem">
-                <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mx-auto mb-2" aria-hidden="true">
-                  <span className="text-blue-600 font-semibold">📄</span>
-                </div>
-                <p className="font-medium text-gray-900">PDF Format</p>
-                <p className="text-gray-600">Only</p>
-              </div>
-              <div className="text-center" role="listitem">
-                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mx-auto mb-2" aria-hidden="true">
-                  <span className="text-green-600 font-semibold">💾</span>
-                </div>
-                <p className="font-medium text-gray-900">50MB Max</p>
-                <p className="text-gray-600">File Size</p>
-              </div>
-              <div className="text-center" role="listitem">
-                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mx-auto mb-2" aria-hidden="true">
-                  <span className="text-purple-600 font-semibold">⚡</span>
-                </div>
-                <p className="font-medium text-gray-900">Instant</p>
-                <p className="text-gray-600">Processing</p>
-              </div>
-            </div>
-          </div>
+          {/* Removed informational box (PDF Format / 50MB Max / Instant Processing) as requested */}
+          
         </div>
       </div>
     </section>

@@ -86,7 +86,8 @@ function extractStatements(text: string): string[] {
   const normalized = text
     .replace(/\r/g, '\n')
     .replace(/\n{2,}/g, '\n')
-    .replace(/^[\s>*-–•]+/gm, '')
+    // Fix: put '-' at the end of the character class to avoid creating a range
+    .replace(/^[\s>*•–-]+/gm, '')
 
   console.log('🔍 Normalized text preview:', normalized.substring(0, 300))
   
@@ -203,7 +204,23 @@ function extractStatements(text: string): string[] {
       const s = l.endsWith('.') ? l : l + '.'
       if (!statements.includes(s)) {
         statements.push(s)
-        console.log('✅ Fallback statement found:', s.substring(0, 100))
+        console.log('✅ Fallback statement found (colon):', s.substring(0, 100))
+      }
+    }
+  }
+
+  // New generic fallback: if still nothing, accept reasonable sentences the user typed
+  if (statements.length === 0) {
+    console.log('🔍 No statements after colon fallback, trying generic sentence fallback...')
+    const generic = candidates
+      .map(s => s.trim())
+      .filter(s => s.length >= 30 && s.split(/\s+/).length >= 6 && /[.!?]$/.test(s))
+      .slice(0, 3)
+    for (const s of generic) {
+      const withPunct = /[.!?]$/.test(s) ? s : s + '.'
+      if (!statements.includes(withPunct)) {
+        statements.push(withPunct)
+        console.log('✅ Fallback statement found (generic):', withPunct.substring(0, 100))
       }
     }
   }
