@@ -514,14 +514,28 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
   const allPapers: RelatedPaper[] = []
   const seenTitles = new Set<string>()
 
+  console.log('🔍 searchRelatedPapers called with citations:', citations.length)
+  console.log('📝 Citations:', citations.map(c => ({ 
+    title: c.title, 
+    authors: c.authors, 
+    text: c.text?.substring(0, 50), 
+    statement: c.statement 
+  })))
+
   // Process discovered citations (which have statements) first
   const discoveredCitations = citations.filter(c => c.statement)
   const existingCitations = citations.filter(c => !c.statement)
+
+  console.log('🔍 Discovered citations with statements:', discoveredCitations.length)
+  console.log('🔍 Existing citations without statements:', existingCitations.length)
 
   // For discovered citations, get up to 3 papers per statement
   for (const citation of discoveredCitations.slice(0, 3)) { // Limit to 3 statements
     const searchQuery = citation.title || citation.authors || citation.text.substring(0, 100)
     if (!searchQuery) continue
+
+    console.log('🔍 Searching for statement:', citation.statement)
+    console.log('🔍 Search query:', searchQuery)
 
     try {
       // Search all APIs in parallel
@@ -532,10 +546,18 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
         searchPubMed(searchQuery)
       ])
 
+      console.log('🔍 API Results:')
+      console.log('  - arXiv:', arxivResults.status === 'fulfilled' ? arxivResults.value.length : 'failed')
+      console.log('  - OpenAlex:', openAlexResults.status === 'fulfilled' ? openAlexResults.value.length : 'failed')
+      console.log('  - CrossRef:', crossrefResults.status === 'fulfilled' ? crossrefResults.value.length : 'failed')
+      console.log('  - PubMed:', pubmedResults.status === 'fulfilled' ? pubmedResults.value.length : 'failed')
+
       // Collect results from successful API calls
       const results = [arxivResults, openAlexResults, crossrefResults, pubmedResults]
         .filter(result => result.status === 'fulfilled')
         .flatMap(result => (result as PromiseFulfilledResult<RelatedPaper[]>).value)
+
+      console.log('🔍 Total results from all APIs:', results.length)
 
       // Calculate similarity scores and add unique papers (up to 3 per statement)
       let papersForThisStatement = 0
@@ -547,6 +569,9 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
           const similarityScore = calculateSimilarityScore(searchQuery, paper);
           paper.similarity = similarityScore;
           
+          console.log('📄 Paper:', paper.title.substring(0, 50))
+          console.log('📊 Similarity score:', similarityScore)
+          
           // Extract supporting quote if this is a discovered citation with a statement
           if (citation.statement && citation.statement.length > 0) {
             paper.supportingQuote = extractSupportingQuote(citation.statement, paper.abstract)
@@ -557,8 +582,10 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
           papersForThisStatement++
         }
       }
+      
+      console.log('📊 Papers added for this statement:', papersForThisStatement)
     } catch (error) {
-      console.error('Error searching for related papers:', error)
+      console.error('❌ Error searching for related papers:', error)
     }
   }
 
@@ -566,6 +593,8 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
   for (const citation of existingCitations.slice(0, 2)) {
     const searchQuery = citation.title || citation.authors || citation.text.substring(0, 100)
     if (!searchQuery || allPapers.length >= 9) continue // Cap at 9 total papers
+
+    console.log('🔍 Searching for existing citation:', searchQuery.substring(0, 50))
 
     try {
       const [arxivResults, openAlexResults, crossrefResults, pubmedResults] = await Promise.allSettled([
@@ -586,18 +615,30 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
           const similarityScore = calculateSimilarityScore(searchQuery, paper);
           paper.similarity = similarityScore;
           
+          console.log('📄 Existing citation paper:', paper.title.substring(0, 50))
+          console.log('📊 Similarity score:', similarityScore)
+          
           allPapers.push(paper)
         }
       }
     } catch (error) {
-      console.error('Error searching for related papers:', error)
+      console.error('❌ Error searching for existing citations:', error)
     }
   }
 
+  console.log('📊 Final results:')
+  console.log('  - Total papers found:', allPapers.length)
+  console.log('  - Papers with similarity scores:', allPapers.map(p => ({ title: p.title.substring(0, 30), similarity: p.similarity })))
+
   // Sort by similarity score (highest first) and return up to 9 papers for free users
-  return allPapers
+  const finalResults = allPapers
     .sort((a, b) => b.similarity - a.similarity)
     .slice(0, 9)
+
+  console.log('📊 Final sorted results:', finalResults.length)
+  console.log('📊 Similarity range:', finalResults.length > 0 ? `${Math.min(...finalResults.map(p => p.similarity))}% - ${Math.max(...finalResults.map(p => p.similarity))}%` : 'No results')
+
+  return finalResults
 }
 
 export async function POST(request: NextRequest) {
@@ -611,22 +652,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('📝 Processing text input, length:', text.length)
+    console.log('📝 Text preview:', text.substring(0, 200))
+
     // First, try to extract existing citations
     const existingCitations = extractCitations(text)
+    console.log('📚 Existing citations found:', existingCitations.length)
     
     // Then, analyze content and find related papers
     const statements = extractStatements(text)
+    console.log('💬 Statements extracted:', statements.length)
+    console.log('💬 Statements:', statements.map(s => s.substring(0, 100)))
+    
     const discoveredCitations = await findRelatedPapersFromStatements(statements)
+    console.log('🔍 Discovered citations from statements:', discoveredCitations.length)
     
-    // Combine both types of citations
+    // Combine all citations
     const allCitations = [...existingCitations, ...discoveredCitations]
+    console.log('📚 Total citations (existing + discovered):', allCitations.length)
     
-    // Get related papers for all citations
+    // Search for related papers
     const relatedPapers = await searchRelatedPapers(allCitations)
+    console.log('📄 Related papers found:', relatedPapers.length)
+    
+    console.log('✅ Final response prepared:')
+    console.log('  - Citations:', allCitations.length)
+    console.log('  - Related papers:', relatedPapers.length)
+    console.log('  - Statements:', statements.length)
 
     return NextResponse.json({
       citations: allCitations,
-      relatedPapers,
+      relatedPapers: relatedPapers,
       textLength: text.length,
       pages: Math.ceil(text.length / 2000),
       statementsFound: statements,
@@ -635,7 +691,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error processing text:', error)
+    console.error('❌ Error in process-text:', error)
     return NextResponse.json(
       { error: 'Failed to process text' },
       { status: 500 }

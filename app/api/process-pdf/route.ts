@@ -687,72 +687,73 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const file = formData.get('pdf') as File
-    
+
     if (!file) {
       return NextResponse.json(
-        { error: 'No PDF file provided' },
+        { error: 'PDF file is required' },
         { status: 400 }
       )
     }
 
-    if (file.type !== 'application/pdf') {
+    console.log('📄 Processing PDF file:', file.name, 'size:', file.size)
+
+    // Convert PDF to text
+    const arrayBuffer = await file.arrayBuffer()
+    const pdfBuffer = Buffer.from(arrayBuffer)
+    
+    let text = ''
+    try {
+      const data = await pdf(pdfBuffer)
+      text = data.text
+      console.log('📝 PDF text extracted, length:', text.length)
+      console.log('📝 Text preview:', text.substring(0, 200))
+    } catch (error) {
+      console.error('❌ Error parsing PDF:', error)
       return NextResponse.json(
-        { error: 'Only PDF files are allowed' },
-        { status: 400 }
+        { error: 'Failed to parse PDF' },
+        { status: 500 }
       )
     }
 
-    if (file.size > 50 * 1024 * 1024) { // 50MB limit
-      return NextResponse.json(
-        { error: 'File size must be less than 50MB' },
-        { status: 400 }
-      )
-    }
-    
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
-    // Store PDF in Vercel Blob storage
-    const timestamp = Date.now()
-    const fileName = `pdfs/${timestamp}-${file.name}`
-    
-    const { url: pdfUrl } = await put(fileName, buffer, {
-      access: 'public',
-      contentType: 'application/pdf'
-    })
-    
-    // Parse PDF
-    const pdfData = await pdf(buffer)
-    const text = pdfData.text
-    
     // First, try to extract existing citations
     const existingCitations = extractCitations(text)
+    console.log('📚 Existing citations found:', existingCitations.length)
     
     // Then, analyze content and find related papers
     const statements = extractStatements(text)
+    console.log('💬 Statements extracted:', statements.length)
+    console.log('💬 Statements:', statements.map(s => s.substring(0, 100)))
+    
     const discoveredCitations = await findRelatedPapersFromStatements(statements)
+    console.log('🔍 Discovered citations from statements:', discoveredCitations.length)
     
-    // Combine both types of citations
+    // Combine all citations
     const allCitations = [...existingCitations, ...discoveredCitations]
+    console.log('📚 Total citations (existing + discovered):', allCitations.length)
     
-    // Get related papers for all citations
+    // Search for related papers
     const relatedPapers = await searchRelatedPapers(allCitations)
+    console.log('📄 Related papers found:', relatedPapers.length)
     
+    console.log('✅ Final response prepared:')
+    console.log('  - Citations:', allCitations.length)
+    console.log('  - Related papers:', relatedPapers.length)
+    console.log('  - Statements:', statements.length)
+
     return NextResponse.json({
       citations: allCitations,
-      relatedPapers,
+      relatedPapers: relatedPapers,
       textLength: text.length,
-      pages: pdfData.numpages,
-      pdfUrl, // Return the stored PDF URL
-      fileName: file.name,
+      pages: Math.ceil(text.length / 2000),
       statementsFound: statements,
       existingCitationsCount: existingCitations.length,
-      discoveredCitationsCount: discoveredCitations.length
+      discoveredCitationsCount: discoveredCitations.length,
+      fileName: file.name,
+      pdfUrl: null // We don't store PDFs, so this is null
     })
-    
+
   } catch (error) {
-    console.error('Error processing PDF:', error)
+    console.error('❌ Error in process-pdf:', error)
     return NextResponse.json(
       { error: 'Failed to process PDF' },
       { status: 500 }
