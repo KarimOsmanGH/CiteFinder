@@ -1,4 +1,7 @@
--- Update the check_usage_limit function to include p_ip_hash parameter
+-- Drop the old check_usage_limit function first to avoid overloading conflicts
+DROP FUNCTION IF EXISTS public.check_usage_limit(p_user_id UUID, p_session_id TEXT);
+
+-- Create the new check_usage_limit function with p_ip_hash parameter
 CREATE OR REPLACE FUNCTION public.check_usage_limit(
   p_user_id UUID DEFAULT NULL,
   p_session_id TEXT DEFAULT NULL,

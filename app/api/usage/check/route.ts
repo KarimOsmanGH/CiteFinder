@@ -43,8 +43,8 @@ export async function POST(request: NextRequest) {
     // Check usage limit
     const { data: canUse, error: usageError } = await supabase.rpc('check_usage_limit', {
       p_user_id: userId,
-      p_session_id: sessionId
-      // Temporarily removed p_ip_hash until database is updated
+      p_session_id: sessionId,
+      p_ip_hash: ipHash
     })
 
     if (usageError) {
