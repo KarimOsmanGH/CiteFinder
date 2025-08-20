@@ -107,10 +107,10 @@ function extractStatements(text: string): string[] {
     candidates = [text.trim()]
   }
   
-  // Limit candidates to prevent timeout - only process first 50 candidates
-  if (candidates.length > 50) {
-    console.log('🔍 Limiting candidates from', candidates.length, 'to 50 to prevent timeout')
-    candidates = candidates.slice(0, 50)
+  // Limit candidates to prevent timeout - only process first 20 candidates
+  if (candidates.length > 20) {
+    console.log('🔍 Limiting candidates from', candidates.length, 'to 20 to prevent timeout')
+    candidates = candidates.slice(0, 20)
   }
   
   console.log('🔍 Total candidates found:', candidates.length)
@@ -155,6 +155,12 @@ function extractStatements(text: string): string[] {
   for (const sentence of candidates) {
     const lowerSentence = sentence.toLowerCase()
     processedCount++
+
+    // Early termination if we have enough statements
+    if (statements.length >= 3) {
+      console.log('🔍 Early termination: found 3 statements, stopping processing')
+      break
+    }
 
     // Skip incomplete phrases and section headers
     if (
