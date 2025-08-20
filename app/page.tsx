@@ -275,7 +275,7 @@ export default function Home() {
             Intelligent Citation Discovery
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-            Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from the world's largest databases.
+            Upload your academic PDF or paste text content, and our AI will automatically extract citations and generate proper references from the world's largest academic databases.
           </p>
           
           {/* Feature highlights */}
@@ -454,7 +454,7 @@ export default function Home() {
                                         <h2 className="text-4xl font-bold gradient-text mb-6">
                             Pricing
                           </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
                 We are committed to keeping academic research accessible to everyone. Our core features are free, with premium options for power users.
               </p>
             </div>

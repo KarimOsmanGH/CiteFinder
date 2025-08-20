@@ -25,8 +25,8 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   // Filter papers to only show those with 60% or higher similarity
   const filteredPapers = papers.filter(paper => paper.similarity >= 60)
   
-  // Limit to 3 papers for free users
-  const limitedPapers = filteredPapers.slice(0, 3)
+  // Allow up to 9 papers total (3 per statement) for free users
+  const limitedPapers = filteredPapers.slice(0, 9)
   
   if (filteredPapers.length === 0) {
     return (
@@ -41,23 +41,20 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
             : 'No related papers were found in the academic databases'
           }
         </p>
-        {filteredPapers.length > 3 && (
+        {filteredPapers.length > 9 && (
           <p className="text-gray-500 text-sm mt-2">
-            Free users can see up to 3 papers. Upgrade to Premium for unlimited access.
+            Free users can see up to 9 papers (3 per statement). Upgrade to Premium for unlimited access.
           </p>
         )}
       </div>
     )
   }
 
-  // Group papers by statement (if statements are available)
+  // Group papers by their actual statements
   const papersByStatement = statementsFound.length > 0 
-    ? statementsFound.map((statement, index) => {
-        // For now, distribute papers evenly across statements
-        const papersPerStatement = Math.ceil(limitedPapers.length / statementsFound.length)
-        const startIndex = index * papersPerStatement
-        const endIndex = Math.min(startIndex + papersPerStatement, limitedPapers.length)
-        const statementPapers = limitedPapers.slice(startIndex, endIndex)
+    ? statementsFound.map((statement) => {
+        // Find papers that are actually associated with this statement
+        const statementPapers = limitedPapers.filter(paper => paper.statement === statement)
         
         return {
           statement,
@@ -69,8 +66,14 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   return (
     <div className="space-y-8">
       <div className="bg-white rounded-xl p-4 border border-gray-200 mb-2">
-        <h3 className="text-lg font-semibold text-blue-800 mb-1">Build your References page</h3>
-        <p className="text-blue-700 text-sm">Select the relevant papers under each statement below, then use the References Generator to create your references.</p>
+        <h3 className="text-lg font-semibold text-blue-800 mb-2">Build your References page</h3>
+        <p className="text-blue-700 text-sm mb-3">📋 <strong>Important:</strong> Click the checkbox next to each paper you want to include in your references. Selected papers will be highlighted in green.</p>
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <p className="text-yellow-800 text-sm flex items-center">
+            <span className="mr-2">⚠️</span>
+            <strong>Step 1:</strong> Select papers using checkboxes below → <strong>Step 2:</strong> Use the References Generator to create your bibliography
+          </p>
+        </div>
       </div>
       {/* Statement Groups */}
       {papersByStatement.map((group, groupIndex) => (
@@ -164,46 +167,56 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                   )}
                   
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      {/* Selection Checkbox */}
+                    <div className="flex items-center space-x-4">
+                      {/* Selection Checkbox - Made more prominent */}
                       {onPaperSelection && (
-                        <button
-                          onClick={() => onPaperSelection({ ...paper, statement: group.statement }, !isSelected)}
-                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
-                            isSelected 
-                              ? 'bg-green-500 border-green-500 text-white' 
-                              : 'border-gray-300 hover:border-green-400'
-                          }`}
-                        >
-                          {isSelected && (
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                            </svg>
-                          )}
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => onPaperSelection({ ...paper, statement: group.statement }, !isSelected)}
+                            className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all duration-200 ${
+                              isSelected 
+                                ? 'bg-green-500 border-green-500 text-white' 
+                                : 'border-gray-400 hover:border-green-500 hover:bg-green-50'
+                            }`}
+                            title={isSelected ? "Deselect paper" : "Select paper for references"}
+                          >
+                            {isSelected && (
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                          </button>
+                          <span className={`text-sm font-medium ${isSelected ? 'text-green-700' : 'text-gray-600'}`}>
+                            {isSelected ? '✓ Selected' : 'Select for references'}
+                          </span>
+                        </div>
                       )}
                       
-                      <div className="flex items-center">
-                        <div className={`w-3 h-3 rounded-full mr-2 ${
-                          paper.similarity >= 80 ? 'bg-green-500' :
-                          paper.similarity >= 60 ? 'bg-yellow-500' :
-                          'bg-red-500'
-                        }`}></div>
-                        <span className={`text-sm font-medium ${
-                          paper.similarity >= 80 ? 'text-green-700' :
-                          paper.similarity >= 60 ? 'text-orange-700' :
-                          'text-red-700'
-                        }`}>
-                          Similarity: {Math.round(paper.similarity)}%
+                      <div className="w-px h-6 bg-gray-300"></div>
+                      
+                      <div className="flex items-center space-x-3">
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 rounded-full mr-2 ${
+                            paper.similarity >= 80 ? 'bg-green-500' :
+                            paper.similarity >= 60 ? 'bg-yellow-500' :
+                            'bg-red-500'
+                          }`}></div>
+                          <span className={`text-sm font-medium ${
+                            paper.similarity >= 80 ? 'text-green-700' :
+                            paper.similarity >= 60 ? 'text-orange-700' :
+                            'text-red-700'
+                          }`}>
+                            Similarity: {Math.round(paper.similarity)}%
+                          </span>
+                        </div>
+                        <div className="w-px h-4 bg-gray-300"></div>
+                        <span className="text-sm text-gray-500">
+                          {paper.id.startsWith('arxiv') ? 'arXiv' : 
+                           paper.id.startsWith('openalex') ? 'OpenAlex' :
+                           paper.id.startsWith('crossref') ? 'CrossRef' :
+                           paper.id.startsWith('pubmed') ? 'PubMed' : 'Academic DB'}
                         </span>
                       </div>
-                      <div className="w-px h-4 bg-gray-300"></div>
-                      <span className="text-sm text-gray-500">
-                        {paper.id.startsWith('arxiv') ? 'arXiv' : 
-                         paper.id.startsWith('openalex') ? 'OpenAlex' :
-                         paper.id.startsWith('crossref') ? 'CrossRef' :
-                         paper.id.startsWith('pubmed') ? 'PubMed' : 'Academic DB'}
-                      </span>
                     </div>
                     
                     <div className="flex items-center space-x-2">

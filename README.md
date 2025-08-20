@@ -1,6 +1,6 @@
-# CiteFinder 📄
+# CiteFinder
 
-Intelligent Citation Discovery - Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from the world's largest databases.
+Upload your academic PDF or paste text content, and our AI will automatically extract citations and generate proper references from the world's largest academic databases.
 
 ![CiteFinder](https://img.shields.io/badge/Next.js-14.0.0-black?style=for-the-badge&logo=next.js)
 ![React](https://img.shields.io/badge/React-18.0.0-blue?style=for-the-badge&logo=react)

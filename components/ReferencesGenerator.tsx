@@ -207,21 +207,45 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
           <div className="bg-white rounded-lg p-4 border border-gray-200 mb-4">
             <h4 className="font-semibold text-gray-900 mb-2">Statements with in-text citations</h4>
             <div className="space-y-3">
-              {selectedPapers.map((paper) => (
-                paper.statement ? (
-                  <div key={`stmt-${paper.id}`} className="flex items-start justify-between">
-                    <p className="text-sm text-gray-800 mr-4">
-                      {paper.statement} {formatInTextCitation(paper, selectedFormat)}
-                    </p>
+              {(() => {
+                // Group papers by statement
+                const papersByStatement = selectedPapers
+                  .filter(p => p.statement)
+                  .reduce((groups, paper) => {
+                    const statement = paper.statement!
+                    if (!groups[statement]) {
+                      groups[statement] = []
+                    }
+                    groups[statement].push(paper)
+                    return groups
+                  }, {} as Record<string, typeof selectedPapers>)
+
+                return Object.entries(papersByStatement).map(([statement, papers]) => (
+                  <div key={`stmt-${statement}`} className="flex items-start justify-between">
+                    <div className="flex-1 mr-4">
+                      <p className="text-sm text-gray-800 mb-1">
+                        {statement}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {papers.map((paper, index) => (
+                          <span key={paper.id}>
+                            {formatInTextCitation(paper, selectedFormat)}
+                            {index < papers.length - 1 ? '; ' : ''}
+                          </span>
+                        ))}
+                      </p>
+                    </div>
                     <button
-                      onClick={() => navigator.clipboard.writeText(`${paper.statement} ${formatInTextCitation(paper, selectedFormat)}`)}
-                      className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded transition-colors"
+                      onClick={() => navigator.clipboard.writeText(
+                        `${statement} ${papers.map(p => formatInTextCitation(p, selectedFormat)).join('; ')}`
+                      )}
+                      className="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs rounded transition-colors flex-shrink-0"
                     >
                       Copy
                     </button>
                   </div>
-                ) : null
-              ))}
+                ))
+              })()}
             </div>
           </div>
         )}
