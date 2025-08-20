@@ -12,7 +12,7 @@ export default function PricingPage() {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-pink-400/20 to-orange-400/20 rounded-full blur-3xl"></div>
       </div>
 
-      <div className="relative container mx-auto px-4 pt-24 md:pt-32 pb-12">
+      <div className="relative container mx-auto px-4 py-12">
         {/* Header */}
         <header className="text-center mb-16 animate-fade-in-up">
           <h1 className="text-5xl font-bold gradient-text mb-6">
