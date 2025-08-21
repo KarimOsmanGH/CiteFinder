@@ -584,7 +584,7 @@ export default function Home() {
                 Frequently Asked Questions
               </h2>
               <p className="text-xl text-gray-600">
-                Find answers to common questions about CiteFinder
+                Find answers about extracting statements, finding sources, and generating citations
               </p>
 
             </div>
@@ -608,7 +608,7 @@ export default function Home() {
                 {expandedFaq === 0 && (
                   <div className="px-6 pb-6">
                     <p className="text-gray-700 leading-relaxed">
-                      Simply upload a PDF file using our drag-and-drop interface. CiteFinder will automatically extract citations from your document and search for related papers across multiple academic databases. No registration or signup required!
+                      Upload a PDF or paste text. We automatically extract key statements that need academic backing, search the world's largest academic databases (arXiv, OpenAlex, CrossRef, PubMed) to find supporting sources, and generate citations and references for you.
                     </p>
                   </div>
                 )}

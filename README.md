@@ -10,11 +10,11 @@ Upload your academic PDF or paste text content, and our AI will automatically ex
 ## ✨ Features
 
 ### 🎯 **Core Functionality**
-- **Smart PDF Upload**: Drag & drop interface with instant file validation
-- **Citation Extraction**: Automatically extracts citations using multiple styles (APA, MLA, Chicago, etc.)
-- **Multi-Database Search**: Searches across major academic databases simultaneously
-- **Real-time Processing**: Live status updates with beautiful animations
-- **Confidence Scoring**: Intelligent confidence ratings for extracted citations
+- **Statement Extraction**: Automatically extracts key statements and claims from your text that need academic support
+- **Multi-Database Source Discovery**: Finds supporting sources across arXiv, OpenAlex, CrossRef, and PubMed
+- **Citation & References Generator**: Generates citations and formatted references for your selected sources
+- **PDF & Text Support**: Upload PDFs or paste text for instant processing
+- **Confidence Scoring**: Intelligent confidence ratings for matches and extracted citations
 
 ### 🎨 **User Experience**
 - **Modern Glass Morphism Design**: Beautiful, professional interface
@@ -137,27 +137,21 @@ NEXTAUTH_URL=http://localhost:3000
 
 ## 📖 How It Works
 
-### Citation Extraction
+### Statement Extraction & Source Discovery
 
-The application uses advanced regex patterns to identify citations in multiple formats:
+1. **Extract Statements**: The app analyzes your text to identify statements and claims that likely require academic backing.
+2. **Search Databases**: It searches arXiv, OpenAlex, CrossRef, and PubMed for relevant papers.
+3. **Rank & De-duplicate**: Results are scored for similarity and deduplicated.
+4. **Generate Citations**: Create citations and formatted references from discovered sources.
 
-- **APA Style**: `Author, A. A., & Author, B. B. (Year). Title. Journal, Volume(Issue), Pages.`
-- **MLA Style**: `Author, A. "Title." Journal, vol. Volume, no. Issue, Year, pp. Pages.`
-- **Chicago Style**: `Author, A. A., and B. B. Author. "Title." Journal Volume, no. Issue (Year): Pages.`
-- **Simple Citations**: `(Author, Year)` or `Author et al. (Year)`
+### Citation Extraction (Optional)
 
-### Related Paper Search
-
-For each extracted citation, the app:
-1. **Extracts key information** (authors, title, year)
-2. **Searches 4 databases simultaneously** (arXiv, OpenAlex, CrossRef, PubMed)
-3. **Removes duplicates** and calculates similarity scores
-4. **Returns up to 15 most relevant papers** with metadata
+If your text already contains citations, the app will detect and parse them to enrich the search.
 
 ### Processing Pipeline
 
 ```
-PDF Upload → Text Extraction → Citation Detection → Multi-API Search → Results Display
+PDF/Text → Statement Extraction → Multi-API Search → Similarity Ranking → Citations & References
 ```
 
 ## 🔧 API Endpoints
