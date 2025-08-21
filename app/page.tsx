@@ -314,10 +314,10 @@ export default function Home() {
         {/* Header */}
         <header className="text-center mb-16 animate-fade-in-up">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold gradient-text mb-8 mt-16 leading-relaxed py-4">
-            Intelligent Citation Discovery
+            Academic Source Finder
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-            Upload your academic PDF or paste text content, and our AI will automatically extract citations and generate proper references from the world's largest academic databases.
+            Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.
           </p>
           
           {/* Feature highlights */}
