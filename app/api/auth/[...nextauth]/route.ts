@@ -99,6 +99,7 @@ const handler = NextAuth({
   session: {
     strategy: "jwt",
   },
+  trustHost: true,
   // Add debug mode for development
   debug: process.env.NODE_ENV === 'development',
 })
