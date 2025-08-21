@@ -334,8 +334,8 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
   const citations: Citation[] = []
   let idCounter = 1
   
-  // OPTIMIZATION: Limit to only 1 statement to prevent timeout
-  const limitedStatements = statements.slice(0, 1)
+  // IMPROVEMENT: Process up to 3 statements instead of just 1 for better coverage
+  const limitedStatements = statements.slice(0, 3)
   console.log('🔍 Processing statements for paper search:', limitedStatements.length, 'out of', statements.length)
   
   for (const statement of limitedStatements) {
@@ -346,30 +346,34 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
       const keyTerms = extractKeyTermsFromStatement(statement)
       console.log('🔍 Key terms extracted:', keyTerms)
       
-      // OPTIMIZATION: Search only 2 databases with shorter timeouts
+      // IMPROVEMENT: Search 3 databases for better coverage
       const searchPromises = [
-        withTimeout(searchArxiv(keyTerms), 6000, [] as RelatedPaper[]),
-        withTimeout(searchOpenAlex(keyTerms), 6000, [] as RelatedPaper[])
+        withTimeout(searchArxiv(keyTerms), 8000, [] as RelatedPaper[]),
+        withTimeout(searchOpenAlex(keyTerms), 8000, [] as RelatedPaper[]),
+        withTimeout(searchCrossRef(keyTerms), 8000, [] as RelatedPaper[])
       ]
       
       // Wait for searches with a timeout guard
       const results = await Promise.allSettled(searchPromises)
-      const [arxivResults, openAlexResults] = results.map(r => 
+      const [arxivResults, openAlexResults, crossRefResults] = results.map(r => 
         r.status === 'fulfilled' ? r.value : []
       )
       
       // Combine and deduplicate results
-      const allResults = [...arxivResults, ...openAlexResults]
+      const allResults = [...arxivResults, ...openAlexResults, ...crossRefResults]
       const uniqueResults = allResults.filter((result, index, self) => 
-        index === self.findIndex(r => r.title === result.title)
+        index === self.findIndex(r => r.title.toLowerCase() === result.title.toLowerCase())
       )
       
       console.log('🔍 Total unique results found:', uniqueResults.length)
       
-      // Convert to citations with high confidence for statement-based discovery
-      for (const result of uniqueResults.slice(0, 1)) { // Only top 1 result per statement
+      // IMPROVEMENT: Take top 2 results per statement and calculate better relevance
+      for (const result of uniqueResults.slice(0, 2)) {
         const authors = result.authors.join(', ')
         const year = result.year
+        
+        // Calculate relevance score based on statement-paper matching
+        const relevanceScore = calculateStatementRelevance(statement, result)
         
         // Extract supporting quote from abstract
         const supportingQuote = extractSupportingQuote(statement, result.abstract)
@@ -380,7 +384,7 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
           authors,
           year,
           title: result.title,
-          confidence: 0.90, // Higher confidence for statement-based discovery
+          confidence: Math.min(0.85 + (relevanceScore * 0.1), 0.95), // Dynamic confidence based on relevance
           statement: statement, // Add the original statement for context
           supportingQuote: supportingQuote
         })
@@ -390,7 +394,10 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
     }
   }
   
+  // Sort by confidence and return top results
   return citations
+    .sort((a, b) => b.confidence - a.confidence)
+    .slice(0, 5) // Return up to 5 citations
 }
 
 // Extract supporting quote from abstract that relates to the statement
@@ -427,8 +434,11 @@ function extractSupportingQuote(statement: string, abstract: string): string | u
 
 // Extract key terms from a statement for better search
 function extractKeyTermsFromStatement(statement: string): string {
-  // Remove common words but preserve important context
-  const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them']
+  // Expanded stop words list
+  const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'who', 'what', 'when', 'where', 'why', 'how', 'which', 'than', 'more', 'most', 'some', 'any', 'many', 'much', 'such', 'very', 'also', 'just', 'only', 'even', 'still', 'yet', 'now', 'then', 'here', 'there']
+  
+  // Priority terms that should be preserved (academic/technical terms)
+  const priorityTerms = /\b(?:algorithm|analysis|approach|assessment|data|development|evaluation|experiment|framework|implementation|investigation|method|methodology|model|optimization|performance|procedure|process|research|results|study|system|technique|technology|test|validation|drone|uav|remote sensing|earth observation|satellite|aerial|imaging|spectral|monitoring|detection|mapping|survey|geospatial|software|open source|platform|application|solution|architecture|database|processing|accuracy|precision|effectiveness|efficiency|significant|correlation|improvement|enhancement|quality|reliability|propose|present|demonstrate|evaluate|assess|examine|investigate|analyze|measure|calculate|determine|establish|prove|validate|conclude|outcomes|findings|implications|impact|benefits|advantages|limitations|challenges|potential)\b/gi
   
   // Clean the statement but preserve more context
   const cleanedStatement = statement
@@ -436,14 +446,34 @@ function extractKeyTermsFromStatement(statement: string): string {
     .replace(/\s+/g, ' ') // Normalize whitespace
     .trim()
   
+  // Extract priority terms first
+  const priorityMatches = cleanedStatement.match(priorityTerms) || []
+  const priorityWords = priorityMatches.map(term => term.toLowerCase())
+  
   // Split into words and filter out stop words
-  const words = cleanedStatement.toLowerCase()
+  const allWords = cleanedStatement.toLowerCase()
     .split(/\s+/)
     .filter(word => word.length > 2 && !stopWords.includes(word))
   
-  // If we have enough meaningful words, use them all (up to 10)
-  if (words.length > 0) {
-    return words.slice(0, 10).join(' ')
+  // Combine priority words with other meaningful words
+  const meaningfulWords = [...new Set([...priorityWords, ...allWords])]
+  
+  // Prioritize longer, more specific terms
+  const sortedWords = meaningfulWords.sort((a, b) => {
+    // Prioritize priority terms
+    const aPriority = priorityWords.includes(a) ? 1 : 0
+    const bPriority = priorityWords.includes(b) ? 1 : 0
+    if (aPriority !== bPriority) return bPriority - aPriority
+    
+    // Then by length (longer terms are usually more specific)
+    return b.length - a.length
+  })
+  
+  // Take up to 8 most relevant terms
+  const finalTerms = sortedWords.slice(0, 8)
+  
+  if (finalTerms.length > 0) {
+    return finalTerms.join(' ')
   }
   
   // Fallback: return the original statement cleaned up
@@ -563,8 +593,9 @@ async function searchOpenAlex(searchQuery: string): Promise<RelatedPaper[]> {
     const response = await axios.get('https://api.openalex.org/works', {
       params: {
         search: searchQuery,
-        per_page: 5,
-        sort: 'relevance_score:desc'
+        per_page: 8, // Increased from 5 to get more results
+        sort: 'relevance_score:desc',
+        filter: 'type:article' // Focus on articles for better quality
       },
       timeout: 10000
     });
@@ -573,25 +604,58 @@ async function searchOpenAlex(searchQuery: string): Promise<RelatedPaper[]> {
     const results = response.data.results || [];
     
     for (const work of results) {
-      if (papers.length >= 5) break;
+      if (papers.length >= 8) break;
       
       const authors = work.authorships?.map((authorship: any) => 
         authorship.author?.display_name || 'Unknown Author'
       ) || ['Unknown Author'];
       
       const year = work.publication_year?.toString() || 'Unknown';
-      const abstract = work.abstract_inverted_index ? 
-        Object.keys(work.abstract_inverted_index).join(' ') : 
-        'No abstract available';
+      
+      // IMPROVEMENT: Better abstract reconstruction from inverted index
+      let abstract = 'No abstract available';
+      if (work.abstract_inverted_index && typeof work.abstract_inverted_index === 'object') {
+        try {
+          // Reconstruct abstract from inverted index
+          const wordPositions: { [key: number]: string } = {};
+          
+          for (const [word, positions] of Object.entries(work.abstract_inverted_index)) {
+            if (Array.isArray(positions)) {
+              for (const pos of positions) {
+                wordPositions[pos] = word;
+              }
+            }
+          }
+          
+          // Sort by position and join words
+          const sortedPositions = Object.keys(wordPositions)
+            .map(pos => parseInt(pos))
+            .sort((a, b) => a - b);
+          
+          const reconstructedAbstract = sortedPositions
+            .map(pos => wordPositions[pos])
+            .join(' ');
+          
+          if (reconstructedAbstract.length > 50) {
+            abstract = reconstructedAbstract;
+          }
+        } catch (error) {
+          console.error('Error reconstructing abstract:', error);
+        }
+      }
+      
+      // Use display_name from venue if available
+      const venue = work.primary_location?.source?.display_name || 
+                   work.host_venue?.display_name || '';
       
       papers.push({
         id: `openalex-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         title: work.title || 'Untitled',
         authors,
         year,
-        abstract: abstract.length > 200 ? abstract.substring(0, 200) + '...' : abstract,
+        abstract: abstract.length > 300 ? abstract.substring(0, 300) + '...' : abstract,
         url: work.doi ? `https://doi.org/${work.doi}` : work.openalex_url || work.url || 'https://openalex.org',
-        similarity: 0.7 + Math.random() * 0.3
+        similarity: 0.75 + Math.random() * 0.2 // Slightly higher base similarity for OpenAlex
       });
     }
     
@@ -746,31 +810,100 @@ function calculateSimilarityScore(searchQuery: string, paper: RelatedPaper): num
   return Math.min(percentage, 100);
 }
 
+// Calculate relevance score between a statement and a paper
+function calculateStatementRelevance(statement: string, paper: RelatedPaper): number {
+  const statementTerms = extractKeyTermsFromStatement(statement).toLowerCase().split(' ');
+  const paperTitleTerms = paper.title.toLowerCase().split(' ');
+  const paperAbstractTerms = paper.abstract.toLowerCase().split(' ');
+
+  let relevanceScore = 0;
+  let totalTerms = 0;
+
+  // Check for exact phrase matches in title
+  if (paperTitleTerms.some(term => statementTerms.includes(term))) {
+    relevanceScore += 0.5;
+    totalTerms++;
+  }
+
+  // Check for exact phrase matches in abstract
+  if (paperAbstractTerms.some(term => statementTerms.includes(term))) {
+    relevanceScore += 0.5;
+    totalTerms++;
+  }
+
+  // Check for term overlap (less weight)
+  const commonTerms = statementTerms.filter(term => paperTitleTerms.includes(term) || paperAbstractTerms.includes(term));
+  if (commonTerms.length > 0) {
+    relevanceScore += 0.2 * commonTerms.length;
+    totalTerms += commonTerms.length;
+  }
+
+  // Normalize score by total terms found
+  return totalTerms > 0 ? relevanceScore / totalTerms : 0;
+}
+
 // Search for related papers using multiple academic APIs
 async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[]> {
   const allPapers: RelatedPaper[] = []
   const seenTitles = new Set<string>()
 
-  // Skip re-searching discovered citations to avoid duplicate API calls; only enrich with existing citations
-  const discoveredCitations: Citation[] = []
+  // Separate discovered and existing citations
+  const discoveredCitations = citations.filter(c => c.statement)
   const existingCitations = citations.filter(c => !c.statement)
 
-  // OPTIMIZATION: Skip related paper search if we already have discovered citations
-  if (citations.some(c => c.statement)) {
-    console.log('🔍 Skipping additional related paper search - already have discovered citations')
-    return []
-  }
+  console.log('🔍 Found', discoveredCitations.length, 'discovered citations and', existingCitations.length, 'existing citations')
 
-  // For existing citations, add a few more papers if we have room
-  for (const citation of existingCitations.slice(0, 1)) { // Only process 1 citation
+  // IMPROVEMENT: Always search for related papers, don't skip based on discovered citations
+  // This provides additional context and related work
+
+  // Process existing citations first (if any)
+  for (const citation of existingCitations.slice(0, 2)) { // Process up to 2 existing citations
     const searchQuery = citation.title || citation.authors || citation.text.substring(0, 100)
-    if (!searchQuery || allPapers.length >= 3) continue // Cap at 3 total papers
+    if (!searchQuery || allPapers.length >= 8) continue // Increased cap to 8 papers
 
     try {
-      // OPTIMIZATION: Only search 2 databases with shorter timeouts
+      console.log('🔍 Searching for existing citation:', searchQuery.substring(0, 60))
+      
+      // Search 3 databases for better coverage
+      const [arxivResults, openAlexResults, crossRefResults] = await Promise.allSettled([
+        withTimeout(searchArxiv(searchQuery), 6000, [] as RelatedPaper[]),
+        withTimeout(searchOpenAlex(searchQuery), 6000, [] as RelatedPaper[]),
+        withTimeout(searchCrossRef(searchQuery), 6000, [] as RelatedPaper[])
+      ])
+
+      const results = [arxivResults, openAlexResults, crossRefResults]
+        .filter(result => result.status === 'fulfilled')
+        .flatMap(result => (result as PromiseFulfilledResult<RelatedPaper[]>).value)
+
+      for (const paper of results) {
+        if (!seenTitles.has(paper.title.toLowerCase()) && allPapers.length < 8) {
+          seenTitles.add(paper.title.toLowerCase())
+          
+          const similarityScore = calculateSimilarityScore(searchQuery, paper);
+          paper.similarity = similarityScore;
+          
+          allPapers.push(paper)
+        }
+      }
+    } catch (error) {
+      console.error('Error searching for existing citation:', error)
+    }
+  }
+
+  // IMPROVEMENT: Also search based on discovered citations for broader context
+  for (const citation of discoveredCitations.slice(0, 2)) { // Process up to 2 discovered citations
+    if (!citation.statement || allPapers.length >= 8) continue
+
+    try {
+      console.log('🔍 Searching for related work to statement:', citation.statement.substring(0, 60))
+      
+      // Use the original statement for broader search
+      const keyTerms = extractKeyTermsFromStatement(citation.statement)
+      
+      // Search for complementary papers
       const [arxivResults, openAlexResults] = await Promise.allSettled([
-        withTimeout(searchArxiv(searchQuery), 5000, [] as RelatedPaper[]),
-        withTimeout(searchOpenAlex(searchQuery), 5000, [] as RelatedPaper[])
+        withTimeout(searchArxiv(keyTerms), 6000, [] as RelatedPaper[]),
+        withTimeout(searchOpenAlex(keyTerms), 6000, [] as RelatedPaper[])
       ])
 
       const results = [arxivResults, openAlexResults]
@@ -778,10 +911,10 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
         .flatMap(result => (result as PromiseFulfilledResult<RelatedPaper[]>).value)
 
       for (const paper of results) {
-        if (!seenTitles.has(paper.title.toLowerCase()) && allPapers.length < 3) {
+        if (!seenTitles.has(paper.title.toLowerCase()) && allPapers.length < 8) {
           seenTitles.add(paper.title.toLowerCase())
           
-          const similarityScore = calculateSimilarityScore(searchQuery, paper);
+          const similarityScore = calculateSimilarityScore(keyTerms, paper);
           paper.similarity = similarityScore;
           
           allPapers.push(paper)
@@ -792,10 +925,12 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
     }
   }
 
-  // Sort by similarity score (highest first) and return up to 3 papers
+  console.log('🔍 Total related papers found:', allPapers.length)
+
+  // Sort by similarity score (highest first) and return up to 6 papers
   return allPapers
     .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, 3)
+    .slice(0, 6)
 }
 
 export const runtime = 'nodejs'

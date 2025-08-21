@@ -298,8 +298,8 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
   const citations: Citation[] = []
   let idCounter = 1
   
-  // OPTIMIZATION: Limit to only 1 statement to prevent timeout
-  const limitedStatements = statements.slice(0, 1)
+  // IMPROVEMENT: Process up to 3 statements instead of just 1 for better coverage
+  const limitedStatements = statements.slice(0, 3)
   console.log('🔍 Processing statements for paper search:', limitedStatements.length, 'out of', statements.length)
   
   for (const statement of limitedStatements) {
@@ -310,29 +310,33 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
       const keyTerms = extractKeyTermsFromStatement(statement)
       console.log('🔍 Key terms extracted:', keyTerms)
       
-      // OPTIMIZATION: Search only 2 databases with shorter timeouts
+      // IMPROVEMENT: Search 3 databases for better coverage
       const searchPromises = [
-        withTimeout(searchArxiv(keyTerms), 6000, [] as RelatedPaper[]),
-        withTimeout(searchOpenAlex(keyTerms), 6000, [] as RelatedPaper[])
+        withTimeout(searchArxiv(keyTerms), 8000, [] as RelatedPaper[]),
+        withTimeout(searchOpenAlex(keyTerms), 8000, [] as RelatedPaper[]),
+        withTimeout(searchCrossRef(keyTerms), 8000, [] as RelatedPaper[])
       ]
       
       const results = await Promise.allSettled(searchPromises)
-      const [arxivResults, openAlexResults] = results.map(r => 
+      const [arxivResults, openAlexResults, crossRefResults] = results.map(r => 
         r.status === 'fulfilled' ? r.value : []
       )
       
       // Combine and deduplicate results
-      const allResults = [...arxivResults, ...openAlexResults]
+      const allResults = [...arxivResults, ...openAlexResults, ...crossRefResults]
       const uniqueResults = allResults.filter((result, index, self) => 
-        index === self.findIndex(r => r.title === result.title)
+        index === self.findIndex(r => r.title.toLowerCase() === result.title.toLowerCase())
       )
       
       console.log('🔍 Total unique results found:', uniqueResults.length)
       
-      // Convert to citations with high confidence for statement-based discovery
-      for (const result of uniqueResults.slice(0, 1)) { // Only top 1 result per statement
+      // IMPROVEMENT: Take top 2 results per statement and calculate better relevance
+      for (const result of uniqueResults.slice(0, 2)) {
         const authors = result.authors.join(', ')
         const year = result.year
+        
+        // Calculate relevance score based on statement-paper matching
+        const relevanceScore = calculateStatementRelevance(statement, result)
         
         // Extract supporting quote from abstract
         const supportingQuote = extractSupportingQuote(statement, result.abstract)
@@ -343,7 +347,7 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
           authors,
           year,
           title: result.title,
-          confidence: 0.90, // Higher confidence for statement-based discovery
+          confidence: Math.min(0.85 + (relevanceScore * 0.1), 0.95), // Dynamic confidence based on relevance
           statement: statement, // Add the original statement for context
           supportingQuote: supportingQuote
         })
@@ -353,7 +357,10 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
     }
   }
   
+  // Sort by confidence and return top results
   return citations
+    .sort((a, b) => b.confidence - a.confidence)
+    .slice(0, 5) // Return up to 5 citations
 }
 
 // Extract supporting quote from abstract that relates to the statement
@@ -712,6 +719,36 @@ function calculateSimilarityScore(searchQuery: string, paper: RelatedPaper): num
   
   // Cap at 100%
   return Math.min(percentage, 100);
+}
+
+// Calculate relevance score based on statement-paper matching
+function calculateStatementRelevance(statement: string, paper: RelatedPaper): number {
+  const statementTerms = extractKeyTermsFromStatement(statement).toLowerCase().split(' ');
+  const paperTitleTerms = paper.title.toLowerCase().split(' ');
+  const paperAbstractTerms = paper.abstract.toLowerCase().split(' ');
+
+  let relevance = 0;
+  let totalMatches = 0;
+
+  // Check title matches
+  for (const term of statementTerms) {
+    if (paperTitleTerms.includes(term)) {
+      relevance += 1;
+      totalMatches++;
+    }
+  }
+
+  // Check abstract matches
+  for (const term of statementTerms) {
+    if (paperAbstractTerms.includes(term)) {
+      relevance += 0.5;
+      totalMatches++;
+    }
+  }
+
+  // Normalize relevance score
+  const maxPossibleRelevance = statementTerms.length * 1.5; // Max 1 for title + 0.5 for abstract
+  return maxPossibleRelevance > 0 ? (relevance / maxPossibleRelevance) * 100 : 0;
 }
 
 // Search for related papers using multiple academic APIs
