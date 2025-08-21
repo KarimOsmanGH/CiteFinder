@@ -32,7 +32,7 @@ export default function Footer() {
               <h3 className="text-xl font-bold">CiteFinder</h3>
             </div>
             <p className="text-gray-300 leading-relaxed">
-              Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.
+              Extract statements, find sources, generate citations.
             </p>
             <div className="flex space-x-4">
               <a 

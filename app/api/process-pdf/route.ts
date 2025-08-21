@@ -3,6 +3,31 @@ import { put } from '@vercel/blob'
 import pdf from 'pdf-parse'
 import axios from 'axios'
 
+// Utility: enforce a timeout on any async operation
+async function withTimeout<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise<T>((resolve) => {
+    let settled = false
+    const timer = setTimeout(() => {
+      if (!settled) resolve(fallback)
+    }, ms)
+    promise
+      .then((value) => {
+        if (!settled) {
+          settled = true
+          clearTimeout(timer)
+          resolve(value)
+        }
+      })
+      .catch(() => {
+        if (!settled) {
+          settled = true
+          clearTimeout(timer)
+          resolve(fallback)
+        }
+      })
+  })
+}
+
 interface Citation {
   id: string
   text: string
@@ -119,9 +144,9 @@ function extractStatements(text: string): string[] {
   }
   
   // Limit candidates to prevent timeout - only process first 20 candidates
-  if (candidates.length > 20) {
-    console.log('🔍 Limiting candidates from', candidates.length, 'to 20 to prevent timeout')
-    candidates = candidates.slice(0, 20)
+  if (candidates.length > 10) {
+    console.log('🔍 Limiting candidates from', candidates.length, 'to 10 to prevent timeout')
+    candidates = candidates.slice(0, 10)
   }
   
   console.log('🔍 Total candidates found:', candidates.length)
@@ -310,7 +335,7 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
   let idCounter = 1
   
   // Limit to first 3 statements to prevent timeout
-  const limitedStatements = statements.slice(0, 3)
+  const limitedStatements = statements.slice(0, 2)
   console.log('🔍 Processing statements for paper search:', limitedStatements.length, 'out of', statements.length)
   
   for (const statement of limitedStatements) {
@@ -321,15 +346,15 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
       const keyTerms = extractKeyTermsFromStatement(statement)
       console.log('🔍 Key terms extracted:', keyTerms)
       
-      // Search across all databases for each statement with timeout
+      // Search across all databases for each statement with enforced timeouts
       const searchPromises = [
-        searchArxiv(keyTerms).catch(e => { console.log('❌ ArXiv search failed:', e.message); return [] }),
-        searchOpenAlex(keyTerms).catch(e => { console.log('❌ OpenAlex search failed:', e.message); return [] }),
-        searchCrossRef(keyTerms).catch(e => { console.log('❌ CrossRef search failed:', e.message); return [] }),
-        searchPubMed(keyTerms).catch(e => { console.log('❌ PubMed search failed:', e.message); return [] })
+        withTimeout(searchArxiv(keyTerms), 9000, [] as RelatedPaper[]),
+        withTimeout(searchOpenAlex(keyTerms), 9000, [] as RelatedPaper[]),
+        withTimeout(searchCrossRef(keyTerms), 9000, [] as RelatedPaper[]),
+        withTimeout(searchPubMed(keyTerms), 9000, [] as RelatedPaper[])
       ]
       
-      // Wait for all searches with a 10-second timeout
+      // Wait for all searches with a timeout guard
       const results = await Promise.allSettled(searchPromises)
       const [arxivResults, openAlexResults, crossRefResults, pubmedResults] = results.map(r => 
         r.status === 'fulfilled' ? r.value : []
@@ -728,65 +753,21 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
   const allPapers: RelatedPaper[] = []
   const seenTitles = new Set<string>()
 
-  // Process discovered citations (which have statements) first
-  const discoveredCitations = citations.filter(c => c.statement)
+  // Skip re-searching discovered citations to avoid duplicate API calls; only enrich with existing citations
+  const discoveredCitations: Citation[] = []
   const existingCitations = citations.filter(c => !c.statement)
 
-  // For discovered citations, get up to 3 papers per statement
-  for (const citation of discoveredCitations.slice(0, 3)) { // Limit to 3 statements
-    const searchQuery = citation.title || citation.authors || citation.text.substring(0, 100)
-    if (!searchQuery) continue
-
-    try {
-      // Search all APIs in parallel
-      const [arxivResults, openAlexResults, crossrefResults, pubmedResults] = await Promise.allSettled([
-        searchArxiv(searchQuery),
-        searchOpenAlex(searchQuery),
-        searchCrossRef(searchQuery),
-        searchPubMed(searchQuery)
-      ])
-
-      // Collect results from successful API calls
-      const results = [arxivResults, openAlexResults, crossrefResults, pubmedResults]
-        .filter(result => result.status === 'fulfilled')
-        .flatMap(result => (result as PromiseFulfilledResult<RelatedPaper[]>).value)
-
-      // Calculate similarity scores and add unique papers (up to 3 per statement)
-      let papersForThisStatement = 0
-      for (const paper of results) {
-        if (!seenTitles.has(paper.title.toLowerCase()) && papersForThisStatement < 3) {
-          seenTitles.add(paper.title.toLowerCase())
-          
-          // Calculate actual similarity score
-          const similarityScore = calculateSimilarityScore(searchQuery, paper);
-          paper.similarity = similarityScore;
-          
-          // Extract supporting quote if this is a discovered citation with a statement
-          if (citation.statement && citation.statement.length > 0) {
-            paper.supportingQuote = extractSupportingQuote(citation.statement, paper.abstract)
-            paper.statement = citation.statement // Associate paper with its statement
-          }
-          
-          allPapers.push(paper)
-          papersForThisStatement++
-        }
-      }
-    } catch (error) {
-      console.error('Error searching for related papers:', error)
-    }
-  }
-
   // For existing citations, add a few more papers if we have room
-  for (const citation of existingCitations.slice(0, 2)) {
+  for (const citation of existingCitations.slice(0, 1)) {
     const searchQuery = citation.title || citation.authors || citation.text.substring(0, 100)
-    if (!searchQuery || allPapers.length >= 9) continue // Cap at 9 total papers
+    if (!searchQuery || allPapers.length >= 6) continue // Cap at 6 total papers
 
     try {
       const [arxivResults, openAlexResults, crossrefResults, pubmedResults] = await Promise.allSettled([
-        searchArxiv(searchQuery),
-        searchOpenAlex(searchQuery),
-        searchCrossRef(searchQuery),
-        searchPubMed(searchQuery)
+        withTimeout(searchArxiv(searchQuery), 9000, [] as RelatedPaper[]),
+        withTimeout(searchOpenAlex(searchQuery), 9000, [] as RelatedPaper[]),
+        withTimeout(searchCrossRef(searchQuery), 9000, [] as RelatedPaper[]),
+        withTimeout(searchPubMed(searchQuery), 9000, [] as RelatedPaper[])
       ])
 
       const results = [arxivResults, openAlexResults, crossrefResults, pubmedResults]
@@ -794,7 +775,7 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
         .flatMap(result => (result as PromiseFulfilledResult<RelatedPaper[]>).value)
 
       for (const paper of results) {
-        if (!seenTitles.has(paper.title.toLowerCase()) && allPapers.length < 9) {
+        if (!seenTitles.has(paper.title.toLowerCase()) && allPapers.length < 6) {
           seenTitles.add(paper.title.toLowerCase())
           
           const similarityScore = calculateSimilarityScore(searchQuery, paper);
@@ -811,8 +792,11 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
   // Sort by similarity score (highest first) and return up to 9 papers for free users
   return allPapers
     .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, 9)
+    .slice(0, 6)
 }
+
+export const runtime = 'nodejs'
+export const maxDuration = 60
 
 export async function POST(request: NextRequest) {
   try {
