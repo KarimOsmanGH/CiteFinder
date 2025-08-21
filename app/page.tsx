@@ -319,22 +319,6 @@ export default function Home() {
           <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
             Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.
           </p>
-          
-          {/* Feature highlights */}
-          <section className="flex justify-center items-center space-x-4 mt-8" aria-label="Key Features">
-            <div className="inline-flex items-center px-3 py-1 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-sm font-medium">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2" aria-hidden="true"></div>
-              <span>Free & No Signup</span>
-            </div>
-            <div className="inline-flex items-center px-3 py-1 rounded-full border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-medium">
-              <div className="w-2 h-2 bg-indigo-500 rounded-full mr-2" aria-hidden="true"></div>
-              <span>Instant Results</span>
-            </div>
-            <div className="inline-flex items-center px-3 py-1 rounded-full border border-purple-200 bg-purple-50 text-purple-700 text-sm font-medium">
-              <div className="w-2 h-2 bg-purple-500 rounded-full mr-2" aria-hidden="true"></div>
-              <span>References Generator</span>
-            </div>
-          </section>
         </header>
 
         {/* Main Content */}
