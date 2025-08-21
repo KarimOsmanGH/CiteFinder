@@ -118,7 +118,8 @@ function extractStatements(text: string): string[] {
   
   // Patterns that indicate factual claims or statements
   const claimPatterns = [
-    // Academic research patterns
+    // Academic research patterns (expanded)
+    /\b(?:according to|previous studies|recent research|meta[- ]analysis)\b/gi,
     /\b(?:research shows|studies indicate|evidence suggests|data reveals|analysis demonstrates|results show|findings indicate|has been shown|has been found|we (?:found|observed)|was (?:found|observed))\b/gi,
 
     // Comparative/contrastive
@@ -453,30 +454,55 @@ function extractCitations(text: string): Citation[] {
 async function searchArxiv(query: string): Promise<RelatedPaper[]> {
   console.log('🔍 Searching arXiv for:', query.substring(0, 50))
   try {
-    const response = await axios.get(`http://export.arxiv.org/api/query?search_query=all:${encodeURIComponent(query)}&start=0&max_results=5&sortBy=relevance&sortOrder=descending`)
-    
+    const response = await axios.get('http://export.arxiv.org/api/query', {
+      params: {
+        search_query: `all:"${query}"`,
+        start: 0,
+        max_results: 5,
+        sortBy: 'relevance',
+        sortOrder: 'descending'
+      },
+      timeout: 10000
+    })
+
     const papers: RelatedPaper[] = []
-    const entries = response.data.feed.entry || []
-    
-    console.log('🔍 arXiv found:', entries.length, 'papers')
-    
-    for (const entry of entries) {
-      if (entry.title && entry.summary) {
-        const authors = entry.author ? entry.author.map((a: any) => a.name) : ['Unknown Author']
-        const year = new Date(entry.published).getFullYear().toString()
-        
+    const xmlText: string = response.data
+
+    const entryMatches = xmlText.match(/<entry>([\s\S]*?)<\/entry>/g) || []
+
+    console.log('🔍 arXiv found entries:', entryMatches.length)
+
+    for (const entry of entryMatches) {
+      const titleMatch = entry.match(/<title>([\s\S]*?)<\/title>/)
+      const summaryMatch = entry.match(/<summary>([\s\S]*?)<\/summary>/)
+      const publishedMatch = entry.match(/<published>([\s\S]*?)<\/published>/)
+      const idMatch = entry.match(/<id>([\s\S]*?)<\/id>/)
+
+      // Extract authors
+      const authorMatches = entry.match(/<author>[\s\S]*?<name>([\s\S]*?)<\/name>[\s\S]*?<\/author>/g)
+      const authors: string[] = []
+      if (authorMatches) {
+        for (const authorMatch of authorMatches) {
+          const name = authorMatch.match(/<name>([\s\S]*?)<\/name>/)
+          if (name) authors.push(name[1].trim())
+        }
+      }
+
+      if (titleMatch && summaryMatch && idMatch) {
+        const published = publishedMatch ? publishedMatch[1] : ''
+        const year = published ? new Date(published).getFullYear().toString() : 'Unknown'
         papers.push({
-          id: `arxiv-${entry.id.split('/').pop()}`,
-          title: entry.title.replace(/\s+/g, ' ').trim(),
-          authors: authors,
-          year: year,
-          abstract: entry.summary.replace(/\s+/g, ' ').trim(),
-          url: entry.id,
-          similarity: 0 // Will be calculated later
+          id: `arxiv-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+          title: titleMatch[1].replace(/\s+/g, ' ').trim(),
+          authors: authors.length > 0 ? authors : ['Unknown Author'],
+          year,
+          abstract: summaryMatch[1].replace(/\s+/g, ' ').trim(),
+          url: idMatch[1].trim(),
+          similarity: 0
         })
       }
     }
-    
+
     console.log('🔍 arXiv papers processed:', papers.length)
     return papers
   } catch (error) {
@@ -489,36 +515,44 @@ async function searchArxiv(query: string): Promise<RelatedPaper[]> {
 async function searchOpenAlex(query: string): Promise<RelatedPaper[]> {
   console.log('🔍 Searching OpenAlex for:', query.substring(0, 50))
   try {
-    const response = await axios.get(`https://api.openalex.org/works?search=${encodeURIComponent(query)}&per_page=5&sort=cited_by_count:desc`)
-    
+    const response = await axios.get('https://api.openalex.org/works', {
+      params: {
+        search: query,
+        per_page: 5,
+        sort: 'relevance_score:desc'
+      },
+      timeout: 10000
+    })
+
     const papers: RelatedPaper[] = []
     const results = response.data.results || []
-    
+
     console.log('🔍 OpenAlex found:', results.length, 'papers')
-    
+
     for (const work of results) {
-      if (work.title && work.abstract_inverted_index) {
-        const authors = work.authorships ? work.authorships.map((a: any) => a.author.display_name) : ['Unknown Author']
-        const year = work.publication_year ? work.publication_year.toString() : 'Unknown'
-        
-        // Convert inverted index back to text
-        const abstractWords = work.abstract_inverted_index || {}
-        const abstract = Object.keys(abstractWords)
+      const authors = work.authorships ? work.authorships.map((a: any) => a.author?.display_name || 'Unknown Author') : ['Unknown Author']
+      const year = work.publication_year ? work.publication_year.toString() : 'Unknown'
+
+      // Reconstruct abstract if available, otherwise fallback text
+      let abstract = 'No abstract available.'
+      if (work.abstract_inverted_index) {
+        const abstractWords = work.abstract_inverted_index
+        abstract = Object.keys(abstractWords)
           .sort((a, b) => Math.min(...abstractWords[a]) - Math.min(...abstractWords[b]))
           .join(' ')
-        
-        papers.push({
-          id: `openalex-${work.id.split('/').pop()}`,
-          title: work.title,
-          authors: authors,
-          year: year,
-          abstract: abstract,
-          url: work.doi ? `https://doi.org/${work.doi}` : work.open_access?.oa_url || '#',
-          similarity: 0 // Will be calculated later
-        })
       }
+
+      papers.push({
+        id: `openalex-${work.id?.toString().split('/').pop() || Math.random().toString(36).slice(2, 9)}`,
+        title: work.title || 'Untitled',
+        authors,
+        year,
+        abstract,
+        url: work.doi ? `https://doi.org/${work.doi}` : work.open_access?.oa_url || work.openalex_url || '#',
+        similarity: 0
+      })
     }
-    
+
     console.log('🔍 OpenAlex papers processed:', papers.length)
     return papers
   } catch (error) {
@@ -531,30 +565,40 @@ async function searchOpenAlex(query: string): Promise<RelatedPaper[]> {
 async function searchCrossRef(query: string): Promise<RelatedPaper[]> {
   console.log('🔍 Searching CrossRef for:', query.substring(0, 50))
   try {
-    const response = await axios.get(`https://api.crossref.org/works?query=${encodeURIComponent(query)}&rows=5&sort=relevance`)
-    
+    const response = await axios.get('https://api.crossref.org/works', {
+      params: {
+        query: query,
+        rows: 5,
+        sort: 'relevance'
+      },
+      timeout: 10000,
+      headers: {
+        'User-Agent': 'CiteFinder/0.1'
+      }
+    })
+
     const papers: RelatedPaper[] = []
-    const items = response.data.message.items || []
-    
+    const items = response.data.message?.items || []
+
     console.log('🔍 CrossRef found:', items.length, 'papers')
-    
+
     for (const item of items) {
       if (item.title && item.title[0]) {
-        const authors = item.author ? item.author.map((a: any) => `${a.given} ${a.family}`.trim()) : ['Unknown Author']
-        const year = item.published ? item.published['date-parts'][0][0].toString() : 'Unknown'
-        
+        const authors = item.author ? item.author.map((a: any) => `${a.given || ''} ${a.family || ''}`.trim()).filter((n: string) => n.length > 0) : ['Unknown Author']
+        const year = item.published ? item.published['date-parts']?.[0]?.[0]?.toString() : 'Unknown'
+
         papers.push({
-          id: `crossref-${item.DOI}`,
+          id: `crossref-${item.DOI || Math.random().toString(36).slice(2, 9)}`,
           title: item.title[0],
-          authors: authors,
-          year: year,
+          authors,
+          year,
           abstract: item.abstract || 'No abstract available.',
-          url: item.DOI ? `https://doi.org/${item.DOI}` : '#',
-          similarity: 0 // Will be calculated later
+          url: item.DOI ? `https://doi.org/${item.DOI}` : item.URL || '#',
+          similarity: 0
         })
       }
     }
-    
+
     console.log('🔍 CrossRef papers processed:', papers.length)
     return papers
   } catch (error) {
@@ -567,39 +611,54 @@ async function searchCrossRef(query: string): Promise<RelatedPaper[]> {
 async function searchPubMed(query: string): Promise<RelatedPaper[]> {
   console.log('🔍 Searching PubMed for:', query.substring(0, 50))
   try {
-    const response = await axios.get(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term=${encodeURIComponent(query)}&retmode=json&retmax=5&sort=relevance`)
-    
+    const response = await axios.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi', {
+      params: {
+        db: 'pubmed',
+        term: query,
+        retmode: 'json',
+        retmax: 5,
+        sort: 'relevance'
+      },
+      timeout: 10000
+    })
+
     const papers: RelatedPaper[] = []
-    const idList = response.data.esearchresult.idlist || []
-    
+    const idList = response.data.esearchresult?.idlist || []
+
     console.log('🔍 PubMed found:', idList.length, 'papers')
-    
+
     if (idList.length > 0) {
-      // Get details for the first few papers
-      const ids = idList.slice(0, 3).join(',')
-      const detailResponse = await axios.get(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id=${ids}&retmode=json`)
-      
+      const ids = idList.slice(0, 5).join(',')
+      const detailResponse = await axios.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi', {
+        params: {
+          db: 'pubmed',
+          id: ids,
+          retmode: 'json'
+        },
+        timeout: 10000
+      })
+
       const summaries = detailResponse.data.result
-      
-      for (const id of idList.slice(0, 3)) {
+
+      for (const id of idList.slice(0, 5)) {
         const summary = summaries[id]
         if (summary && summary.title) {
           const authors = summary.authors ? summary.authors.map((a: any) => a.name) : ['Unknown Author']
           const year = summary.pubdate ? summary.pubdate.split(' ')[0] : 'Unknown'
-          
+
           papers.push({
             id: `pubmed-${id}`,
             title: summary.title,
-            authors: authors,
-            year: year,
+            authors,
+            year,
             abstract: summary.abstract || 'No abstract available.',
             url: `https://pubmed.ncbi.nlm.nih.gov/${id}/`,
-            similarity: 0 // Will be calculated later
+            similarity: 0
           })
         }
       }
     }
-    
+
     console.log('🔍 PubMed papers processed:', papers.length)
     return papers
   } catch (error) {
