@@ -83,65 +83,87 @@ function extractStatements(text: string): string[] {
   console.log('🔍 Text preview:', text.substring(0, 300))
   
   // OPTIMIZATION: Limit text size to prevent timeout on very large documents
-  const maxTextLength = 5000 // Process only first 5000 characters to prevent timeout
+  const maxTextLength = 8000 // Increased from 5000 to capture more content
   const processedText = text.length > maxTextLength ? text.substring(0, maxTextLength) : text
   console.log('🔍 Processing text length (limited):', processedText.length)
   
-  // Normalize bullet points into sentence-like lines
+  // Better text normalization for academic papers
   let normalized = processedText
     .replace(/\r/g, '\n')
     .replace(/\n{2,}/g, '\n')
-    // Fix: put '-' at the end of the character class to avoid creating a range
-    .replace(/^[\s>*•–-]+/gm, '')
+    .replace(/^[\s>*•–-]+/gm, '') // Remove bullet points
+    .replace(/^\d+\.\s*/gm, '') // Remove numbered lists
+    .replace(/\s+/g, ' ') // Normalize whitespace
+    .trim()
 
   console.log('🔍 After normalization, text length:', normalized.length)
   console.log('🔍 Normalized text preview:', normalized.substring(0, 200))
 
   if (!normalized.trim()) {
-    // Guard: if normalization removed everything, fall back to original text
     console.log('🔍 Normalization removed everything, using original text')
     normalized = processedText
   }
 
   console.log('🔍 Normalized text preview:', normalized.substring(0, 300))
   
-  // Split into candidate sentences
-  let candidates = normalized.split(/(?<=[.!?])\s+|\n+/)
-  if (!candidates || candidates.every(s => !s || !s.trim())) {
-    // Guard: if splitting yielded only empties, fallback to using raw text as one candidate
+  // Better sentence splitting for academic text
+  let candidates = normalized
+    .split(/(?<=[.!?])\s+(?=[A-Z])/) // Split on sentence boundaries followed by capital letters
+    .filter(s => s && s.trim().length > 0)
+  
+  // If no good splits, try line-based splitting
+  if (candidates.length <= 1) {
+    candidates = normalized
+      .split(/\n+/)
+      .filter(s => s && s.trim().length > 20)
+  }
+  
+  // If still no good candidates, use the whole text
+  if (candidates.length === 0) {
     candidates = [processedText.trim()]
   }
   
-  // OPTIMIZATION: Limit candidates to prevent timeout - only process first 5 candidates
-  if (candidates.length > 5) {
-    console.log('🔍 Limiting candidates from', candidates.length, 'to 5 to prevent timeout')
-    candidates = candidates.slice(0, 5)
+  // Increased candidate limit for better coverage
+  if (candidates.length > 15) {
+    console.log('🔍 Limiting candidates from', candidates.length, 'to 15')
+    candidates = candidates.slice(0, 15)
   }
   
   console.log('🔍 Total candidates found:', candidates.length)
   console.log('🔍 First few candidates:', candidates.slice(0, 3))
   
-  // OPTIMIZATION: Simplified claim patterns - only most important ones
+  // Expanded and more flexible claim patterns
   const claimPatterns = [
-    // Academic research patterns
-    /\b(?:research shows|studies indicate|evidence suggests|data reveals|findings indicate|has been shown|has been found)\b/gi,
+    // Academic research patterns - expanded
+    /\b(?:research shows|studies indicate|evidence suggests|data reveals|findings indicate|has been shown|has been found|results show|analysis demonstrates|investigation reveals|experiments show)\b/gi,
     
-    // Performance/metrics patterns
-    /\b(?:accuracy|precision|performance|effectiveness|significant|p-?value|correlation)\b/gi,
+    // Methodological patterns
+    /\b(?:method|technique|approach|algorithm|model|framework|protocol|procedure|methodology|implementation|system|tool)\b/gi,
     
-    // Remote sensing/drone specific patterns
-    /\b(?:drones?|uav|remote sensing|earth observation|monitoring|detection|analysis)\b/gi,
+    // Performance/metrics patterns - expanded  
+    /\b(?:accuracy|precision|performance|effectiveness|efficiency|significant|p-?value|correlation|improvement|enhancement|optimization|quality|reliability)\b/gi,
     
-    // Software/technology patterns
-    /\b(?:software|open[- ]source|platform|system|technology|development)\b/gi
+    // Comparative patterns
+    /\b(?:better than|more effective|superior to|outperforms|compared to|in contrast|versus|against|higher than|lower than|faster than)\b/gi,
+    
+    // Remote sensing/drone specific patterns - expanded
+    /\b(?:drones?|uav|unmanned aerial vehicle|remote sensing|earth observation|satellite|aerial|imaging|spectral|multispectral|monitoring|detection|analysis|mapping|survey|geospatial)\b/gi,
+    
+    // Technology/software patterns - expanded
+    /\b(?:software|open[- ]source|platform|system|technology|development|application|solution|implementation|architecture|database|processing)\b/gi,
+    
+    // Academic/scientific patterns
+    /\b(?:propose|present|demonstrate|evaluate|assess|examine|investigate|analyze|study|test|measure|calculate|determine|establish|prove|validate)\b/gi,
+    
+    // Results/conclusions patterns
+    /\b(?:conclude|results|outcomes|findings|implications|significance|impact|benefits|advantages|limitations|challenges|potential)\b/gi
   ]
   
   let processedCount = 0
   let skippedCount = 0
-  const maxProcessingTime = Date.now() + 5000 // 5 second timeout for processing
+  const maxProcessingTime = Date.now() + 8000 // Increased timeout to 8 seconds
   
   for (const sentence of candidates) {
-    // OPTIMIZATION: Check for timeout to prevent infinite processing
     if (Date.now() > maxProcessingTime) {
       console.log('🔍 Processing timeout reached, stopping early')
       break
@@ -150,20 +172,19 @@ function extractStatements(text: string): string[] {
     const lowerSentence = sentence.toLowerCase()
     processedCount++
 
-    // Early termination if we have enough statements
-    if (statements.length >= 2) { // Reduced from 3 to 2
-      console.log('🔍 Early termination: found 2 statements, stopping processing')
+    // Allow more statements to be found
+    if (statements.length >= 5) {
+      console.log('🔍 Early termination: found 5 statements, stopping processing')
       break
     }
 
-    // OPTIMIZATION: Simplified skip conditions
+    // More lenient skip conditions
     if (
-      sentence.split(' ').length < 5 ||
-      sentence.trim().length < 30 ||
+      sentence.split(' ').length < 4 || // Reduced from 5
+      sentence.trim().length < 25 || // Reduced from 30
       sentence.trim().endsWith(':') ||
-      /^(?:see discussions|doi:|citations:|reads:|author|preprint|publication)/i.test(sentence.trim()) ||
+      /^(?:see discussions|doi:|citations:|reads:|author|preprint|publication|figure|table|fig\.|tab\.)/i.test(sentence.trim()) ||
       /^(?:https?:\/\/|www\.)/i.test(sentence.trim()) ||
-      /^(?:figure|table|fig\.|tab\.)/i.test(sentence.trim()) ||
       /^[\d\s\-\.\/]+$/.test(sentence.trim())
     ) {
       skippedCount++
@@ -182,19 +203,25 @@ function extractStatements(text: string): string[] {
           cleanStatement += '.'
         }
 
+        // More lenient statement validation
         if (
-          cleanStatement.length > 30 &&
-          cleanStatement.length < 400 &&
+          cleanStatement.length > 25 && // Reduced from 30
+          cleanStatement.length < 500 && // Increased from 400
           !statements.includes(cleanStatement) &&
           cleanStatement.includes(' ') &&
           /[a-zA-Z]/.test(cleanStatement) &&
-          cleanStatement.split(' ').length >= 6
+          cleanStatement.split(' ').length >= 4 // Reduced from 6
         ) {
           statements.push(cleanStatement)
           console.log('✅ Statement found:', cleanStatement.substring(0, 100))
         }
         break
       }
+    }
+    
+    // Log unmatched sentences for debugging
+    if (!patternMatched && processedCount <= 10) {
+      console.log('❌ No pattern matched for:', sentence.substring(0, 100))
     }
   }
 
@@ -203,33 +230,62 @@ function extractStatements(text: string): string[] {
   console.log('  - Candidates skipped:', skippedCount)
   console.log('  - Statements found:', statements.length)
 
-  // OPTIMIZATION: Simplified fallback - just use first meaningful sentences if no patterns matched
+  // Enhanced fallback logic
   if (statements.length === 0) {
-    console.log('🔍 No statements found, using simple fallback...')
-    const fallback = candidates
-      .filter(s => s.length >= 50 && s.split(/\s+/).length >= 8)
-      .slice(0, 2)
-    for (const s of fallback) {
+    console.log('🔍 No statements found, trying enhanced fallback...')
+    
+    // First fallback: Look for sentences with academic keywords
+    const academicKeywords = /\b(?:study|research|analysis|method|result|conclusion|finding|data|experiment|test|evaluation|assessment|investigation)\b/gi
+    const academicSentences = candidates.filter(s => 
+      academicKeywords.test(s) && 
+      s.length >= 40 && 
+      s.split(/\s+/).length >= 6 &&
+      !/^(?:figure|table|doi:|http)/i.test(s.trim())
+    )
+    
+    for (const s of academicSentences.slice(0, 3)) {
       const withPunct = /[.!?]$/.test(s) ? s : s + '.'
       statements.push(withPunct)
-      console.log('✅ Fallback statement found:', withPunct.substring(0, 100))
+      console.log('✅ Academic fallback statement:', withPunct.substring(0, 100))
+    }
+    
+    // Second fallback: Look for any substantial sentences
+    if (statements.length === 0) {
+      console.log('🔍 No academic statements, trying general fallback...')
+      const substantialSentences = candidates
+        .filter(s => 
+          s.length >= 35 && 
+          s.split(/\s+/).length >= 5 &&
+          !/^(?:see discussions|doi:|citations:|reads:|author|preprint|publication|figure|table)/i.test(s.trim()) &&
+          !/^(?:https?:\/\/|www\.)/i.test(s.trim())
+        )
+        .slice(0, 3)
+        
+      for (const s of substantialSentences) {
+        const withPunct = /[.!?]$/.test(s) ? s : s + '.'
+        statements.push(withPunct)
+        console.log('✅ General fallback statement:', withPunct.substring(0, 100))
+      }
     }
   }
 
-  // Ultimate fallback: if user typed a single statement, just use it
-  if (statements.length === 0 && processedText.trim().length > 10) {
-    console.log('🔍 Ultimate fallback: using user input as statement')
+  // Ultimate fallback: if still nothing, use the processed text
+  if (statements.length === 0 && processedText.trim().length > 20) {
+    console.log('🔍 Ultimate fallback: using processed text as statement')
     let userStatement = processedText.trim()
+    if (userStatement.length > 300) {
+      userStatement = userStatement.substring(0, 300) + '...'
+    }
     if (!/[.!?]$/.test(userStatement)) {
       userStatement += '.'
     }
     statements.push(userStatement)
-    console.log('✅ Ultimate fallback statement:', userStatement)
+    console.log('✅ Ultimate fallback statement:', userStatement.substring(0, 100))
   }
 
-  // Remove duplicates and return limited results
+  // Remove duplicates and return results
   const uniqueStatements = [...new Set(statements)]
-  const finalStatements = uniqueStatements.slice(0, 3) // Reduced from 6 to 3
+  const finalStatements = uniqueStatements.slice(0, 5) // Increased from 3 to 5
 
   console.log('🔍 Final statements:', finalStatements.length)
   console.log('🔍 Final statements:', finalStatements.map(s => s.substring(0, 80)))
