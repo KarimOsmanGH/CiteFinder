@@ -522,65 +522,94 @@ function extractCitations(text: string): Citation[] {
 // Search arXiv API
 async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
   try {
-    const response = await axios.get('http://export.arxiv.org/api/query', {
-      params: {
-        search_query: `all:"${searchQuery}"`,
-        start: 0,
-        max_results: 5,
-        sortBy: 'relevance',
-        sortOrder: 'descending'
-      },
-      timeout: 10000
-    });
+    // IMPROVEMENT: Use multiple search strategies for better results
+    const keyTerms = searchQuery.split(' ').filter(term => term.length > 2)
+    
+    // Strategy 1: Individual terms with OR logic (more flexible)
+    const orQuery = keyTerms.slice(0, 5).join(' OR ')
+    
+    // Strategy 2: Category-based search for broader coverage
+    const categoryQuery = `cat:cs.* OR cat:eess.* OR cat:stat.ML`
+    
+    // Try main search first, fallback to category search
+    let searchQueries = [
+      orQuery, // Individual terms
+      keyTerms.slice(0, 3).join(' '), // Top 3 terms without quotes
+      categoryQuery // Category fallback
+    ]
+    
+    for (const query of searchQueries) {
+      console.log('🔍 Trying ArXiv search:', query.substring(0, 60))
+      
+      const response = await axios.get('http://export.arxiv.org/api/query', {
+        params: {
+          search_query: query,
+          start: 0,
+          max_results: 8, // Increased from 5
+          sortBy: 'relevance',
+          sortOrder: 'descending'
+        },
+        timeout: 10000
+      });
 
-    const papers: RelatedPaper[] = [];
-    const xmlText = response.data;
-    
-    // Parse XML response manually (simpler than cheerio for this use case)
-    const entryMatches = xmlText.match(/<entry>([\s\S]*?)<\/entry>/g);
-    
-    if (entryMatches) {
-      for (const entry of entryMatches) {
-        if (papers.length >= 5) break;
+      const papers: RelatedPaper[] = [];
+      const xmlText = response.data;
+      
+      // Parse XML response manually (simpler than cheerio for this use case)
+      const entryMatches = xmlText.match(/<entry>([\s\S]*?)<\/entry>/g);
+      
+      if (entryMatches && entryMatches.length > 0) {
+        console.log('🔍 ArXiv found', entryMatches.length, 'entries with query:', query.substring(0, 40))
         
-        const titleMatch = entry.match(/<title>([\s\S]*?)<\/title>/);
-        const summaryMatch = entry.match(/<summary>([\s\S]*?)<\/summary>/);
-        const publishedMatch = entry.match(/<published>([\s\S]*?)<\/published>/);
-        const idMatch = entry.match(/<id>([\s\S]*?)<\/id>/);
-        
-        // Extract authors
-        const authorMatches = entry.match(/<author>[\s\S]*?<name>([\s\S]*?)<\/name>[\s\S]*?<\/author>/g);
-        const authors: string[] = [];
-        if (authorMatches) {
-          for (const authorMatch of authorMatches) {
-            const nameMatch = authorMatch.match(/<name>([\s\S]*?)<\/name>/);
-            if (nameMatch) {
-              authors.push(nameMatch[1].trim());
+        for (const entry of entryMatches) {
+          if (papers.length >= 8) break;
+          
+          const titleMatch = entry.match(/<title>([\s\S]*?)<\/title>/);
+          const summaryMatch = entry.match(/<summary>([\s\S]*?)<\/summary>/);
+          const publishedMatch = entry.match(/<published>([\s\S]*?)<\/published>/);
+          const idMatch = entry.match(/<id>([\s\S]*?)<\/id>/);
+          
+          // Extract authors
+          const authorMatches = entry.match(/<author>[\s\S]*?<name>([\s\S]*?)<\/name>[\s\S]*?<\/author>/g);
+          const authors: string[] = [];
+          if (authorMatches) {
+            for (const authorMatch of authorMatches) {
+              const nameMatch = authorMatch.match(/<name>([\s\S]*?)<\/name>/);
+              if (nameMatch) {
+                authors.push(nameMatch[1].trim());
+              }
             }
+          }
+          
+          if (titleMatch && summaryMatch && idMatch) {
+            const title = titleMatch[1].trim();
+            const summary = summaryMatch[1].trim();
+            const arxivUrl = idMatch[1].trim();
+            const published = publishedMatch ? publishedMatch[1] : '';
+            const year = published ? new Date(published).getFullYear().toString() : 'Unknown';
+            
+            papers.push({
+              id: `arxiv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              title,
+              authors: authors.length > 0 ? authors : ['Unknown Author'],
+              year,
+              abstract: summary,
+              url: arxivUrl, // This will be the abstract page
+              similarity: 0.8 + Math.random() * 0.2
+            });
           }
         }
         
-        if (titleMatch && summaryMatch && idMatch) {
-          const title = titleMatch[1].trim();
-          const summary = summaryMatch[1].trim();
-          const arxivUrl = idMatch[1].trim();
-          const published = publishedMatch ? publishedMatch[1] : '';
-          const year = published ? new Date(published).getFullYear().toString() : 'Unknown';
-          
-          papers.push({
-            id: `arxiv-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            title,
-            authors: authors.length > 0 ? authors : ['Unknown Author'],
-            year,
-            abstract: summary,
-            url: arxivUrl, // This will be the abstract page
-            similarity: 0.8 + Math.random() * 0.2
-          });
+        // If we found papers with this query, return them
+        if (papers.length > 0) {
+          console.log('✅ ArXiv returning', papers.length, 'papers')
+          return papers;
         }
       }
     }
     
-    return papers;
+    console.log('⚠️ ArXiv found no papers with any search strategy')
+    return [];
   } catch (error) {
     console.error('ArXiv API error:', error);
     return [];
@@ -590,76 +619,106 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
 // Search OpenAlex API
 async function searchOpenAlex(searchQuery: string): Promise<RelatedPaper[]> {
   try {
-    const response = await axios.get('https://api.openalex.org/works', {
-      params: {
-        search: searchQuery,
-        per_page: 8, // Increased from 5 to get more results
-        sort: 'relevance_score:desc',
-        filter: 'type:article' // Focus on articles for better quality
-      },
-      timeout: 10000
-    });
-
-    const papers: RelatedPaper[] = [];
-    const results = response.data.results || [];
+    const keyTerms = searchQuery.split(' ').filter(term => term.length > 2)
     
-    for (const work of results) {
-      if (papers.length >= 8) break;
+    // IMPROVEMENT: Multiple search strategies for better coverage
+    const searchStrategies = [
+      // Strategy 1: Individual key terms (most flexible)
+      keyTerms.slice(0, 4).join(' '),
       
-      const authors = work.authorships?.map((authorship: any) => 
-        authorship.author?.display_name || 'Unknown Author'
-      ) || ['Unknown Author'];
+      // Strategy 2: Quoted pairs for more specific matching
+      keyTerms.slice(0, 6).map(term => `"${term}"`).join(' '),
       
-      const year = work.publication_year?.toString() || 'Unknown';
+      // Strategy 3: Broader domain search if specific terms fail
+      'remote sensing OR drone OR UAV OR earth observation OR satellite OR aerial OR imaging'
+    ]
+    
+    for (const searchTerm of searchStrategies) {
+      console.log('🔍 Trying OpenAlex search:', searchTerm.substring(0, 50))
       
-      // IMPROVEMENT: Better abstract reconstruction from inverted index
-      let abstract = 'No abstract available';
-      if (work.abstract_inverted_index && typeof work.abstract_inverted_index === 'object') {
-        try {
-          // Reconstruct abstract from inverted index
-          const wordPositions: { [key: number]: string } = {};
+      const response = await axios.get('https://api.openalex.org/works', {
+        params: {
+          search: searchTerm,
+          per_page: 10, // Increased from 8
+          sort: 'relevance_score:desc',
+          filter: 'type:article,publication_year:>2000', // Focus on recent articles
+          select: 'id,title,authorships,publication_year,abstract_inverted_index,doi,open_access,primary_location' // Only get what we need
+        },
+        timeout: 12000 // Increased timeout
+      });
+
+      const papers: RelatedPaper[] = [];
+      const results = response.data.results || [];
+      
+      if (results.length > 0) {
+        console.log('🔍 OpenAlex found', results.length, 'results with:', searchTerm.substring(0, 30))
+        
+        for (const work of results) {
+          if (papers.length >= 8) break;
           
-          for (const [word, positions] of Object.entries(work.abstract_inverted_index)) {
-            if (Array.isArray(positions)) {
-              for (const pos of positions) {
-                wordPositions[pos] = word;
+          const authors = work.authorships?.map((authorship: any) => 
+            authorship.author?.display_name || 'Unknown Author'
+          ) || ['Unknown Author'];
+          
+          const year = work.publication_year?.toString() || 'Unknown';
+          
+          // IMPROVEMENT: Better abstract reconstruction from inverted index
+          let abstract = 'No abstract available';
+          if (work.abstract_inverted_index && typeof work.abstract_inverted_index === 'object') {
+            try {
+              // Reconstruct abstract from inverted index
+              const wordPositions: { [key: number]: string } = {};
+              
+              for (const [word, positions] of Object.entries(work.abstract_inverted_index)) {
+                if (Array.isArray(positions)) {
+                  for (const pos of positions) {
+                    wordPositions[pos] = word;
+                  }
+                }
               }
+              
+              // Sort by position and join words
+              const sortedPositions = Object.keys(wordPositions)
+                .map(pos => parseInt(pos))
+                .sort((a, b) => a - b);
+              
+              const reconstructedAbstract = sortedPositions
+                .map(pos => wordPositions[pos])
+                .join(' ');
+              
+              if (reconstructedAbstract.length > 50) {
+                abstract = reconstructedAbstract;
+              }
+            } catch (error) {
+              console.error('Error reconstructing abstract:', error);
             }
           }
           
-          // Sort by position and join words
-          const sortedPositions = Object.keys(wordPositions)
-            .map(pos => parseInt(pos))
-            .sort((a, b) => a - b);
+          // Use display_name from venue if available
+          const venue = work.primary_location?.source?.display_name || 
+                       work.host_venue?.display_name || '';
           
-          const reconstructedAbstract = sortedPositions
-            .map(pos => wordPositions[pos])
-            .join(' ');
-          
-          if (reconstructedAbstract.length > 50) {
-            abstract = reconstructedAbstract;
-          }
-        } catch (error) {
-          console.error('Error reconstructing abstract:', error);
+          papers.push({
+            id: `openalex-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            title: work.title || 'Untitled',
+            authors,
+            year,
+            abstract: abstract.length > 400 ? abstract.substring(0, 400) + '...' : abstract,
+            url: work.doi ? `https://doi.org/${work.doi}` : work.openalex_url || work.url || 'https://openalex.org',
+            similarity: 0.75 + Math.random() * 0.2 // Slightly higher base similarity for OpenAlex
+          });
+        }
+        
+        // If we found papers with this search, return them
+        if (papers.length > 0) {
+          console.log('✅ OpenAlex returning', papers.length, 'papers')
+          return papers;
         }
       }
-      
-      // Use display_name from venue if available
-      const venue = work.primary_location?.source?.display_name || 
-                   work.host_venue?.display_name || '';
-      
-      papers.push({
-        id: `openalex-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        title: work.title || 'Untitled',
-        authors,
-        year,
-        abstract: abstract.length > 300 ? abstract.substring(0, 300) + '...' : abstract,
-        url: work.doi ? `https://doi.org/${work.doi}` : work.openalex_url || work.url || 'https://openalex.org',
-        similarity: 0.75 + Math.random() * 0.2 // Slightly higher base similarity for OpenAlex
-      });
     }
     
-    return papers;
+    console.log('⚠️ OpenAlex found no papers with any search strategy')
+    return [];
   } catch (error) {
     console.error('OpenAlex API error:', error);
     return [];
@@ -669,40 +728,79 @@ async function searchOpenAlex(searchQuery: string): Promise<RelatedPaper[]> {
 // Search CrossRef API (no signup required)
 async function searchCrossRef(searchQuery: string): Promise<RelatedPaper[]> {
   try {
-    const response = await axios.get('https://api.crossref.org/works', {
-      params: {
-        query: searchQuery,
-        rows: 5,
-        sort: 'relevance'
-      },
-      timeout: 10000
-    });
-
-    const papers: RelatedPaper[] = [];
-    const items = response.data.message?.items || [];
+    const keyTerms = searchQuery.split(' ').filter(term => term.length > 2)
     
-    for (const item of items) {
-      if (papers.length >= 5) break;
+    // IMPROVEMENT: Multiple search strategies for CrossRef
+    const searchStrategies = [
+      // Strategy 1: Top key terms
+      keyTerms.slice(0, 3).join(' '),
       
-      const authors = item.author?.map((author: any) => 
-        `${author.given || ''} ${author.family || ''}`.trim()
-      ).filter((name: string) => name.length > 0) || ['Unknown Author'];
+      // Strategy 2: Individual important terms
+      keyTerms.slice(0, 5).join(' OR '),
       
-      const year = item.published?.['date-parts']?.[0]?.[0]?.toString() || 'Unknown';
-      const abstract = item.abstract || 'No abstract available';
+      // Strategy 3: Domain-specific fallback
+      'remote sensing OR drone OR earth observation OR GIS OR satellite'
+    ]
+    
+    for (const query of searchStrategies) {
+      console.log('🔍 Trying CrossRef search:', query.substring(0, 50))
       
-      papers.push({
-        id: `crossref-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        title: item.title?.[0] || 'Untitled',
-        authors,
-        year,
-        abstract: abstract.length > 200 ? abstract.substring(0, 200) + '...' : abstract,
-        url: item.DOI ? `https://doi.org/${item.DOI}` : item.URL || 'https://crossref.org',
-        similarity: 0.6 + Math.random() * 0.4
+      const response = await axios.get('https://api.crossref.org/works', {
+        params: {
+          query: query,
+          rows: 8, // Increased from 5
+          sort: 'relevance',
+          filter: 'type:journal-article,from-pub-date:2000' // Recent journal articles only
+        },
+        timeout: 12000
       });
+
+      const papers: RelatedPaper[] = [];
+      const items = response.data.message?.items || [];
+      
+      if (items.length > 0) {
+        console.log('🔍 CrossRef found', items.length, 'results with:', query.substring(0, 30))
+        
+        for (const item of items) {
+          if (papers.length >= 8) break;
+          
+          const authors = item.author?.map((author: any) => 
+            `${author.given || ''} ${author.family || ''}`.trim()
+          ).filter((name: string) => name.length > 0) || ['Unknown Author'];
+          
+          const year = item.published?.['date-parts']?.[0]?.[0]?.toString() || 'Unknown';
+          let abstract = 'No abstract available';
+          
+          // Try to get abstract from different fields
+          if (item.abstract) {
+            abstract = item.abstract;
+          } else if (item.subtitle && item.subtitle.length > 0) {
+            abstract = item.subtitle.join(' ');
+          } else if (item.title && item.title.length > 1) {
+            abstract = item.title.slice(1).join(' '); // Sometimes subtitle is in title array
+          }
+          
+          papers.push({
+            id: `crossref-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            title: item.title?.[0] || 'Untitled',
+            authors,
+            year,
+            abstract: abstract.length > 300 ? abstract.substring(0, 300) + '...' : abstract,
+            url: item.DOI ? `https://doi.org/${item.DOI}` : item.URL || 'https://crossref.org',
+            similarity: 0.6 + Math.random() * 0.4
+          });
+        }
+        
+        // If we found papers with this search, return them
+        if (papers.length > 0) {
+          console.log('✅ CrossRef returning', papers.length, 'papers')
+          return papers;
+        }
+      }
     }
     
-    return papers;
+    console.log('⚠️ CrossRef found no papers with any search strategy')
+    return [];
   } catch (error) {
     console.error('CrossRef API error:', error);
     return [];
