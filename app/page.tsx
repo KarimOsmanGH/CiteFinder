@@ -584,7 +584,7 @@ export default function Home() {
                 Frequently Asked Questions
               </h2>
               <p className="text-xl text-gray-600">
-                Find answers about extracting statements, finding sources, and generating citations
+                Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.
               </p>
 
             </div>
