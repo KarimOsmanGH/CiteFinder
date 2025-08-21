@@ -120,8 +120,13 @@ function extractStatements(text: string): string[] {
   console.log('🔍 extractStatements called with text length:', text.length)
   console.log('🔍 Text preview:', text.substring(0, 300))
   
+  // OPTIMIZATION: Limit text size to prevent timeout on very large documents
+  const maxTextLength = 5000 // Process only first 5000 characters to prevent timeout
+  const processedText = text.length > maxTextLength ? text.substring(0, maxTextLength) : text
+  console.log('🔍 Processing text length (limited):', processedText.length)
+  
   // Normalize bullet points into sentence-like lines
-  let normalized = text
+  let normalized = processedText
     .replace(/\r/g, '\n')
     .replace(/\n{2,}/g, '\n')
     // Fix: put '-' at the end of the character class to avoid creating a range
@@ -133,93 +138,68 @@ function extractStatements(text: string): string[] {
   if (!normalized.trim()) {
     // Guard: if normalization removed everything, fall back to original text
     console.log('🔍 Normalization removed everything, using original text')
-    normalized = text
+    normalized = processedText
   }
 
   // Split into candidate sentences
   let candidates = normalized.split(/(?<=[.!?])\s+|\n+/)
   if (!candidates || candidates.every(s => !s || !s.trim())) {
     // Guard: if splitting yielded only empties, fallback to using raw text as one candidate
-    candidates = [text.trim()]
+    candidates = [processedText.trim()]
   }
   
-  // Limit candidates to prevent timeout - only process first 20 candidates
-  if (candidates.length > 10) {
-    console.log('🔍 Limiting candidates from', candidates.length, 'to 10 to prevent timeout')
-    candidates = candidates.slice(0, 10)
+  // OPTIMIZATION: Limit candidates to prevent timeout - only process first 5 candidates
+  if (candidates.length > 5) {
+    console.log('🔍 Limiting candidates from', candidates.length, 'to 5 to prevent timeout')
+    candidates = candidates.slice(0, 5)
   }
   
   console.log('🔍 Total candidates found:', candidates.length)
   console.log('🔍 First few candidates:', candidates.slice(0, 3))
   
+  // OPTIMIZATION: Simplified claim patterns - only most important ones
   const claimPatterns = [
     // Academic research patterns
-    /\b(?:according to|previous studies|recent research|meta[- ]analysis)\b/gi,
-    /\b(?:research shows|studies indicate|evidence suggests|data reveals|analysis demonstrates|results show|findings indicate|has been shown|has been found|we (?:found|observed)|was (?:found|observed))\b/gi,
-    
-    // Comparative/performance patterns
-    /\b(?:better than|more effective|superior to|outperforms|improves|enhances|increases|reduces|decreases|significantly|substantially|dramatically|compared (?:to|with)|in contrast)\b/gi,
-    
-    // Technical method patterns
-    /\b(?:method|technique|approach|algorithm|model|framework|protocol|procedure|strategy|process|dataset|sample|participants?)\b/gi,
+    /\b(?:research shows|studies indicate|evidence suggests|data reveals|findings indicate|has been shown|has been found)\b/gi,
     
     // Performance/metrics patterns
-    /\b(?:accuracy|precision|recall|f1(?:-score)?|auc|performance|reliability|validity|robustness|scalability|effectiveness|quality|speed|cost)\b/gi,
-    
-    // Statistical patterns
-    /\b(?:significant|p-?value|p\s*<\s*0\.?\d+|confidence interval|ci\s*[:=]|odds ratio|hazard ratio|r\s*=|r2|r\^2|correlation|mean|median|average|std(?:dev|\.?)|standard deviation|%|percent|\d+\s*(?:%|percent|participants|subjects|samples))\b/gi,
-    
-    // Association/causation patterns
-    /\b(?:associated with|linked to|correlated with|leads to|results in|is caused by|is related to)\b/gi,
+    /\b(?:accuracy|precision|performance|effectiveness|significant|p-?value|correlation)\b/gi,
     
     // Remote sensing/drone specific patterns
-    /\b(?:drones?|uav|unmanned aerial vehicle|remote sensing|earth observation|satellite|aerial|imaging|spectral|thermal|multispectral|hyperspectral|monitoring|detection|analysis|assessment|evaluation|application|implementation|development|study|trial|experiment)\b/gi,
+    /\b(?:drones?|uav|remote sensing|earth observation|monitoring|detection|analysis)\b/gi,
     
     // Software/technology patterns
-    /\b(?:software|open[- ]source|platform|system|tool|application|solution|technology|innovation|advancement|breakthrough|development)\b/gi,
-    
-    // Environmental/geographic patterns
-    /\b(?:environmental|climate|agriculture|forestry|urban|rural|landscape|ecosystem|biodiversity|conservation|mapping|survey|inventory)\b/gi,
-    
-    // Data collection patterns
-    /\b(?:data collection|field survey|ground truth|validation|calibration|measurement|observation|sampling|monitoring|tracking|surveillance)\b/gi
+    /\b(?:software|open[- ]source|platform|system|technology|development)\b/gi
   ]
   
   let processedCount = 0
   let skippedCount = 0
+  const maxProcessingTime = Date.now() + 5000 // 5 second timeout for processing
   
   for (const sentence of candidates) {
+    // OPTIMIZATION: Check for timeout to prevent infinite processing
+    if (Date.now() > maxProcessingTime) {
+      console.log('🔍 Processing timeout reached, stopping early')
+      break
+    }
+    
     const lowerSentence = sentence.toLowerCase()
     processedCount++
 
     // Early termination if we have enough statements
-    if (statements.length >= 3) {
-      console.log('🔍 Early termination: found 3 statements, stopping processing')
+    if (statements.length >= 2) { // Reduced from 3 to 2
+      console.log('🔍 Early termination: found 2 statements, stopping processing')
       break
     }
 
-    // Skip incomplete phrases and section headers
+    // OPTIMIZATION: Simplified skip conditions
     if (
-      // Skip if it's just a topic/section header
-      /^[a-z\s]+:$/i.test(sentence) ||
-      /^[a-z\s]+:$/i.test(sentence.trim()) ||
-      // Skip if it's too short or incomplete
       sentence.split(' ').length < 5 ||
-      // Skip if it ends with a colon (likely a header)
-      sentence.trim().endsWith(':') ||
-      // Skip if it's just a repeated word or phrase
-      /^([a-z]+\s*:?\s*)+$/i.test(sentence) ||
-      // Skip if it's just a list item without context
-      /^[•\-\*]\s*[a-z\s]+$/i.test(sentence) ||
-      // Skip if it's just a single word or very short phrase
       sentence.trim().length < 30 ||
-      // Skip metadata sections
+      sentence.trim().endsWith(':') ||
       /^(?:see discussions|doi:|citations:|reads:|author|preprint|publication)/i.test(sentence.trim()) ||
       /^(?:https?:\/\/|www\.)/i.test(sentence.trim()) ||
       /^(?:figure|table|fig\.|tab\.)/i.test(sentence.trim()) ||
-      // Skip very short or incomplete sentences
-      sentence.trim().length < 20 ||
-      // Skip sentences that are mostly numbers or special characters
       /^[\d\s\-\.\/]+$/.test(sentence.trim())
     ) {
       skippedCount++
@@ -244,20 +224,13 @@ function extractStatements(text: string): string[] {
           !statements.includes(cleanStatement) &&
           cleanStatement.includes(' ') &&
           /[a-zA-Z]/.test(cleanStatement) &&
-          // Additional quality checks
-          cleanStatement.split(' ').length >= 6 && // At least 6 words
-          !/^[a-z\s]+:$/i.test(cleanStatement) && // Not just a header
-          !/^[•\-\*]\s*[a-z\s]+$/i.test(cleanStatement) // Not just a bullet point
+          cleanStatement.split(' ').length >= 6
         ) {
           statements.push(cleanStatement)
           console.log('✅ Statement found:', cleanStatement.substring(0, 100))
         }
         break
       }
-    }
-    
-    if (!patternMatched && processedCount <= 5) {
-      console.log('❌ No pattern matched for:', sentence.substring(0, 100))
     }
   }
 
@@ -266,48 +239,23 @@ function extractStatements(text: string): string[] {
   console.log('  - Candidates skipped:', skippedCount)
   console.log('  - Statements found:', statements.length)
   
-  // Fallback: include colon-led factual lines (definitions/claims) but only if they're substantial
+  // OPTIMIZATION: Simplified fallback - just use first meaningful sentences if no patterns matched
   if (statements.length === 0) {
-    console.log('🔍 No statements found, trying fallback with colon lines...')
-    const colonLines = normalized.split(/\n+/)
-      .map(l => l.trim())
-      .filter(l => 
-        /\w+\s*:\s*\w+/.test(l) && 
-        l.length < 300 && 
-        l.length > 50 && // Must be substantial
-        l.split(' ').length >= 8 && // At least 8 words
-        !/^[a-z\s]+:$/i.test(l) // Not just a header
-      )
-    console.log('🔍 Colon lines found:', colonLines.length)
-    for (const l of colonLines.slice(0, 3)) {
-      const s = l.endsWith('.') ? l : l + '.'
-      if (!statements.includes(s)) {
-        statements.push(s)
-        console.log('✅ Fallback statement found (colon):', s.substring(0, 100))
-      }
-    }
-  }
-
-  // New generic fallback: if still nothing, accept reasonable sentences the user typed
-  if (statements.length === 0) {
-    console.log('🔍 No statements after colon fallback, trying generic sentence fallback...')
-    const generic = candidates
-      .map(s => s.trim())
-      .filter(s => s.length >= 30 && s.split(/\s+/).length >= 6 && /[.!?]$/.test(s))
-      .slice(0, 3)
-    for (const s of generic) {
+    console.log('🔍 No statements found, using simple fallback...')
+    const fallback = candidates
+      .filter(s => s.length >= 50 && s.split(/\s+/).length >= 8)
+      .slice(0, 2)
+    for (const s of fallback) {
       const withPunct = /[.!?]$/.test(s) ? s : s + '.'
-      if (!statements.includes(withPunct)) {
-        statements.push(withPunct)
-        console.log('✅ Fallback statement found (generic):', withPunct.substring(0, 100))
-      }
+      statements.push(withPunct)
+      console.log('✅ Fallback statement found:', withPunct.substring(0, 100))
     }
   }
 
   // Ultimate fallback: if user typed a single statement, just use it
-  if (statements.length === 0 && text.trim().length > 10) {
+  if (statements.length === 0 && processedText.trim().length > 10) {
     console.log('🔍 Ultimate fallback: using user input as statement')
-    let userStatement = text.trim()
+    let userStatement = processedText.trim()
     if (!/[.!?]$/.test(userStatement)) {
       userStatement += '.'
     }
@@ -315,13 +263,9 @@ function extractStatements(text: string): string[] {
     console.log('✅ Ultimate fallback statement:', userStatement)
   }
 
-  // Sort by closeness to ideal readable length and uniqueness
-  statements.sort((a, b) => Math.abs(a.length - 125) - Math.abs(b.length - 125))
-
-  // Remove duplicates preserving order
+  // Remove duplicates and return limited results
   const uniqueStatements = [...new Set(statements)]
-  // Return up to 6 for better coverage
-  const finalStatements = uniqueStatements.slice(0, 6)
+  const finalStatements = uniqueStatements.slice(0, 3) // Reduced from 6 to 3
 
   console.log('🔍 Final statements:', finalStatements.length)
   console.log('🔍 Final statements:', finalStatements.map(s => s.substring(0, 80)))
@@ -334,8 +278,8 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
   const citations: Citation[] = []
   let idCounter = 1
   
-  // Limit to first 3 statements to prevent timeout
-  const limitedStatements = statements.slice(0, 2)
+  // OPTIMIZATION: Limit to only 1 statement to prevent timeout
+  const limitedStatements = statements.slice(0, 1)
   console.log('🔍 Processing statements for paper search:', limitedStatements.length, 'out of', statements.length)
   
   for (const statement of limitedStatements) {
@@ -346,22 +290,20 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
       const keyTerms = extractKeyTermsFromStatement(statement)
       console.log('🔍 Key terms extracted:', keyTerms)
       
-      // Search across all databases for each statement with enforced timeouts
+      // OPTIMIZATION: Search only 2 databases with shorter timeouts
       const searchPromises = [
-        withTimeout(searchArxiv(keyTerms), 9000, [] as RelatedPaper[]),
-        withTimeout(searchOpenAlex(keyTerms), 9000, [] as RelatedPaper[]),
-        withTimeout(searchCrossRef(keyTerms), 9000, [] as RelatedPaper[]),
-        withTimeout(searchPubMed(keyTerms), 9000, [] as RelatedPaper[])
+        withTimeout(searchArxiv(keyTerms), 6000, [] as RelatedPaper[]),
+        withTimeout(searchOpenAlex(keyTerms), 6000, [] as RelatedPaper[])
       ]
       
-      // Wait for all searches with a timeout guard
+      // Wait for searches with a timeout guard
       const results = await Promise.allSettled(searchPromises)
-      const [arxivResults, openAlexResults, crossRefResults, pubmedResults] = results.map(r => 
+      const [arxivResults, openAlexResults] = results.map(r => 
         r.status === 'fulfilled' ? r.value : []
       )
       
       // Combine and deduplicate results
-      const allResults = [...arxivResults, ...openAlexResults, ...crossRefResults, ...pubmedResults]
+      const allResults = [...arxivResults, ...openAlexResults]
       const uniqueResults = allResults.filter((result, index, self) => 
         index === self.findIndex(r => r.title === result.title)
       )
@@ -369,7 +311,7 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
       console.log('🔍 Total unique results found:', uniqueResults.length)
       
       // Convert to citations with high confidence for statement-based discovery
-      for (const result of uniqueResults.slice(0, 2)) { // Top 2 results per statement
+      for (const result of uniqueResults.slice(0, 1)) { // Only top 1 result per statement
         const authors = result.authors.join(', ')
         const year = result.year
         
@@ -757,25 +699,30 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
   const discoveredCitations: Citation[] = []
   const existingCitations = citations.filter(c => !c.statement)
 
+  // OPTIMIZATION: Skip related paper search if we already have discovered citations
+  if (citations.some(c => c.statement)) {
+    console.log('🔍 Skipping additional related paper search - already have discovered citations')
+    return []
+  }
+
   // For existing citations, add a few more papers if we have room
-  for (const citation of existingCitations.slice(0, 1)) {
+  for (const citation of existingCitations.slice(0, 1)) { // Only process 1 citation
     const searchQuery = citation.title || citation.authors || citation.text.substring(0, 100)
-    if (!searchQuery || allPapers.length >= 6) continue // Cap at 6 total papers
+    if (!searchQuery || allPapers.length >= 3) continue // Cap at 3 total papers
 
     try {
-      const [arxivResults, openAlexResults, crossrefResults, pubmedResults] = await Promise.allSettled([
-        withTimeout(searchArxiv(searchQuery), 9000, [] as RelatedPaper[]),
-        withTimeout(searchOpenAlex(searchQuery), 9000, [] as RelatedPaper[]),
-        withTimeout(searchCrossRef(searchQuery), 9000, [] as RelatedPaper[]),
-        withTimeout(searchPubMed(searchQuery), 9000, [] as RelatedPaper[])
+      // OPTIMIZATION: Only search 2 databases with shorter timeouts
+      const [arxivResults, openAlexResults] = await Promise.allSettled([
+        withTimeout(searchArxiv(searchQuery), 5000, [] as RelatedPaper[]),
+        withTimeout(searchOpenAlex(searchQuery), 5000, [] as RelatedPaper[])
       ])
 
-      const results = [arxivResults, openAlexResults, crossrefResults, pubmedResults]
+      const results = [arxivResults, openAlexResults]
         .filter(result => result.status === 'fulfilled')
         .flatMap(result => (result as PromiseFulfilledResult<RelatedPaper[]>).value)
 
       for (const paper of results) {
-        if (!seenTitles.has(paper.title.toLowerCase()) && allPapers.length < 6) {
+        if (!seenTitles.has(paper.title.toLowerCase()) && allPapers.length < 3) {
           seenTitles.add(paper.title.toLowerCase())
           
           const similarityScore = calculateSimilarityScore(searchQuery, paper);
@@ -789,10 +736,10 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
     }
   }
 
-  // Sort by similarity score (highest first) and return up to 9 papers for free users
+  // Sort by similarity score (highest first) and return up to 3 papers
   return allPapers
     .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, 6)
+    .slice(0, 3)
 }
 
 export const runtime = 'nodejs'
