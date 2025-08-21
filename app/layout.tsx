@@ -4,11 +4,10 @@ import Footer from '@/components/Footer'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'Academic Source Finder | AI for Statements, Sources, and Citations',
+  title: 'Academic Source Finder | Statements, Sources, and Citations',
   description: "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
   keywords: [
     'academic source finder',
-    'AI citation tool',
     'statement extraction',
     'research paper sources',
     'academic reference generator',
@@ -28,14 +27,14 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://citefinder.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://citefinder.app'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
     title: 'Academic Source Finder',
     description: "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
-    url: 'https://citefinder.app',
+    url: '/',
     siteName: 'Academic Source Finder',
     images: [
       {
@@ -52,7 +51,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Academic Source Finder',
     description: "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
-    images: ['/twitter-image.png'],
+    images: ['/og-image.png'],
     creator: '@citefinder',
   },
   robots: {
