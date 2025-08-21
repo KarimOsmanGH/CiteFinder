@@ -4,21 +4,21 @@ import Footer from '@/components/Footer'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  title: 'CiteFinder - AI-Powered Academic Source Finder | Free Citation Tool',
-  description: 'Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from academic databases.',
+  title: 'Academic Source Finder | AI for Statements, Sources, and Citations',
+  description: "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
   keywords: [
     'academic source finder',
     'AI citation tool',
+    'statement extraction',
     'research paper sources',
     'academic reference generator',
     'citation finder',
     'academic database search',
     'research paper citations',
-    'free citation tool',
     'academic PDF processor',
-    'statement-based analysis',
     'academic writing support',
-    'research citation tool'
+    'source discovery',
+    'evidence finder'
   ],
   authors: [{ name: 'CiteFinder Team' }],
   creator: 'CiteFinder',
@@ -33,16 +33,16 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'CiteFinder - AI-Powered Academic Source Finder',
-    description: 'Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from academic databases.',
+    title: 'Academic Source Finder',
+    description: "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
     url: 'https://citefinder.app',
-    siteName: 'CiteFinder',
+    siteName: 'Academic Source Finder',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'CiteFinder - Academic Citation Extractor',
+        alt: 'Academic Source Finder - Statements, Sources, Citations',
       },
     ],
     locale: 'en_US',
@@ -50,8 +50,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'CiteFinder - AI-Powered Academic Source Finder',
-    description: 'Upload your paper or paste text, and our AI finds the perfect academic sources to support your content. We intelligently identify concepts that need citations and automatically generate proper references from academic databases.',
+    title: 'Academic Source Finder',
+    description: "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
     images: ['/twitter-image.png'],
     creator: '@citefinder',
   },
@@ -103,8 +103,8 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              "name": "CiteFinder",
-              "description": "Upload any PDF and instantly extract citations while discovering related papers from the world's largest academic databases.",
+              "name": "Academic Source Finder",
+              "description": "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
               "url": "https://citefinder.app",
               "applicationCategory": "EducationalApplication",
               "operatingSystem": "Web Browser",
