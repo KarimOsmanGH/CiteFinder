@@ -38,7 +38,6 @@ export default function InteractiveText({
   selectedPapers = []
 }: InteractiveTextProps) {
   const [selectedStatement, setSelectedStatement] = useState<StatementWithPosition | null>(null)
-  const [showModal, setShowModal] = useState(false)
 
   // Sort statements by position to avoid overlapping highlights
   const sortedStatements = [...statementsWithPositions].sort((a, b) => a.startIndex - b.startIndex)
@@ -87,7 +86,6 @@ export default function InteractiveText({
             console.log('Papers for statement:', papersForStatement.length)
             if (papersForStatement.length > 0) {
               setSelectedStatement(statement)
-              setShowModal(true)
             } else {
               alert('No supporting papers found for this statement.')
             }
@@ -180,105 +178,103 @@ export default function InteractiveText({
         </div>
       </div>
 
-      {/* Papers Modal */}
-      {showModal && selectedStatement && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">Supporting Papers</h3>
-                <p className="text-sm text-gray-600 mt-1">Statement: "{selectedStatement.text}"</p>
-              </div>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                ✕
-              </button>
+      {/* Selected Statement and Papers Section */}
+      {selectedStatement && (
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Supporting Papers</h3>
+              <p className="text-sm text-gray-600 mt-1">Selected statement: "{selectedStatement.text}"</p>
             </div>
-            
-            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
-              {(() => {
-                const papers = getPapersForStatement(selectedStatement)
-                if (papers.length === 0) {
-                  return (
-                    <div className="text-center py-8">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <Search className="w-8 h-8 text-gray-400" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No Supporting Papers Found</h3>
-                      <p className="text-gray-600">
-                        We couldn't find academic papers that strongly support this statement. Try rephrasing or adding more context.
-                      </p>
-                    </div>
-                  )
-                }
-
+            <button
+              onClick={() => setSelectedStatement(null)}
+              className="text-gray-400 hover:text-gray-600 transition-colors text-sm"
+            >
+              ✕ Close
+            </button>
+          </div>
+          
+          <div className="space-y-4">
+            {(() => {
+              const papers = getPapersForStatement(selectedStatement)
+              if (papers.length === 0) {
                 return (
-                  <div className="space-y-4">
-                    {papers.map((paper) => {
-                      const isSelected = selectedPapers.some(p => p.id === paper.id)
-                      return (
-                        <div
-                          key={paper.id}
-                          className={`border rounded-lg p-4 transition-colors ${
-                            isSelected ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h4 className="font-semibold text-gray-900 mb-2">{paper.title}</h4>
-                              <div className="flex items-center text-sm text-gray-600 mb-2">
-                                <span className="font-medium">{paper.authors.join(', ')}</span>
-                                <span className="mx-2">•</span>
-                                <span>{paper.year}</span>
-                                <span className="mx-2">•</span>
-                                <span className="text-blue-600">{paper.similarity}% match</span>
-                              </div>
-                              
-                              {paper.supportingQuote ? (
-                                <div className="bg-green-50 border border-green-200 rounded p-3 mb-3">
-                                  <p className="text-sm text-green-800 font-medium mb-1">Supporting Evidence:</p>
-                                  <p className="text-sm text-green-700 italic">"{paper.supportingQuote}"</p>
-                                </div>
-                              ) : (
-                                <p className="text-sm text-gray-600 mb-3">{paper.abstract}</p>
-                              )}
-                            </div>
-                            
-                            <div className="flex flex-col items-end space-y-2 ml-4">
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  checked={isSelected}
-                                  onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
-                                  className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                                />
-                                <span className="text-sm text-gray-600">
-                                  {isSelected ? "Selected" : "Select"}
-                                </span>
-                              </div>
-                              
-                              {paper.url && (
-                                <a
-                                  href={paper.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center px-3 py-1 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
-                                >
-                                  <ExternalLink className="w-3 h-3 mr-1" />
-                                  View
-                                </a>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Search className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No Supporting Papers Found</h3>
+                    <p className="text-gray-600">
+                      We couldn't find academic papers that strongly support this statement. Try rephrasing or adding more context.
+                    </p>
                   </div>
                 )
-              })()}
-            </div>
+              }
+
+              return (
+                <div className="space-y-4">
+                  {papers.map((paper) => {
+                    const isSelected = selectedPapers.some(p => p.id === paper.id)
+                    return (
+                      <div
+                        key={paper.id}
+                        className={`border rounded-lg p-4 transition-colors ${
+                          isSelected ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-gray-900 mb-2">{paper.title}</h4>
+                            <div className="flex items-center text-sm text-gray-600 mb-2">
+                              <span className="font-medium">{paper.authors.join(', ')}</span>
+                              <span className="mx-2">•</span>
+                              <span>{paper.year}</span>
+                              <span className="mx-2">•</span>
+                              <span className="text-blue-600">{paper.similarity}% match</span>
+                            </div>
+                            
+                            {paper.supportingQuote ? (
+                              <div className="bg-green-50 border border-green-200 rounded p-3 mb-3">
+                                <p className="text-sm text-green-800 font-medium mb-1">Supporting Evidence:</p>
+                                <p className="text-sm text-green-700 italic">"{paper.supportingQuote}"</p>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-600 mb-3">{paper.abstract}</p>
+                            )}
+                          </div>
+                          
+                          <div className="flex flex-col items-end space-y-2 ml-4">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
+                                className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                              />
+                              <span className="text-sm text-gray-600">
+                                {isSelected ? "Selected" : "Select"}
+                              </span>
+                            </div>
+                            
+                            {paper.url && (
+                              <a
+                                href={paper.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-3 py-1 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
+                              >
+                                <ExternalLink className="w-3 h-3 mr-1" />
+                                View
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
           </div>
         </div>
       )}
