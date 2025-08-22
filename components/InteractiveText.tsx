@@ -77,9 +77,9 @@ export default function InteractiveText({
       segments.push(
         <span
           key={`statement-${index}`}
-          className={`inline-block px-2 py-1 rounded-md cursor-pointer transition-all duration-200 font-medium ${
+          className={`inline-block px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 font-medium ${
             papersForStatement.length > 0
-              ? 'bg-yellow-200 hover:bg-yellow-300 border-2 border-yellow-400 text-gray-900 shadow-sm'
+              ? 'bg-blue-100 hover:bg-blue-200 border-2 border-blue-400 text-gray-900 shadow-md'
               : 'bg-gray-200 hover:bg-gray-300 border-2 border-gray-400 text-gray-700'
           }`}
           onClick={() => {

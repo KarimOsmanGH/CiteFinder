@@ -175,31 +175,25 @@ function extractStatements(text: string): StatementWithPosition[] {
   console.log('🔍 Total candidates found:', candidates.length)
   console.log('🔍 First few candidates:', candidates.slice(0, 3))
   
-  // Expanded and more flexible claim patterns
+  // More selective claim patterns - focus on actual claims and findings
   const claimPatterns = [
-    // Academic research patterns - expanded
+    // Strong research findings
     /\b(?:research shows|studies indicate|evidence suggests|data reveals|findings indicate|has been shown|has been found|results show|analysis demonstrates|investigation reveals|experiments show)\b/gi,
     
-    // Methodological patterns
-    /\b(?:method|technique|approach|algorithm|model|framework|protocol|procedure|methodology|implementation|system|tool)\b/gi,
-    
-    // Performance/metrics patterns - expanded  
-    /\b(?:accuracy|precision|performance|effectiveness|efficiency|significant|p-?value|correlation|improvement|enhancement|optimization|quality|reliability)\b/gi,
-    
-    // Comparative patterns
+    // Comparative claims
     /\b(?:better than|more effective|superior to|outperforms|compared to|in contrast|versus|against|higher than|lower than|faster than)\b/gi,
     
-    // Remote sensing/drone specific patterns - expanded
-    /\b(?:drones?|uav|unmanned aerial vehicle|remote sensing|earth observation|satellite|aerial|imaging|spectral|multispectral|monitoring|detection|analysis|mapping|survey|geospatial)\b/gi,
+    // Performance claims
+    /\b(?:achieves|reaches|obtains|attains|achieves.*accuracy|achieves.*precision|achieves.*performance)\b/gi,
     
-    // Technology/software patterns - expanded
-    /\b(?:software|open[- ]source|platform|system|technology|development|application|solution|implementation|architecture|database|processing)\b/gi,
+    // Significant findings
+    /\b(?:significant|statistically significant|p-?value.*<|correlation.*=|improvement.*of|enhancement.*by)\b/gi,
     
-    // Academic/scientific patterns
-    /\b(?:propose|present|demonstrate|evaluate|assess|examine|investigate|analyze|study|test|measure|calculate|determine|establish|prove|validate)\b/gi,
+    // Methodological innovations
+    /\b(?:propose.*method|introduce.*approach|develop.*technique|create.*algorithm|design.*framework)\b/gi,
     
-    // Results/conclusions patterns
-    /\b(?:conclude|results|outcomes|findings|implications|significance|impact|benefits|advantages|limitations|challenges|potential)\b/gi
+    // Results and conclusions
+    /\b(?:conclude.*that|results.*demonstrate|findings.*suggest|analysis.*reveals|study.*finds)\b/gi
   ]
   
   let processedCount = 0
@@ -215,9 +209,9 @@ function extractStatements(text: string): StatementWithPosition[] {
     const lowerSentence = sentence.toLowerCase()
     processedCount++
 
-    // Allow more statements to be found
-    if (statements.length >= 5) {
-      console.log('🔍 Early termination: found 5 statements, stopping processing')
+    // Limit to high-quality statements only
+    if (statements.length >= 3) {
+      console.log('🔍 Early termination: found 3 high-quality statements, stopping processing')
       break
     }
 
@@ -246,14 +240,19 @@ function extractStatements(text: string): StatementWithPosition[] {
           cleanStatement += '.'
         }
 
-        // More lenient statement validation
+        // More strict statement validation - only real claims
         if (
-          cleanStatement.length > 25 && // Reduced from 30
-          cleanStatement.length < 500 && // Increased from 400
+          cleanStatement.length > 30 && // Increased minimum length
+          cleanStatement.length < 400 && // Reduced maximum length
           !statements.some(s => s.text === cleanStatement) &&
           cleanStatement.includes(' ') &&
           /[a-zA-Z]/.test(cleanStatement) &&
-          cleanStatement.split(' ').length >= 4 // Reduced from 6
+          cleanStatement.split(' ').length >= 6 && // Increased minimum words
+          // Additional filters to avoid common non-claims
+          !/^(?:abstract|introduction|conclusion|references|bibliography|figure|table|appendix)/i.test(cleanStatement) &&
+          !/^(?:the|this|these|those|a|an|in|on|at|to|for|of|with|by)/i.test(cleanStatement.trim()) &&
+          // Must contain at least one claim indicator
+          (/\b(?:shows|indicates|suggests|reveals|demonstrates|finds|achieves|obtains|reaches|attains|better|more|superior|outperforms|significant|improvement|enhancement|propose|introduce|develop|create|design|conclude|results|findings|analysis)\b/i.test(cleanStatement))
         ) {
           // Find the position of this statement in the original text
           const startIndex = text.indexOf(cleanStatement)
@@ -363,7 +362,7 @@ function extractStatements(text: string): StatementWithPosition[] {
   const uniqueStatements = statements.filter((s, i, arr) => 
     arr.findIndex(item => item.text === s.text) === i
   )
-  const finalStatements = uniqueStatements.slice(0, 5) // Increased from 3 to 5
+  const finalStatements = uniqueStatements.slice(0, 3) // Focus on quality over quantity
 
   console.log('🔍 Final statements:', finalStatements.length)
   console.log('🔍 Final statements:', finalStatements.map(s => s.text.substring(0, 80)))
