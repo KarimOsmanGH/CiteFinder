@@ -94,11 +94,16 @@ export default function InteractiveText({
           }}
           title={
             papersForStatement.length > 0
-              ? `Click to view ${papersForStatement.length} supporting paper${papersForStatement.length > 1 ? 's' : ''}`
-              : 'No supporting papers found'
+              ? `Statement ${index + 1}: Click to view ${papersForStatement.length} supporting paper${papersForStatement.length > 1 ? 's' : ''}`
+              : `Statement ${index + 1}: No supporting papers found`
           }
         >
-          <span className="whitespace-pre-wrap">{statementText}</span>
+          <span className="whitespace-pre-wrap">
+            <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-600 text-white rounded-full mr-1">
+              {index + 1}
+            </span>
+            {statementText}
+          </span>
           {papersForStatement.length > 0 && (
             <span className="ml-1 inline-flex items-center px-1.5 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-full">
               {papersForStatement.length}
@@ -147,8 +152,25 @@ export default function InteractiveText({
           </div>
         </div>
         
+        {/* Statement List */}
+        {statementsWithPositions.length > 0 && (
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-700 mb-2">Statements found (in order):</p>
+            <div className="space-y-1">
+              {statementsWithPositions.map((statement, index) => (
+                <div key={index} className="flex items-start text-sm">
+                  <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-600 text-white rounded-full mr-2 flex-shrink-0">
+                    {index + 1}
+                  </span>
+                  <span className="text-gray-600">{statement.text.substring(0, 100)}...</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
         <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-white w-full">
-          <div className="text-sm leading-relaxed text-gray-900">
+          <div className="text-sm leading-relaxed text-gray-900 w-full max-w-none">
             {renderTextWithHighlights()}
           </div>
         </div>
