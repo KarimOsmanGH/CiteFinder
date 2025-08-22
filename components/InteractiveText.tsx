@@ -159,14 +159,14 @@ export default function InteractiveText({
         {/* Statement List */}
         {statementsWithPositions.length > 0 && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-2">Statements found (in order):</p>
-            <div className="space-y-1">
+            <p className="text-sm font-medium text-gray-700 mb-2">Statements with in-text citations:</p>
+            <div className="space-y-2">
               {statementsWithPositions.map((statement, index) => (
                 <div key={index} className="flex items-start text-sm">
-                  <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-600 text-white rounded-full mr-2 flex-shrink-0">
+                  <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-600 text-white rounded-full mr-3 flex-shrink-0">
                     {index + 1}
                   </span>
-                  <span className="text-gray-600">{statement.text.substring(0, 100)}...</span>
+                  <span className="text-gray-800 leading-relaxed">{statement.text}</span>
                 </div>
               ))}
             </div>
