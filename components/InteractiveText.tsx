@@ -39,8 +39,14 @@ export default function InteractiveText({
 }: InteractiveTextProps) {
   const [selectedStatement, setSelectedStatement] = useState<StatementWithPosition | null>(null)
 
-  // Sort statements by position to avoid overlapping highlights
+  // Sort statements by position to avoid overlapping highlights, but keep original order for numbering
   const sortedStatements = [...statementsWithPositions].sort((a, b) => a.startIndex - b.startIndex)
+  
+  // Create a map to get the original index for numbering
+  const statementToOriginalIndex = new Map()
+  statementsWithPositions.forEach((statement, originalIndex) => {
+    statementToOriginalIndex.set(statement.text, originalIndex)
+  })
 
   // Function to render text with highlighted statements
   const renderTextWithHighlights = () => {
@@ -92,13 +98,13 @@ export default function InteractiveText({
           }}
           title={
             papersForStatement.length > 0
-              ? `Statement ${index + 1}: Click to view ${papersForStatement.length} supporting paper${papersForStatement.length > 1 ? 's' : ''}`
-              : `Statement ${index + 1}: No supporting papers found`
+              ? `Statement ${statementToOriginalIndex.get(statement.text) + 1}: Click to view ${papersForStatement.length} supporting paper${papersForStatement.length > 1 ? 's' : ''}`
+              : `Statement ${statementToOriginalIndex.get(statement.text) + 1}: No supporting papers found`
           }
         >
           <span className="whitespace-pre-wrap">
             <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-600 text-white rounded-full mr-1">
-              {index + 1}
+              {statementToOriginalIndex.get(statement.text) + 1}
             </span>
             {statementText}
           </span>
