@@ -77,15 +77,19 @@ export default function InteractiveText({
       segments.push(
         <span
           key={`statement-${index}`}
-          className={`inline-block px-1 py-0.5 rounded cursor-pointer transition-all duration-200 ${
+          className={`inline-block px-2 py-1 rounded-md cursor-pointer transition-all duration-200 font-medium ${
             papersForStatement.length > 0
-              ? 'bg-blue-100 hover:bg-blue-200 border border-blue-300'
-              : 'bg-gray-100 hover:bg-gray-200 border border-gray-300'
+              ? 'bg-yellow-200 hover:bg-yellow-300 border-2 border-yellow-400 text-gray-900 shadow-sm'
+              : 'bg-gray-200 hover:bg-gray-300 border-2 border-gray-400 text-gray-700'
           }`}
           onClick={() => {
+            console.log('Statement clicked:', statement.text)
+            console.log('Papers for statement:', papersForStatement.length)
             if (papersForStatement.length > 0) {
               setSelectedStatement(statement)
               setShowModal(true)
+            } else {
+              alert('No supporting papers found for this statement.')
             }
           }}
           title={
@@ -96,7 +100,7 @@ export default function InteractiveText({
         >
           <span className="whitespace-pre-wrap">{statementText}</span>
           {papersForStatement.length > 0 && (
-            <span className="ml-1 inline-flex items-center px-1.5 py-0.5 text-xs font-medium bg-blue-500 text-white rounded-full">
+            <span className="ml-2 inline-flex items-center px-2 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-full">
               {papersForStatement.length}
             </span>
           )}
@@ -120,16 +124,21 @@ export default function InteractiveText({
   }
 
   const getPapersForStatement = (statement: StatementWithPosition) => {
-    return relatedPapers.filter(paper => 
+    const papers = relatedPapers.filter(paper => 
       paper.statement === statement.text || 
       (paper.similarity >= 30 && !paper.statement)
     )
+    console.log('Papers for statement:', statement.text.substring(0, 50))
+    console.log('Total papers:', relatedPapers.length)
+    console.log('Filtered papers:', papers.length)
+    console.log('Paper details:', papers.map(p => ({ title: p.title.substring(0, 30), similarity: p.similarity, statement: p.statement?.substring(0, 30) })))
+    return papers
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Interactive Text Display */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm w-full">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Document Analysis</h3>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -138,8 +147,8 @@ export default function InteractiveText({
           </div>
         </div>
         
-        <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-gray-50">
-          <div className="text-sm leading-relaxed">
+        <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-white w-full">
+          <div className="text-sm leading-relaxed text-gray-900 w-full">
             {renderTextWithHighlights()}
           </div>
         </div>
