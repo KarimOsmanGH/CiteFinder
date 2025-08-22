@@ -76,7 +76,7 @@ export default function InteractiveText({
       segments.push(
         <span
           key={`statement-${index}`}
-          className={`inline px-1 py-0.5 rounded cursor-pointer transition-all duration-200 font-medium ${
+          className={`inline px-1 py-0.5 rounded cursor-pointer transition-all duration-200 font-semibold ${
             papersForStatement.length > 0
               ? 'bg-blue-100 hover:bg-blue-200 border border-blue-400 text-gray-900'
               : 'bg-gray-200 hover:bg-gray-300 border border-gray-400 text-gray-700'
@@ -167,9 +167,15 @@ export default function InteractiveText({
           </div>
         )}
         
-        <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-white w-full">
-          <div className="text-sm leading-relaxed text-gray-900 w-full max-w-none">
-            {renderTextWithHighlights()}
+        <div className="max-h-96 overflow-y-auto border border-gray-300 rounded-lg bg-gray-50 w-full">
+          <div className="p-6 bg-white mx-4 my-4 shadow-sm border border-gray-200">
+            {/* PDF-like header */}
+            <div className="border-b border-gray-300 pb-2 mb-4">
+              <div className="text-xs text-gray-500 font-mono">Document Analysis - PDF View</div>
+            </div>
+            <div className="font-mono text-sm leading-6 text-gray-800 w-full max-w-none">
+              {renderTextWithHighlights()}
+            </div>
           </div>
         </div>
         
