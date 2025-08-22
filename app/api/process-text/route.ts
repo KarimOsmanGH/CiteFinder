@@ -537,7 +537,7 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
               year,
               abstract: summary,
               url: arxivUrl, // This will be the abstract page
-              similarity: 0.8 + Math.random() * 0.2
+              similarity: 0 // Will be calculated later
             });
           }
         }
@@ -753,6 +753,16 @@ function calculateSimilarityScore(searchQuery: string, paper: RelatedPaper): num
     percentage += 20;
   }
   
+  // More lenient scoring: boost scores for papers with any matches
+  if (totalMatches > 0) {
+    percentage = Math.max(percentage, 25); // Minimum 25% for any match
+  }
+  
+  // Additional bonus for domain relevance (common academic terms)
+  const domainTerms = ['research', 'study', 'analysis', 'method', 'approach', 'technique', 'system', 'model', 'data', 'results', 'conclusion'];
+  const domainMatches = domainTerms.filter(term => title.includes(term) || abstract.includes(term)).length;
+  percentage += domainMatches * 2; // Small bonus for academic relevance
+  
   // Cap at 100%
   return Math.min(percentage, 100);
 }
@@ -832,6 +842,7 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
           
           const similarityScore = calculateSimilarityScore(searchQuery, paper);
           paper.similarity = similarityScore;
+          console.log('📊 Similarity score for', paper.title.substring(0, 50), ':', similarityScore + '%');
           
           console.log('📄 Existing citation paper:', paper.title.substring(0, 50))
           console.log('📊 Similarity score:', similarityScore)

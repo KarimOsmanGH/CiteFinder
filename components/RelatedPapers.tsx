@@ -29,8 +29,8 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   console.log('  - Papers data:', papers?.map(p => ({ title: p.title.substring(0, 30), similarity: p.similarity })))
   console.log('  - Statements data:', statementsFound)
   
-  // Filter papers to only show those with 60% or higher similarity (back to quality threshold)
-  const filteredPapers = papers.filter(paper => paper.similarity >= 60)
+  // Filter papers to only show those with 30% or higher similarity (more reasonable threshold)
+  const filteredPapers = papers.filter(paper => paper.similarity >= 30)
   
   // Allow up to 9 papers total (3 per statement) for free users
   const limitedPapers = filteredPapers.slice(0, 9)
@@ -45,7 +45,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
     papersWithSimilarity: papers.map(p => ({ title: p.title, similarity: p.similarity, statement: p.statement })),
     filteredPapersCount: filteredPapers.length,
     statementsFound: statementsFound,
-    similarityThreshold: 60
+                similarityThreshold: 30
   })
   
   // Always show statements if we have them, regardless of paper count
@@ -201,7 +201,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
         <h3 className="text-lg font-semibold text-gray-900 mb-2">No High-Quality Matches Found</h3>
         <p className="text-gray-600">
           {papers.length > 0 
-            ? `Found ${papers.length} papers, but none meet the 60% similarity threshold for quality matches.`
+            ? `Found ${papers.length} papers, but none meet the 30% similarity threshold for quality matches.`
             : 'No related papers were found in the academic databases'
           }
         </p>
@@ -211,7 +211,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
             <p className="text-xs text-gray-500">Total papers: {papers.length}</p>
             <p className="text-xs text-gray-500">Highest similarity: {Math.max(...papers.map(p => p.similarity || 0))}%</p>
             <p className="text-xs text-gray-500">Papers with statements: {papers.filter(p => p.statement).length}</p>
-            <p className="text-xs text-gray-500">Similarity threshold: 60%</p>
+            <p className="text-xs text-gray-500">Similarity threshold: 30%</p>
             <p className="text-xs text-gray-500">All similarity scores: {papers.map(p => p.similarity).join(', ')}</p>
           </div>
         )}

@@ -595,7 +595,7 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
               year,
               abstract: summary,
               url: arxivUrl, // This will be the abstract page
-              similarity: 0.8 + Math.random() * 0.2
+              similarity: 0 // Will be calculated later
             });
           }
         }
@@ -705,7 +705,7 @@ async function searchOpenAlex(searchQuery: string): Promise<RelatedPaper[]> {
             year,
             abstract: abstract.length > 400 ? abstract.substring(0, 400) + '...' : abstract,
             url: work.doi ? `https://doi.org/${work.doi}` : work.openalex_url || work.url || 'https://openalex.org',
-            similarity: 0.75 + Math.random() * 0.2 // Slightly higher base similarity for OpenAlex
+            similarity: 0 // Will be calculated later
           });
         }
         
@@ -787,7 +787,7 @@ async function searchCrossRef(searchQuery: string): Promise<RelatedPaper[]> {
             year,
             abstract: abstract.length > 300 ? abstract.substring(0, 300) + '...' : abstract,
             url: item.DOI ? `https://doi.org/${item.DOI}` : item.URL || 'https://crossref.org',
-            similarity: 0.6 + Math.random() * 0.4
+            similarity: 0 // Will be calculated later
           });
         }
         
@@ -904,6 +904,16 @@ function calculateSimilarityScore(searchQuery: string, paper: RelatedPaper): num
     percentage += 20;
   }
   
+  // More lenient scoring: boost scores for papers with any matches
+  if (totalMatches > 0) {
+    percentage = Math.max(percentage, 25); // Minimum 25% for any match
+  }
+  
+  // Additional bonus for domain relevance (common academic terms)
+  const domainTerms = ['research', 'study', 'analysis', 'method', 'approach', 'technique', 'system', 'model', 'data', 'results', 'conclusion'];
+  const domainMatches = domainTerms.filter(term => title.includes(term) || abstract.includes(term)).length;
+  percentage += domainMatches * 2; // Small bonus for academic relevance
+  
   // Cap at 100%
   return Math.min(percentage, 100);
 }
@@ -979,6 +989,7 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
           
           const similarityScore = calculateSimilarityScore(searchQuery, paper);
           paper.similarity = similarityScore;
+          console.log('📊 Similarity score for', paper.title.substring(0, 50), ':', similarityScore + '%');
           
           allPapers.push(paper)
         }
@@ -1014,6 +1025,7 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
           
           const similarityScore = calculateSimilarityScore(keyTerms, paper);
           paper.similarity = similarityScore;
+          console.log('📊 Similarity score for', paper.title.substring(0, 50), ':', similarityScore + '%');
           
           allPapers.push(paper)
         }
