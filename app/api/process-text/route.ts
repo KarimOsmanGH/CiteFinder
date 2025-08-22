@@ -798,7 +798,7 @@ function calculateStatementRelevance(statement: string, paper: RelatedPaper): nu
 }
 
 // Search for related papers using multiple academic APIs
-async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[]> {
+async function searchRelatedPapers(citations: Citation[], statements: string[] = []): Promise<RelatedPaper[]> {
   const allPapers: RelatedPaper[] = []
   const seenTitles = new Set<string>()
 
@@ -816,6 +816,7 @@ async function searchRelatedPapers(citations: Citation[]): Promise<RelatedPaper[
 
   console.log('🔍 Discovered citations with statements:', 0)
   console.log('🔍 Existing citations without statements:', existingCitations.length)
+  console.log('🔍 Statements to match papers against:', statements.length)
 
   // For existing citations, add a few more papers if we have room
   for (const citation of existingCitations.slice(0, 1)) {

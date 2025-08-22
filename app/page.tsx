@@ -6,6 +6,7 @@ import { Upload, FileText, Search, Loader2, ChevronDown, ChevronUp, User, LogOut
 import PDFUploader from '@/components/PDFUploader'
 import CitationList from '@/components/CitationList'
 import RelatedPapers from '@/components/RelatedPapers'
+import InteractiveText from '@/components/InteractiveText'
 import ReferencesGenerator from '@/components/ReferencesGenerator'
 import UsageLimit from '@/components/UsageLimit'
 import { useUsage } from '@/hooks/useUsage'
@@ -27,13 +28,22 @@ interface RelatedPaper {
   authors: string[]
   year: string
   abstract: string
-  url: string
+  url?: string
   similarity: number
+  supportingQuote?: string
+  statement?: string
 }
 
 interface ProcessResponse {
   citations: Citation[]
   relatedPapers: RelatedPaper[]
+  originalText?: string
+  statementsWithPositions?: Array<{
+    text: string
+    startIndex: number
+    endIndex: number
+    confidence: number
+  }>
   textLength: number
   pages: number
   pdfUrl?: string
@@ -52,6 +62,13 @@ export default function Home() {
   const [pdfUrl, setPdfUrl] = useState<string>('')
   const [fileName, setFileName] = useState<string>('')
   const [statementsFound, setStatementsFound] = useState<string[]>([])
+  const [originalText, setOriginalText] = useState<string>('')
+  const [statementsWithPositions, setStatementsWithPositions] = useState<Array<{
+    text: string
+    startIndex: number
+    endIndex: number
+    confidence: number
+  }>>([])
   const [existingCitationsCount, setExistingCitationsCount] = useState<number>(0)
   const [discoveredCitationsCount, setDiscoveredCitationsCount] = useState<number>(0)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -95,6 +112,8 @@ export default function Home() {
       setCitations(data.citations)
       setRelatedPapers(data.relatedPapers)
       setStatementsFound(data.statementsFound || [])
+      setOriginalText(data.originalText || '')
+      setStatementsWithPositions(data.statementsWithPositions || [])
       setExistingCitationsCount(data.existingCitationsCount || 0)
       setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
       setPdfUrl(data.pdfUrl || '')
@@ -435,11 +454,12 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Related Papers Section */}
+              {/* Interactive Text Section */}
               <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                <RelatedPapers 
-                  papers={relatedPapers} 
-                  statementsFound={statementsFound}
+                <InteractiveText 
+                  originalText={originalText}
+                  statementsWithPositions={statementsWithPositions}
+                  relatedPapers={relatedPapers}
                   selectedPapers={selectedPapers}
                   onPaperSelection={handlePaperSelection}
                 />

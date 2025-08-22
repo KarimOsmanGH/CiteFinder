@@ -23,8 +23,9 @@ interface RelatedPaper {
   authors: string[]
   year: string
   abstract: string
-  url: string
+  url?: string
   similarity: number
+  supportingQuote?: string
   statement?: string
 }
 
