@@ -146,10 +146,10 @@ export default function InteractiveText({
 
   return (
     <div className="space-y-6">
-      {/* Interactive Text Display */}
+      {/* Statements Section */}
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Document Analysis</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Statements</h3>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <Search className="w-4 h-4" />
             <span>{statementsWithPositions.length} statements detected</span>
@@ -177,7 +177,7 @@ export default function InteractiveText({
           <div className="p-6 bg-white mx-4 my-4 shadow-sm border border-gray-200">
             {/* PDF-like header */}
             <div className="border-b border-gray-300 pb-2 mb-4">
-              <div className="text-xs text-gray-500 font-mono">Document Analysis - PDF View</div>
+              <div className="text-xs text-gray-500 font-mono">Statements - PDF View</div>
             </div>
             <div className="font-mono text-sm leading-6 text-gray-800 w-full max-w-none">
               {renderTextWithHighlights()}
@@ -190,7 +190,7 @@ export default function InteractiveText({
         </div>
       </div>
 
-      {/* Selected Statement and Papers Section */}
+      {/* Supporting Papers Section */}
       {selectedStatement && (
         <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
