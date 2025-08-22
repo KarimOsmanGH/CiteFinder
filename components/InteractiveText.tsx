@@ -77,10 +77,10 @@ export default function InteractiveText({
       segments.push(
         <span
           key={`statement-${index}`}
-          className={`inline-block px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 font-medium ${
+          className={`inline px-1 py-0.5 rounded cursor-pointer transition-all duration-200 font-medium ${
             papersForStatement.length > 0
-              ? 'bg-blue-100 hover:bg-blue-200 border-2 border-blue-400 text-gray-900 shadow-md'
-              : 'bg-gray-200 hover:bg-gray-300 border-2 border-gray-400 text-gray-700'
+              ? 'bg-blue-100 hover:bg-blue-200 border border-blue-400 text-gray-900'
+              : 'bg-gray-200 hover:bg-gray-300 border border-gray-400 text-gray-700'
           }`}
           onClick={() => {
             console.log('Statement clicked:', statement.text)
@@ -100,7 +100,7 @@ export default function InteractiveText({
         >
           <span className="whitespace-pre-wrap">{statementText}</span>
           {papersForStatement.length > 0 && (
-            <span className="ml-2 inline-flex items-center px-2 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-full">
+            <span className="ml-1 inline-flex items-center px-1.5 py-0.5 text-xs font-bold bg-blue-600 text-white rounded-full">
               {papersForStatement.length}
             </span>
           )}
@@ -136,9 +136,9 @@ export default function InteractiveText({
   }
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-6">
       {/* Interactive Text Display */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm w-full">
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Document Analysis</h3>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
@@ -148,7 +148,7 @@ export default function InteractiveText({
         </div>
         
         <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 bg-white w-full">
-          <div className="text-sm leading-relaxed text-gray-900 w-full">
+          <div className="text-sm leading-relaxed text-gray-900">
             {renderTextWithHighlights()}
           </div>
         </div>
