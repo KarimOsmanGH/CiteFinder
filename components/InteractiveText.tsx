@@ -75,6 +75,9 @@ export default function InteractiveText({
       // Add the highlighted statement
       const statementText = originalText.slice(statement.startIndex, statement.endIndex)
       const papersForStatement = getPapersForStatement(statement)
+      
+      // Get the correct statement number (1-based index from original array)
+      const statementNumber = statementToOriginalIndex.get(statement.text) + 1
 
       segments.push(
         <span
@@ -95,13 +98,13 @@ export default function InteractiveText({
           }}
           title={
             papersForStatement.length > 0
-              ? `Statement ${statementToOriginalIndex.get(statement.text) + 1}: Click to view ${papersForStatement.length} supporting paper${papersForStatement.length > 1 ? 's' : ''}`
-              : `Statement ${statementToOriginalIndex.get(statement.text) + 1}: No supporting papers found`
+              ? `Statement ${statementNumber}: Click to view ${papersForStatement.length} supporting paper${papersForStatement.length > 1 ? 's' : ''}`
+              : `Statement ${statementNumber}: No supporting papers found`
           }
         >
           <span className="whitespace-pre-wrap">
             <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-600 text-white rounded-full mr-1">
-              {statementToOriginalIndex.get(statement.text) + 1}
+              {statementNumber}
             </span>
             {statementText}
           </span>
