@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Search, ExternalLink } from 'lucide-react'
+import { Search, ExternalLink, CheckCircle } from 'lucide-react'
 
 interface StatementWithPosition {
   text: string
@@ -74,10 +74,7 @@ export default function InteractiveText({
 
       // Add the highlighted statement
       const statementText = originalText.slice(statement.startIndex, statement.endIndex)
-      const papersForStatement = relatedPapers.filter(paper => 
-        paper.statement === statement.text || 
-        (paper.similarity >= 30 && !paper.statement) // Fallback for papers without statement
-      )
+      const papersForStatement = getPapersForStatement(statement)
 
       segments.push(
         <span
@@ -133,6 +130,7 @@ export default function InteractiveText({
   }
 
   const getPapersForStatement = (statement: StatementWithPosition) => {
+    // Use the same matching logic as RelatedPapers component
     const papers = relatedPapers.filter(paper => 
       paper.statement === statement.text || 
       (paper.similarity >= 30 && !paper.statement)
@@ -149,7 +147,7 @@ export default function InteractiveText({
       {/* Statements Section */}
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Statements</h3>
+          <h3 className="text-lg font-semibold text-gray-900">Interactive PDF View</h3>
           <div className="flex items-center space-x-2 text-sm text-gray-600">
             <Search className="w-4 h-4" />
             <span>{statementsWithPositions.length} statements detected</span>
@@ -158,17 +156,33 @@ export default function InteractiveText({
         
         {/* Statement List */}
         {statementsWithPositions.length > 0 && (
-          <div className="mb-4 p-3 bg-gray-50 rounded-lg">
-            <p className="text-sm font-medium text-gray-700 mb-2">Statements with in-text citations:</p>
+          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <p className="text-sm font-medium text-blue-800 mb-3">📋 Statements with in-text citations:</p>
             <div className="space-y-2">
-              {statementsWithPositions.map((statement, index) => (
-                <div key={index} className="flex items-start text-sm">
-                  <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-600 text-white rounded-full mr-3 flex-shrink-0">
-                    {index + 1}
-                  </span>
-                  <span className="text-gray-800 leading-relaxed">{statement.text}</span>
-                </div>
-              ))}
+              {statementsWithPositions.map((statement, index) => {
+                const papersForStatement = getPapersForStatement(statement)
+                return (
+                  <div key={index} className="flex items-start text-sm">
+                    <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-600 text-white rounded-full mr-3 flex-shrink-0">
+                      {index + 1}
+                    </span>
+                    <div className="flex-1">
+                      <span className="text-gray-800 leading-relaxed">{statement.text}</span>
+                      <div className="flex items-center mt-1">
+                        <span className="text-xs text-blue-600 font-medium">
+                          {papersForStatement.length} supporting paper{papersForStatement.length !== 1 ? 's' : ''}
+                        </span>
+                        {papersForStatement.length > 0 && (
+                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 text-xs font-bold bg-green-100 text-green-800 rounded-full">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Papers found
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
         )}
@@ -177,7 +191,7 @@ export default function InteractiveText({
           <div className="p-6 bg-white mx-4 my-4 shadow-sm border border-gray-200">
             {/* PDF-like header */}
             <div className="border-b border-gray-300 pb-2 mb-4">
-              <div className="text-xs text-gray-500 font-mono">Statements - PDF View</div>
+              <div className="text-xs text-gray-500 font-mono">Interactive PDF View - Click highlighted statements</div>
             </div>
             <div className="font-mono text-sm leading-6 text-gray-800 w-full max-w-none">
               {renderTextWithHighlights()}
@@ -230,8 +244,8 @@ export default function InteractiveText({
                     return (
                       <div
                         key={paper.id}
-                        className={`border rounded-lg p-4 transition-colors ${
-                          isSelected ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white'
+                        className={`border-2 rounded-lg p-4 transition-colors ${
+                          isSelected ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-white hover:border-blue-300'
                         }`}
                       >
                         <div className="flex items-start justify-between">
@@ -242,12 +256,17 @@ export default function InteractiveText({
                               <span className="mx-2">•</span>
                               <span>{paper.year}</span>
                               <span className="mx-2">•</span>
-                              <span className="text-blue-600">{paper.similarity}% match</span>
+                              <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
+                                {paper.similarity}% match
+                              </span>
                             </div>
                             
                             {paper.supportingQuote ? (
-                              <div className="bg-green-50 border border-green-200 rounded p-3 mb-3">
-                                <p className="text-sm text-green-800 font-medium mb-1">Supporting Evidence:</p>
+                              <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-4 mb-3">
+                                <div className="flex items-center mb-2">
+                                  <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                                  <p className="text-sm font-bold text-green-800">Supporting Evidence</p>
+                                </div>
                                 <p className="text-sm text-green-700 italic">"{paper.supportingQuote}"</p>
                               </div>
                             ) : (
@@ -261,10 +280,17 @@ export default function InteractiveText({
                                 type="checkbox"
                                 checked={isSelected}
                                 onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
-                                className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                                className="w-5 h-5 text-green-600 bg-white border-2 border-gray-300 rounded focus:ring-green-500 focus:ring-2"
                               />
                               <span className="text-sm text-gray-600">
-                                {isSelected ? "Selected" : "Select"}
+                                {isSelected ? (
+                                  <span className="text-green-700 flex items-center">
+                                    <CheckCircle className="w-4 h-4 mr-1" />
+                                    Selected
+                                  </span>
+                                ) : (
+                                  "Select"
+                                )}
                               </span>
                             </div>
                             
