@@ -81,93 +81,80 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   if (statementsFound.length > 0) {
     return (
       <div className="space-y-8">
-        {/* Enhanced Header Section */}
-        <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 rounded-2xl p-8 border-2 border-blue-200 shadow-lg">
-          <div className="flex items-center mb-6">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-500 via-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mr-6 shadow-lg">
-              <BookOpen className="w-8 h-8 text-white" />
+        {/* Enhanced Statistics Dashboard */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-white rounded-xl p-5 border-2 border-green-200 shadow-md hover:shadow-lg transition-shadow">
+            <div className="flex items-center mb-3">
+              <CheckCircle className="w-6 h-6 text-green-600 mr-3" />
+              <span className="text-sm font-semibold text-gray-700">Selected Papers</span>
             </div>
-            <div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Supporting Academic Papers</h2>
-              <p className="text-gray-600 text-lg">Select papers to include in your references</p>
-            </div>
+            <p className="text-3xl font-bold text-gray-900">{selectedPapers.length}</p>
+            <p className="text-xs text-gray-500 mt-1">Ready for references</p>
           </div>
-          
-          {/* Enhanced Statistics Dashboard */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-xl p-5 border-2 border-green-200 shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center mb-3">
-                <CheckCircle className="w-6 h-6 text-green-600 mr-3" />
-                <span className="text-sm font-semibold text-gray-700">Selected Papers</span>
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{selectedPapers.length}</p>
-              <p className="text-xs text-gray-500 mt-1">Ready for references</p>
+          <div className="bg-white rounded-xl p-5 border-2 border-blue-200 shadow-md hover:shadow-lg transition-shadow">
+            <div className="flex items-center mb-3">
+              <Search className="w-6 h-6 text-blue-600 mr-3" />
+              <span className="text-sm font-semibold text-gray-700">Available Papers</span>
             </div>
-            <div className="bg-white rounded-xl p-5 border-2 border-blue-200 shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center mb-3">
-                <Search className="w-6 h-6 text-blue-600 mr-3" />
-                <span className="text-sm font-semibold text-gray-700">Available Papers</span>
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{limitedPapers.length}</p>
-              <p className="text-xs text-gray-500 mt-1">High-quality matches</p>
-            </div>
-            <div className="bg-white rounded-xl p-5 border-2 border-orange-200 shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center mb-3">
-                <Target className="w-6 h-6 text-orange-600 mr-3" />
-                <span className="text-sm font-semibold text-gray-700">Statements</span>
-              </div>
-              <p className="text-3xl font-bold text-gray-900">{statementsFound.length}</p>
-              <p className="text-xs text-gray-500 mt-1">From your content</p>
-            </div>
-            <div className="bg-white rounded-xl p-5 border-2 border-purple-200 shadow-md hover:shadow-lg transition-shadow">
-              <div className="flex items-center mb-3">
-                <Star className="w-6 h-6 text-purple-600 mr-3" />
-                <span className="text-sm font-semibold text-gray-700">Avg. Similarity</span>
-              </div>
-              <p className="text-3xl font-bold text-gray-900">
-                {limitedPapers.length > 0 
-                  ? Math.round(limitedPapers.reduce((sum, p) => sum + p.similarity, 0) / limitedPapers.length)
-                  : 0}%
-              </p>
-              <p className="text-xs text-gray-500 mt-1">Quality score</p>
-            </div>
+            <p className="text-3xl font-bold text-gray-900">{limitedPapers.length}</p>
+            <p className="text-xs text-gray-500 mt-1">High-quality matches</p>
           </div>
-          
-          {/* Enhanced Instructions */}
-          <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 rounded-xl p-6">
-            <div className="flex items-center mb-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-4">
-                <span className="text-white font-bold text-lg">📋</span>
-              </div>
-              <h3 className="text-lg font-bold text-blue-900">How to Build Your References</h3>
+          <div className="bg-white rounded-xl p-5 border-2 border-orange-200 shadow-md hover:shadow-lg transition-shadow">
+            <div className="flex items-center mb-3">
+              <Target className="w-6 h-6 text-orange-600 mr-3" />
+              <span className="text-sm font-semibold text-gray-700">Statements</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-start">
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
-                  <span className="text-sm font-bold">1</span>
-                </div>
-                <div>
-                  <p className="text-blue-800 font-semibold mb-1">Review Statements</p>
-                  <p className="text-blue-700 text-sm">Examine each statement and its supporting papers below</p>
-                </div>
+            <p className="text-3xl font-bold text-gray-900">{statementsFound.length}</p>
+            <p className="text-xs text-gray-500 mt-1">From your content</p>
+          </div>
+          <div className="bg-white rounded-xl p-5 border-2 border-purple-200 shadow-md hover:shadow-lg transition-shadow">
+            <div className="flex items-center mb-3">
+              <Star className="w-6 h-6 text-purple-600 mr-3" />
+              <span className="text-sm font-semibold text-gray-700">Avg. Similarity</span>
+            </div>
+            <p className="text-3xl font-bold text-gray-900">
+              {limitedPapers.length > 0 
+                ? Math.round(limitedPapers.reduce((sum, p) => sum + p.similarity, 0) / limitedPapers.length)
+                : 0}%
+            </p>
+            <p className="text-xs text-gray-500 mt-1">Quality score</p>
+          </div>
+        </div>
+        
+        {/* Enhanced Instructions */}
+        <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 rounded-xl p-6">
+          <div className="flex items-center mb-4">
+            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-4">
+              <span className="text-white font-bold text-lg">📋</span>
+            </div>
+            <h3 className="text-lg font-bold text-blue-900">How to Build Your References</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="flex items-start">
+              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
+                <span className="text-sm font-bold">1</span>
               </div>
-              <div className="flex items-start">
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
-                  <span className="text-sm font-bold">2</span>
-                </div>
-                <div>
-                  <p className="text-blue-800 font-semibold mb-1">Select Papers</p>
-                  <p className="text-blue-700 text-sm">Click checkboxes next to papers you want in your references</p>
-                </div>
+              <div>
+                <p className="text-blue-800 font-semibold mb-1">Review Statements</p>
+                <p className="text-blue-700 text-sm">Examine each statement and its supporting papers below</p>
               </div>
-              <div className="flex items-start">
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
-                  <span className="text-sm font-bold">3</span>
-                </div>
-                <div>
-                  <p className="text-blue-800 font-semibold mb-1">Generate Bibliography</p>
-                  <p className="text-blue-700 text-sm">Use the References Generator to create your formatted bibliography</p>
-                </div>
+            </div>
+            <div className="flex items-start">
+              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
+                <span className="text-sm font-bold">2</span>
+              </div>
+              <div>
+                <p className="text-blue-800 font-semibold mb-1">Select Papers</p>
+                <p className="text-blue-700 text-sm">Click checkboxes next to papers you want in your references</p>
+              </div>
+            </div>
+            <div className="flex items-start">
+              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
+                <span className="text-sm font-bold">3</span>
+              </div>
+              <div>
+                <p className="text-blue-800 font-semibold mb-1">Generate Bibliography</p>
+                <p className="text-blue-700 text-sm">Use the References Generator to create your formatted bibliography</p>
               </div>
             </div>
           </div>
