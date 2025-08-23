@@ -2,18 +2,7 @@
 
 import { ExternalLink, Star, Search, CheckCircle, AlertCircle, Filter, SortAsc, SortDesc, BookOpen, Calendar, Users, Target } from 'lucide-react'
 import { useState, useMemo } from 'react'
-
-interface RelatedPaper {
-  id: string
-  title: string
-  authors: string[]
-  year: string
-  abstract: string
-  url: string
-  similarity: number
-  statement?: string
-  supportingQuote?: string
-}
+import { RelatedPaper } from '@/types'
 
 interface RelatedPapersProps {
   papers: RelatedPaper[]

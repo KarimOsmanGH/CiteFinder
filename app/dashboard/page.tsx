@@ -3,38 +3,21 @@
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { FileText, Upload, Clock, Crown, User, LogOut, ArrowLeft, Loader2, ChevronDown, ChevronUp, Settings } from 'lucide-react'
+import { FileText, Upload, Clock, Crown, User, LogOut, ArrowLeft, Loader2, ChevronDown, ChevronUp, Settings, Search, BookOpen } from 'lucide-react'
 import PDFUploader from '@/components/PDFUploader'
 import RelatedPapers from '@/components/RelatedPapers'
 import ReferencesGenerator from '@/components/ReferencesGenerator'
 import UsageLimit from '@/components/UsageLimit'
 import { useUsage } from '@/hooks/useUsage'
+import InteractiveText from '@/components/InteractiveText'
+import { RelatedPaper, Citation, StatementWithPosition } from '@/types'
 
 interface UsageLog {
   id: string
   action: string
   timestamp: string
-  metadata?: any
-}
-
-interface Citation {
-  id: string
-  text: string
-  authors?: string
-  year?: string
-  title?: string
-  confidence: number
-}
-
-interface RelatedPaper {
-  id: string
-  title: string
-  authors: string[]
-  year: string
-  abstract: string
-  url: string
-  similarity: number
-  statement?: string
+  details: any
+  success: boolean
 }
 
 interface ProcessResponse {
@@ -47,6 +30,8 @@ interface ProcessResponse {
   statementsFound?: string[]
   existingCitationsCount?: number
   discoveredCitationsCount?: number
+  originalText?: string
+  statementsWithPositions?: StatementWithPosition[]
 }
 
 export default function Dashboard() {
@@ -63,6 +48,8 @@ export default function Dashboard() {
   const [pdfUrl, setPdfUrl] = useState<string>('')
   const [fileName, setFileName] = useState<string>('')
   const [statementsFound, setStatementsFound] = useState<string[]>([])
+  const [originalText, setOriginalText] = useState<string>('')
+  const [statementsWithPositions, setStatementsWithPositions] = useState<StatementWithPosition[]>([])
   const [existingCitationsCount, setExistingCitationsCount] = useState<number>(0)
   const [discoveredCitationsCount, setDiscoveredCitationsCount] = useState<number>(0)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -146,6 +133,8 @@ export default function Dashboard() {
       setCitations(data.citations)
       setRelatedPapers(data.relatedPapers)
       setStatementsFound(data.statementsFound || [])
+      setOriginalText(data.originalText || '')
+      setStatementsWithPositions(data.statementsWithPositions || [])
       setExistingCitationsCount(data.existingCitationsCount || 0)
       setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
       setPdfUrl(data.pdfUrl || '')
@@ -202,6 +191,8 @@ export default function Dashboard() {
       setCitations(data.citations)
       setRelatedPapers(data.relatedPapers)
       setStatementsFound(data.statementsFound || [])
+      setOriginalText(data.originalText || '')
+      setStatementsWithPositions(data.statementsWithPositions || [])
       setExistingCitationsCount(data.existingCitationsCount || 0)
       setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
       setCurrentStep('results')
@@ -462,10 +453,42 @@ export default function Dashboard() {
                   ← Back to Upload
                 </button>
               </div>
-              {/* Citations list removed per new UX: we only show statements with related papers below */}
 
-              {/* Related Papers Section */}
+              {/* Interactive PDF View Section */}
               <article className="bg-white rounded-2xl shadow-soft p-8 hover-lift border border-gray-200">
+                <header className="flex items-center mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                    <Search className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      Interactive PDF View
+                    </h2>
+                    <p className="text-gray-600">Review your content with highlighted statements and supporting papers</p>
+                  </div>
+                </header>
+                <InteractiveText 
+                  originalText={originalText}
+                  statementsWithPositions={statementsWithPositions}
+                  relatedPapers={relatedPapers}
+                  selectedPapers={selectedPapers}
+                  onPaperSelection={handlePaperSelection}
+                />
+              </article>
+
+              {/* Supporting Papers Section */}
+              <article className="bg-white rounded-2xl shadow-soft p-8 hover-lift border border-gray-200">
+                <header className="flex items-center mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                    <BookOpen className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      Supporting Papers
+                    </h2>
+                    <p className="text-gray-600">Select academic papers to support your statements and claims</p>
+                  </div>
+                </header>
                 <RelatedPapers 
                   papers={relatedPapers} 
                   statementsFound={statementsFound}

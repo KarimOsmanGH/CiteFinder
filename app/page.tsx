@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Upload, FileText, Search, Loader2, ChevronDown, ChevronUp, User, LogOut } from 'lucide-react'
+import { Upload, FileText, Search, Loader2, ChevronDown, ChevronUp, User, LogOut, BookOpen } from 'lucide-react'
 import PDFUploader from '@/components/PDFUploader'
 import CitationList from '@/components/CitationList'
 import RelatedPapers from '@/components/RelatedPapers'
@@ -12,27 +12,7 @@ import UsageLimit from '@/components/UsageLimit'
 import { useUsage } from '@/hooks/useUsage'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-
-interface Citation {
-  id: string
-  text: string
-  authors?: string
-  year?: string
-  title?: string
-  confidence: number
-}
-
-interface RelatedPaper {
-  id: string
-  title: string
-  authors: string[]
-  year: string
-  abstract: string
-  url?: string
-  similarity: number
-  supportingQuote?: string
-  statement?: string
-}
+import { RelatedPaper, Citation, StatementWithPosition } from '@/types'
 
 interface ProcessResponse {
   citations: Citation[]
@@ -63,12 +43,7 @@ export default function Home() {
   const [fileName, setFileName] = useState<string>('')
   const [statementsFound, setStatementsFound] = useState<string[]>([])
   const [originalText, setOriginalText] = useState<string>('')
-  const [statementsWithPositions, setStatementsWithPositions] = useState<Array<{
-    text: string
-    startIndex: number
-    endIndex: number
-    confidence: number
-  }>>([])
+  const [statementsWithPositions, setStatementsWithPositions] = useState<StatementWithPosition[]>([])
   const [existingCitationsCount, setExistingCitationsCount] = useState<number>(0)
   const [discoveredCitationsCount, setDiscoveredCitationsCount] = useState<number>(0)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -454,12 +429,44 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Interactive Text Section */}
+              {/* Interactive PDF View Section */}
               <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                <header className="flex items-center mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                    <Search className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      Interactive PDF View
+                    </h2>
+                    <p className="text-gray-600">Review your content with highlighted statements and supporting papers</p>
+                  </div>
+                </header>
                 <InteractiveText 
                   originalText={originalText}
                   statementsWithPositions={statementsWithPositions}
                   relatedPapers={relatedPapers}
+                  selectedPapers={selectedPapers}
+                  onPaperSelection={handlePaperSelection}
+                />
+              </article>
+
+              {/* Supporting Papers Section */}
+              <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                <header className="flex items-center mb-8">
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                    <BookOpen className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-3xl font-bold text-gray-900">
+                      Supporting Papers
+                    </h2>
+                    <p className="text-gray-600">Select academic papers to support your statements and claims</p>
+                  </div>
+                </header>
+                <RelatedPapers 
+                  papers={relatedPapers} 
+                  statementsFound={statementsFound}
                   selectedPapers={selectedPapers}
                   onPaperSelection={handlePaperSelection}
                 />

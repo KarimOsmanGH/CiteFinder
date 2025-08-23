@@ -2,25 +2,7 @@
 
 import React, { useState } from 'react'
 import { Search, ExternalLink, CheckCircle } from 'lucide-react'
-
-interface StatementWithPosition {
-  text: string
-  startIndex: number
-  endIndex: number
-  confidence: number
-}
-
-interface RelatedPaper {
-  id: string
-  title: string
-  authors: string[]
-  year: string
-  abstract: string
-  url?: string
-  similarity: number
-  supportingQuote?: string
-  statement?: string
-}
+import { RelatedPaper, StatementWithPosition } from '@/types'
 
 interface InteractiveTextProps {
   originalText: string
