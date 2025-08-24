@@ -126,10 +126,9 @@ export default function InteractiveText({
   }
 
   const getPapersForStatement = (statement: StatementWithPosition) => {
-    // Use the same matching logic as RelatedPapers component
+    // Only show papers that are specifically assigned to this statement
     const papers = relatedPapers.filter(paper => 
-      paper.statement === statement.text || 
-      (paper.similarity >= 30 && !paper.statement)
+      paper.statement === statement.text
     )
     console.log('Papers for statement:', statement.text.substring(0, 50))
     console.log('Total papers:', relatedPapers.length)

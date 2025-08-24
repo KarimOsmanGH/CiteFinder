@@ -113,20 +113,12 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   const processedPapers = useMemo(() => {
     let result = [...filteredPapers]
     
-    // If a statement is selected, prioritize papers for that statement
+    // If a statement is selected, show only papers for that statement
     if (selectedStatement) {
-      // First, show papers that directly match the selected statement
-      const papersForSelectedStatement = result.filter(paper => 
+      // Show only papers that directly match the selected statement
+      result = result.filter(paper => 
         paper.statement === selectedStatement.text
       )
-      
-      // Then, show papers with high similarity that don't have a specific statement
-      const highSimilarityPapers = result.filter(paper => 
-        !paper.statement && paper.similarity >= 50
-      )
-      
-      // Combine them, prioritizing the selected statement papers
-      result = [...papersForSelectedStatement, ...highSimilarityPapers]
     } else {
       // Filter by statement dropdown if no statement is selected
       if (filterByStatement !== 'all') {
@@ -175,50 +167,52 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
     similarityThreshold: 30
   })
   
-  // Always show statements if we have them, regardless of paper count
-  if (statementsFound.length > 0) {
+  // Show content only when a statement is selected or when no statements are found
+  if (selectedStatement || statementsFound.length === 0) {
     return (
       <div className="space-y-8">
 
         
-        {/* Enhanced Instructions */}
-        <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 rounded-xl p-6">
-          <div className="flex items-center mb-4">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-4">
-              <span className="text-white font-bold text-lg">📋</span>
+        {/* Enhanced Instructions - only show when no statement is selected */}
+        {!selectedStatement && (
+          <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 rounded-xl p-6">
+            <div className="flex items-center mb-4">
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-4">
+                <span className="text-white font-bold text-lg">📋</span>
+              </div>
+              <h3 className="text-lg font-bold text-blue-900">How to Build Your References</h3>
             </div>
-            <h3 className="text-lg font-bold text-blue-900">How to Build Your References</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-start">
+                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
+                  <span className="text-sm font-bold">1</span>
+                </div>
+                <div>
+                  <p className="text-blue-800 font-semibold mb-1">Click Statements</p>
+                  <p className="text-blue-700 text-sm">Click highlighted statements in the PDF view above to see supporting papers</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
+                  <span className="text-sm font-bold">2</span>
+                </div>
+                <div>
+                  <p className="text-blue-800 font-semibold mb-1">Select Papers</p>
+                  <p className="text-blue-700 text-sm">Click checkboxes next to papers you want in your references</p>
+                </div>
+              </div>
+              <div className="flex items-start">
+                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
+                  <span className="text-sm font-bold">3</span>
+                </div>
+                <div>
+                  <p className="text-blue-800 font-semibold mb-1">Generate Bibliography</p>
+                  <p className="text-blue-700 text-sm">Use the References Generator to create your formatted bibliography</p>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="flex items-start">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
-                <span className="text-sm font-bold">1</span>
-              </div>
-              <div>
-                <p className="text-blue-800 font-semibold mb-1">Click Statements</p>
-                <p className="text-blue-700 text-sm">Click highlighted statements in the PDF view above to see supporting papers</p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
-                <span className="text-sm font-bold">2</span>
-              </div>
-              <div>
-                <p className="text-blue-800 font-semibold mb-1">Select Papers</p>
-                <p className="text-blue-700 text-sm">Click checkboxes next to papers you want in your references</p>
-              </div>
-            </div>
-            <div className="flex items-start">
-              <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
-                <span className="text-sm font-bold">3</span>
-              </div>
-              <div>
-                <p className="text-blue-800 font-semibold mb-1">Generate Bibliography</p>
-                <p className="text-blue-700 text-sm">Use the References Generator to create your formatted bibliography</p>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
 
         {/* Selected Statement Indicator */}
         {selectedStatement && (
@@ -244,88 +238,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
           </div>
         )}
 
-        {/* Enhanced Filtering and Sorting Controls */}
-        <div className="bg-white rounded-xl p-6 border-2 border-gray-200 shadow-md">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
-            <h3 className="text-xl font-bold text-gray-900">Paper Selection & Organization</h3>
-            <div className="flex flex-wrap gap-3">
-              {/* Statement Filter */}
-              <div className="flex items-center space-x-2">
-                <Filter className="w-4 h-4 text-gray-600" />
-                <select
-                  value={filterByStatement}
-                  onChange={(e) => setFilterByStatement(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="all">All Statements</option>
-                  {statementsFound.map((statement, index) => (
-                    <option key={index} value={statement}>
-                      Statement {index + 1}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              {/* Sort Controls */}
-              <div className="flex items-center space-x-2">
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value as 'similarity' | 'year' | 'title')}
-                  className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="similarity">Similarity</option>
-                  <option value="year">Year</option>
-                  <option value="title">Title</option>
-                </select>
-                <button
-                  onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                  title={`Sort ${sortOrder === 'asc' ? 'Descending' : 'Ascending'}`}
-                >
-                  {sortOrder === 'asc' ? <SortAsc className="w-4 h-4" /> : <SortDesc className="w-4 h-4" />}
-                </button>
-              </div>
-
-              {/* Show Only Selected Toggle */}
-              <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="showOnlySelected"
-                  checked={showOnlySelected}
-                  onChange={(e) => setShowOnlySelected(e.target.checked)}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <label htmlFor="showOnlySelected" className="text-sm text-gray-700">
-                  Show only selected
-                </label>
-              </div>
-            </div>
-          </div>
-
-          {/* Results Summary */}
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-600">
-                  Showing {limitedPapers.length} of {filteredPapers.length} papers
-                </span>
-                {filterByStatement !== 'all' && (
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded-full">
-                    Filtered by statement
-                  </span>
-                )}
-                {showOnlySelected && (
-                  <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                    Selected only
-                  </span>
-                )}
-              </div>
-              <div className="text-sm text-gray-600">
-                Sorted by {sortBy} ({sortOrder === 'asc' ? 'ascending' : 'descending'})
-              </div>
-            </div>
-          </div>
-        </div>
         
         {/* Statements and Papers */}
         {statementsFound.map((statement, index) => (
