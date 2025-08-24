@@ -152,7 +152,7 @@ export default function InteractiveText({
           <div className="p-6 bg-white mx-4 my-4 shadow-sm border border-gray-200">
             {/* PDF-like header */}
             <div className="border-b border-gray-300 pb-2 mb-4">
-              <div className="text-xs text-gray-500 font-mono">Interactive PDF View - Click highlighted statements</div>
+              <div className="text-xs text-gray-500 font-mono">Click highlighted statements</div>
             </div>
             <div className="font-mono text-sm leading-6 text-gray-800 w-full max-w-none">
               {renderTextWithHighlights()}
