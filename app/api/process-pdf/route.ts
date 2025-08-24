@@ -175,25 +175,31 @@ function extractStatements(text: string): StatementWithPosition[] {
   console.log('🔍 Total candidates found:', candidates.length)
   console.log('🔍 First few candidates:', candidates.slice(0, 3))
   
-  // More selective claim patterns - focus on actual claims and findings
-  const claimPatterns = [
-    // Strong research findings
-    /\b(?:research shows|studies indicate|evidence suggests|data reveals|findings indicate|has been shown|has been found|results show|analysis demonstrates|investigation reveals|experiments show)\b/gi,
+  // Enhanced factual statement patterns - focus on claims that need academic support
+  const factualPatterns = [
+    // Quantitative claims (specific numbers/percentages)
+    /\b(?:achieves|reaches|obtains|attains|achieves.*\d+%|achieves.*\d+\.\d+%|accuracy.*\d+%|precision.*\d+%|performance.*\d+%|improvement.*\d+%|reduction.*\d+%|increase.*\d+%)\b/gi,
     
-    // Comparative claims
-    /\b(?:better than|more effective|superior to|outperforms|compared to|in contrast|versus|against|higher than|lower than|faster than)\b/gi,
+    // Comparative claims (better than, outperforms, etc.)
+    /\b(?:better than|more effective|superior to|outperforms|exceeds|surpasses|compared to|in contrast|versus|against|higher than|lower than|faster than|slower than|more accurate|less accurate)\b/gi,
     
-    // Performance claims
-    /\b(?:achieves|reaches|obtains|attains|achieves.*accuracy|achieves.*precision|achieves.*performance)\b/gi,
+    // Causal relationships (leads to, results in, causes, etc.)
+    /\b(?:leads to|results in|causes|enables|facilitates|improves|enhances|reduces|increases|decreases|affects|influences|impacts|determines|predicts)\b/gi,
     
-    // Significant findings
-    /\b(?:significant|statistically significant|p-?value.*<|correlation.*=|improvement.*of|enhancement.*by)\b/gi,
+    // Research findings (studies show, evidence suggests, etc.)
+    /\b(?:research shows|studies indicate|evidence suggests|data reveals|findings indicate|has been shown|has been found|results show|analysis demonstrates|investigation reveals|experiments show|empirical evidence|statistical analysis)\b/gi,
     
-    // Methodological innovations
-    /\b(?:propose.*method|introduce.*approach|develop.*technique|create.*algorithm|design.*framework)\b/gi,
+    // Methodological innovations (propose, develop, create, etc.)
+    /\b(?:propose.*method|introduce.*approach|develop.*technique|create.*algorithm|design.*framework|implement.*system|establish.*protocol|formulate.*model)\b/gi,
     
-    // Results and conclusions
-    /\b(?:conclude.*that|results.*demonstrate|findings.*suggest|analysis.*reveals|study.*finds)\b/gi
+    // Significant findings (statistical significance, correlations, etc.)
+    /\b(?:significant|statistically significant|p-?value.*<|correlation.*=|correlation.*\d+\.\d+|improvement.*of|enhancement.*by|effect size|confidence interval)\b/gi,
+    
+    // Results and conclusions (conclude, demonstrate, etc.)
+    /\b(?:conclude.*that|results.*demonstrate|findings.*suggest|analysis.*reveals|study.*finds|research.*confirms|data.*supports|evidence.*indicates)\b/gi,
+    
+    // Performance metrics (efficiency, accuracy, speed, etc.)
+    /\b(?:efficiency.*\d+%|accuracy.*\d+%|speed.*\d+%|precision.*\d+%|recall.*\d+%|f1.*score|processing.*time|computational.*cost|memory.*usage|storage.*requirements)\b/gi
   ]
   
   let processedCount = 0
@@ -229,7 +235,7 @@ function extractStatements(text: string): StatementWithPosition[] {
     }
 
     let patternMatched = false
-    for (const pattern of claimPatterns) {
+    for (const pattern of factualPatterns) {
       if (pattern.test(lowerSentence)) {
         patternMatched = true
         let cleanStatement = sentence
@@ -240,19 +246,21 @@ function extractStatements(text: string): StatementWithPosition[] {
           cleanStatement += '.'
         }
 
-        // More strict statement validation - only real claims
+        // Enhanced factual statement validation - only statements that need academic support
         if (
-          cleanStatement.length > 30 && // Increased minimum length
-          cleanStatement.length < 400 && // Reduced maximum length
+          cleanStatement.length > 30 && // Minimum length for meaningful claims
+          cleanStatement.length < 400 && // Maximum length to avoid paragraphs
           !statements.some(s => s.text === cleanStatement) &&
           cleanStatement.includes(' ') &&
           /[a-zA-Z]/.test(cleanStatement) &&
-          cleanStatement.split(' ').length >= 6 && // Increased minimum words
-          // Additional filters to avoid common non-claims
-          !/^(?:abstract|introduction|conclusion|references|bibliography|figure|table|appendix)/i.test(cleanStatement) &&
-          !/^(?:the|this|these|those|a|an|in|on|at|to|for|of|with|by)/i.test(cleanStatement.trim()) &&
-          // Must contain at least one claim indicator
-          (/\b(?:shows|indicates|suggests|reveals|demonstrates|finds|achieves|obtains|reaches|attains|better|more|superior|outperforms|significant|improvement|enhancement|propose|introduce|develop|create|design|conclude|results|findings|analysis)\b/i.test(cleanStatement))
+          cleanStatement.split(' ').length >= 6 && // Minimum words for complete thoughts
+          // Filter out common non-factual content
+          !/^(?:abstract|introduction|conclusion|references|bibliography|figure|table|appendix|methodology|materials|methods)/i.test(cleanStatement) &&
+          !/^(?:the|this|these|those|a|an|in|on|at|to|for|of|with|by|we|our|this|that)/i.test(cleanStatement.trim()) &&
+          // Must contain factual claim indicators
+          (/\b(?:shows|indicates|suggests|reveals|demonstrates|finds|achieves|obtains|reaches|attains|better|more|superior|outperforms|significant|improvement|enhancement|propose|introduce|develop|create|design|conclude|results|findings|analysis|leads|causes|enables|facilitates|improves|reduces|increases|decreases|affects|influences|impacts|determines|predicts|correlation|efficiency|accuracy|precision|performance|speed|time|cost|usage|requirements)\b/i.test(cleanStatement)) &&
+          // Must contain specific factual content (numbers, comparisons, or strong claims)
+          (/\d+%|\d+\.\d+%|\d+\.\d+|\b(?:better|more|superior|outperforms|exceeds|surpasses|higher|lower|faster|slower|significant|improvement|enhancement|reduction|increase|decrease|correlation|efficiency|accuracy|precision|performance)\b/i.test(cleanStatement))
         ) {
           // Find the position of this statement in the original text
           const startIndex = text.indexOf(cleanStatement)

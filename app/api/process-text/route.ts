@@ -132,31 +132,31 @@ function extractStatements(text: string): string[] {
   console.log('🔍 Total candidates found:', candidates.length)
   console.log('🔍 First few candidates:', candidates.slice(0, 3))
   
-  // Expanded and more flexible claim patterns
-  const claimPatterns = [
-    // Academic research patterns - expanded
-    /\b(?:research shows|studies indicate|evidence suggests|data reveals|findings indicate|has been shown|has been found|results show|analysis demonstrates|investigation reveals|experiments show)\b/gi,
+  // Enhanced factual statement patterns - focus on claims that need academic support
+  const factualPatterns = [
+    // Quantitative claims (specific numbers/percentages)
+    /\b(?:achieves|reaches|obtains|attains|achieves.*\d+%|achieves.*\d+\.\d+%|accuracy.*\d+%|precision.*\d+%|performance.*\d+%|improvement.*\d+%|reduction.*\d+%|increase.*\d+%)\b/gi,
     
-    // Methodological patterns
-    /\b(?:method|technique|approach|algorithm|model|framework|protocol|procedure|methodology|implementation|system|tool)\b/gi,
+    // Comparative claims (better than, outperforms, etc.)
+    /\b(?:better than|more effective|superior to|outperforms|exceeds|surpasses|compared to|in contrast|versus|against|higher than|lower than|faster than|slower than|more accurate|less accurate)\b/gi,
     
-    // Performance/metrics patterns - expanded  
-    /\b(?:accuracy|precision|performance|effectiveness|efficiency|significant|p-?value|correlation|improvement|enhancement|optimization|quality|reliability)\b/gi,
+    // Causal relationships (leads to, results in, causes, etc.)
+    /\b(?:leads to|results in|causes|enables|facilitates|improves|enhances|reduces|increases|decreases|affects|influences|impacts|determines|predicts)\b/gi,
     
-    // Comparative patterns
-    /\b(?:better than|more effective|superior to|outperforms|compared to|in contrast|versus|against|higher than|lower than|faster than)\b/gi,
+    // Research findings (studies show, evidence suggests, etc.)
+    /\b(?:research shows|studies indicate|evidence suggests|data reveals|findings indicate|has been shown|has been found|results show|analysis demonstrates|investigation reveals|experiments show|empirical evidence|statistical analysis)\b/gi,
     
-    // Remote sensing/drone specific patterns - expanded
-    /\b(?:drones?|uav|unmanned aerial vehicle|remote sensing|earth observation|satellite|aerial|imaging|spectral|multispectral|monitoring|detection|analysis|mapping|survey|geospatial)\b/gi,
+    // Methodological innovations (propose, develop, create, etc.)
+    /\b(?:propose.*method|introduce.*approach|develop.*technique|create.*algorithm|design.*framework|implement.*system|establish.*protocol|formulate.*model)\b/gi,
     
-    // Technology/software patterns - expanded
-    /\b(?:software|open[- ]source|platform|system|technology|development|application|solution|implementation|architecture|database|processing)\b/gi,
+    // Significant findings (statistical significance, correlations, etc.)
+    /\b(?:significant|statistically significant|p-?value.*<|correlation.*=|correlation.*\d+\.\d+|improvement.*of|enhancement.*by|effect size|confidence interval)\b/gi,
     
-    // Academic/scientific patterns
-    /\b(?:propose|present|demonstrate|evaluate|assess|examine|investigate|analyze|study|test|measure|calculate|determine|establish|prove|validate)\b/gi,
+    // Results and conclusions (conclude, demonstrate, etc.)
+    /\b(?:conclude.*that|results.*demonstrate|findings.*suggest|analysis.*reveals|study.*finds|research.*confirms|data.*supports|evidence.*indicates)\b/gi,
     
-    // Results/conclusions patterns
-    /\b(?:conclude|results|outcomes|findings|implications|significance|impact|benefits|advantages|limitations|challenges|potential)\b/gi
+    // Performance metrics (efficiency, accuracy, speed, etc.)
+    /\b(?:efficiency.*\d+%|accuracy.*\d+%|speed.*\d+%|precision.*\d+%|recall.*\d+%|f1.*score|processing.*time|computational.*cost|memory.*usage|storage.*requirements)\b/gi
   ]
   
   let processedCount = 0
@@ -192,7 +192,7 @@ function extractStatements(text: string): string[] {
     }
 
     let patternMatched = false
-    for (const pattern of claimPatterns) {
+    for (const pattern of factualPatterns) {
       if (pattern.test(lowerSentence)) {
         patternMatched = true
         let cleanStatement = sentence
@@ -203,14 +203,21 @@ function extractStatements(text: string): string[] {
           cleanStatement += '.'
         }
 
-        // More lenient statement validation
+        // Enhanced factual statement validation - only statements that need academic support
         if (
-          cleanStatement.length > 25 && // Reduced from 30
-          cleanStatement.length < 500 && // Increased from 400
+          cleanStatement.length > 30 && // Minimum length for meaningful claims
+          cleanStatement.length < 400 && // Maximum length to avoid paragraphs
           !statements.includes(cleanStatement) &&
           cleanStatement.includes(' ') &&
           /[a-zA-Z]/.test(cleanStatement) &&
-          cleanStatement.split(' ').length >= 4 // Reduced from 6
+          cleanStatement.split(' ').length >= 6 && // Minimum words for complete thoughts
+          // Filter out common non-factual content
+          !/^(?:abstract|introduction|conclusion|references|bibliography|figure|table|appendix|methodology|materials|methods)/i.test(cleanStatement) &&
+          !/^(?:the|this|these|those|a|an|in|on|at|to|for|of|with|by|we|our|this|that)/i.test(cleanStatement.trim()) &&
+          // Must contain factual claim indicators
+          (/\b(?:shows|indicates|suggests|reveals|demonstrates|finds|achieves|obtains|reaches|attains|better|more|superior|outperforms|significant|improvement|enhancement|propose|introduce|develop|create|design|conclude|results|findings|analysis|leads|causes|enables|facilitates|improves|reduces|increases|decreases|affects|influences|impacts|determines|predicts|correlation|efficiency|accuracy|precision|performance|speed|time|cost|usage|requirements)\b/i.test(cleanStatement)) &&
+          // Must contain specific factual content (numbers, comparisons, or strong claims)
+          (/\d+%|\d+\.\d+%|\d+\.\d+|\b(?:better|more|superior|outperforms|exceeds|surpasses|higher|lower|faster|slower|significant|improvement|enhancement|reduction|increase|decrease|correlation|efficiency|accuracy|precision|performance)\b/i.test(cleanStatement))
         ) {
           statements.push(cleanStatement)
           console.log('✅ Statement found:', cleanStatement.substring(0, 100))
