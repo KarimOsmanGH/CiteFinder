@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [currentStep, setCurrentStep] = useState<'upload' | 'processing' | 'results'>('upload')
   const [searchText, setSearchText] = useState<string>('')
   const [searchMode, setSearchMode] = useState<'pdf' | 'text'>('pdf')
+  const [selectedStatement, setSelectedStatement] = useState<StatementWithPosition | null>(null)
   
   // Usage tracking
   const { sessionId, canUseService, logUsageIfResults, subscriptionPlan, isAuthenticated } = useUsage()
@@ -220,6 +221,10 @@ export default function Dashboard() {
     } else {
       setSelectedPapers(prev => prev.filter(p => p.id !== paper.id))
     }
+  }
+
+  const handleStatementSelection = (statement: StatementWithPosition | null) => {
+    setSelectedStatement(statement)
   }
 
   if (status === 'loading' || isLoading) {
@@ -473,6 +478,8 @@ export default function Dashboard() {
                   relatedPapers={relatedPapers}
                   selectedPapers={selectedPapers}
                   onPaperSelection={handlePaperSelection}
+                  onStatementSelect={handleStatementSelection}
+                  selectedStatement={selectedStatement}
                 />
               </article>
 
@@ -494,6 +501,8 @@ export default function Dashboard() {
                   statementsFound={statementsFound}
                   selectedPapers={selectedPapers}
                   onPaperSelection={handlePaperSelection}
+                  selectedStatement={selectedStatement}
+                  onClearStatementSelection={() => setSelectedStatement(null)}
                 />
               </article>
 

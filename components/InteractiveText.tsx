@@ -10,6 +10,8 @@ interface InteractiveTextProps {
   relatedPapers: RelatedPaper[]
   onPaperSelection?: (paper: RelatedPaper, isSelected: boolean) => void
   selectedPapers?: RelatedPaper[]
+  onStatementSelect?: (statement: StatementWithPosition | null) => void
+  selectedStatement?: StatementWithPosition | null
 }
 
 export default function InteractiveText({
@@ -17,15 +19,17 @@ export default function InteractiveText({
   statementsWithPositions,
   relatedPapers,
   onPaperSelection,
-  selectedPapers = []
+  selectedPapers = [],
+  onStatementSelect,
+  selectedStatement
 }: InteractiveTextProps) {
-  // Sort statements by position to avoid overlapping highlights, but keep original order for numbering
+  // Sort statements by position to avoid overlapping highlights
   const sortedStatements = [...statementsWithPositions].sort((a, b) => a.startIndex - b.startIndex)
   
-  // Create a map to get the original index for numbering
-  const statementToOriginalIndex = new Map()
-  statementsWithPositions.forEach((statement, originalIndex) => {
-    statementToOriginalIndex.set(statement.text, originalIndex)
+  // Create a map to get the correct statement number based on position in text
+  const statementToNumber = new Map()
+  sortedStatements.forEach((statement, index) => {
+    statementToNumber.set(statement.text, index + 1)
   })
 
   // Function to render text with highlighted statements
@@ -56,27 +60,38 @@ export default function InteractiveText({
       const statementText = originalText.slice(statement.startIndex, statement.endIndex)
       const papersForStatement = getPapersForStatement(statement)
       
-      // Get the correct statement number (1-based index from original array)
-      const statementNumber = statementToOriginalIndex.get(statement.text) + 1
+      // Get the correct statement number (1-based index from position in text)
+      const statementNumber = statementToNumber.get(statement.text)
 
       segments.push(
         <span
           key={`statement-${index}`}
           className={`inline px-1 py-0.5 rounded cursor-pointer transition-all duration-200 font-semibold ${
-            papersForStatement.length > 0
+            selectedStatement?.text === statement.text
+              ? 'bg-green-200 hover:bg-green-300 border-2 border-green-500 text-gray-900 shadow-md'
+              : papersForStatement.length > 0
               ? 'bg-blue-100 hover:bg-blue-200 border border-blue-400 text-gray-900'
               : 'bg-gray-200 hover:bg-gray-300 border border-gray-400 text-gray-700'
           }`}
           onClick={() => {
             console.log('Statement clicked:', statement.text)
             console.log('Papers for statement:', papersForStatement.length)
+            
             if (papersForStatement.length === 0) {
               alert('No supporting papers found for this statement.')
+              return
+            }
+            
+            // Toggle selection - if already selected, deselect it
+            if (selectedStatement?.text === statement.text) {
+              onStatementSelect?.(null)
+            } else {
+              onStatementSelect?.(statement)
             }
           }}
           title={
             papersForStatement.length > 0
-              ? `Statement ${statementNumber}: ${papersForStatement.length} supporting paper${papersForStatement.length > 1 ? 's' : ''} available`
+              ? `Statement ${statementNumber}: ${papersForStatement.length} supporting paper${papersForStatement.length > 1 ? 's' : ''} available - Click to view papers`
               : `Statement ${statementNumber}: No supporting papers found`
           }
         >
@@ -135,38 +150,7 @@ export default function InteractiveText({
           </div>
         </div>
         
-        {/* Statement List */}
-        {statementsWithPositions.length > 0 && (
-          <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-sm font-medium text-blue-800 mb-3">📋 Statements with in-text citations:</p>
-            <div className="space-y-2">
-              {statementsWithPositions.map((statement, index) => {
-                const papersForStatement = getPapersForStatement(statement)
-                return (
-                  <div key={index} className="flex items-start text-sm">
-                    <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-blue-600 text-white rounded-full mr-3 flex-shrink-0">
-                      {index + 1}
-                    </span>
-                    <div className="flex-1">
-                      <span className="text-gray-800 leading-relaxed">{statement.text}</span>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-blue-600 font-medium">
-                          {papersForStatement.length} supporting paper{papersForStatement.length !== 1 ? 's' : ''}
-                        </span>
-                        {papersForStatement.length > 0 && (
-                          <span className="ml-2 inline-flex items-center px-1.5 py-0.5 text-xs font-bold bg-green-100 text-green-800 rounded-full">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Papers found
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
+
         
         <div className="max-h-96 overflow-y-auto border border-gray-300 rounded-lg bg-gray-50 w-full">
           <div className="p-6 bg-white mx-4 my-4 shadow-sm border border-gray-200">
