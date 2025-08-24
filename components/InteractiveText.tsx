@@ -144,10 +144,6 @@ export default function InteractiveText({
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Interactive PDF View</h3>
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Search className="w-4 h-4" />
-            <span>{statementsWithPositions.length} statements detected</span>
-          </div>
         </div>
         
 

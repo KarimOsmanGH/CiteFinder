@@ -170,12 +170,6 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-xl font-bold text-gray-900">Citation Generator</h3>
-          <p className="text-gray-600">
-            Generate formatted citations in different styles
-          </p>
-        </div>
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
             <BookOpen className="w-4 h-4 text-green-600" />
