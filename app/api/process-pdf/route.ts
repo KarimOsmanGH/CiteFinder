@@ -173,7 +173,7 @@ function extractStatements(text: string): StatementWithPosition[] {
   }
   
   console.log('🔍 Total candidates found:', candidates.length)
-  console.log('🔍 First few candidates:', candidates.slice(0, 3))
+  console.log('🔍 First few candidates:', candidates.slice(0, 5))
   
   // Enhanced factual statement patterns - focus on claims that need academic support
   const factualPatterns = [
@@ -302,7 +302,7 @@ function extractStatements(text: string): StatementWithPosition[] {
       !/^(?:figure|table|doi:|http)/i.test(s.trim())
     )
     
-    for (const s of academicSentences.slice(0, 3)) {
+    for (const s of academicSentences.slice(0, 5)) {
       const withPunct = /[.!?]$/.test(s) ? s : s + '.'
       const startIndex = text.indexOf(withPunct)
       const endIndex = startIndex + withPunct.length
@@ -326,7 +326,7 @@ function extractStatements(text: string): StatementWithPosition[] {
           !/^(?:see discussions|doi:|citations:|reads:|author|preprint|publication|figure|table)/i.test(s.trim()) &&
           !/^(?:https?:\/\/|www\.)/i.test(s.trim())
         )
-        .slice(0, 3)
+        .slice(0, 10)
         
       for (const s of substantialSentences) {
         const withPunct = /[.!?]$/.test(s) ? s : s + '.'
@@ -370,7 +370,7 @@ function extractStatements(text: string): StatementWithPosition[] {
   const uniqueStatements = statements.filter((s, i, arr) => 
     arr.findIndex(item => item.text === s.text) === i
   )
-  const finalStatements = uniqueStatements.slice(0, 3) // Focus on quality over quantity
+  const finalStatements = uniqueStatements.slice(0, 10) // Show more statements for better coverage
 
   console.log('🔍 Final statements:', finalStatements.length)
   console.log('🔍 Final statements:', finalStatements.map(s => s.text.substring(0, 80)))
@@ -383,8 +383,8 @@ async function findRelatedPapersFromStatements(statements: StatementWithPosition
   const citations: Citation[] = []
   let idCounter = 1
   
-  // IMPROVEMENT: Process up to 3 statements instead of just 1 for better coverage
-  const limitedStatements = statements.slice(0, 3)
+  // Process all statements for comprehensive coverage
+  const limitedStatements = statements.slice(0, 10)
   console.log('🔍 Processing statements for paper search:', limitedStatements.length, 'out of', statements.length)
   
   for (const statement of limitedStatements) {
@@ -416,8 +416,8 @@ async function findRelatedPapersFromStatements(statements: StatementWithPosition
       
       console.log('🔍 Total unique results found:', uniqueResults.length)
       
-      // IMPROVEMENT: Take top 2 results per statement and calculate better relevance
-      for (const result of uniqueResults.slice(0, 2)) {
+      // Take top 5 results per statement for better coverage
+      for (const result of uniqueResults.slice(0, 5)) {
         const authors = result.authors.join(', ')
         const year = result.year
         
@@ -443,10 +443,9 @@ async function findRelatedPapersFromStatements(statements: StatementWithPosition
     }
   }
   
-  // Sort by confidence and return top results
+  // Sort by confidence and return all results
   return citations
     .sort((a, b) => b.confidence - a.confidence)
-    .slice(0, 5) // Return up to 5 citations
 }
 
 // Extract supporting quote from abstract that relates to the statement
@@ -583,7 +582,7 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
     // Try main search first, fallback to category search
     let searchQueries = [
       orQuery, // Individual terms
-      keyTerms.slice(0, 3).join(' '), // Top 3 terms without quotes
+      keyTerms.slice(0, 6).join(' '), // Top 6 terms without quotes
       categoryQuery // Category fallback
     ]
     
@@ -782,7 +781,7 @@ async function searchCrossRef(searchQuery: string): Promise<RelatedPaper[]> {
     // IMPROVEMENT: Multiple search strategies for CrossRef
     const searchStrategies = [
       // Strategy 1: Top key terms
-      keyTerms.slice(0, 3).join(' '),
+      keyTerms.slice(0, 6).join(' '),
       
       // Strategy 2: Individual important terms
       keyTerms.slice(0, 5).join(' OR '),

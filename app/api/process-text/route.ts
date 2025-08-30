@@ -130,7 +130,7 @@ function extractStatements(text: string): string[] {
   }
   
   console.log('🔍 Total candidates found:', candidates.length)
-  console.log('🔍 First few candidates:', candidates.slice(0, 3))
+  console.log('🔍 First few candidates:', candidates.slice(0, 5))
   
   // Enhanced factual statement patterns - focus on claims that need academic support
   const factualPatterns = [
@@ -250,7 +250,7 @@ function extractStatements(text: string): string[] {
       !/^(?:figure|table|doi:|http)/i.test(s.trim())
     )
     
-    for (const s of academicSentences.slice(0, 3)) {
+    for (const s of academicSentences.slice(0, 5)) {
       const withPunct = /[.!?]$/.test(s) ? s : s + '.'
       statements.push(withPunct)
       console.log('✅ Academic fallback statement:', withPunct.substring(0, 100))
@@ -266,7 +266,7 @@ function extractStatements(text: string): string[] {
           !/^(?:see discussions|doi:|citations:|reads:|author|preprint|publication|figure|table)/i.test(s.trim()) &&
           !/^(?:https?:\/\/|www\.)/i.test(s.trim())
         )
-        .slice(0, 3)
+        .slice(0, 10)
         
       for (const s of substantialSentences) {
         const withPunct = /[.!?]$/.test(s) ? s : s + '.'
@@ -292,7 +292,7 @@ function extractStatements(text: string): string[] {
 
   // Remove duplicates and return results
   const uniqueStatements = [...new Set(statements)]
-  const finalStatements = uniqueStatements.slice(0, 5) // Increased from 3 to 5
+  const finalStatements = uniqueStatements.slice(0, 10) // Show more statements for better coverage
 
   console.log('🔍 Final statements:', finalStatements.length)
   console.log('🔍 Final statements:', finalStatements.map(s => s.substring(0, 80)))
@@ -305,8 +305,8 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
   const citations: Citation[] = []
   let idCounter = 1
   
-  // IMPROVEMENT: Process up to 3 statements instead of just 1 for better coverage
-  const limitedStatements = statements.slice(0, 3)
+  // Process all statements for comprehensive coverage
+  const limitedStatements = statements.slice(0, 10)
   console.log('🔍 Processing statements for paper search:', limitedStatements.length, 'out of', statements.length)
   
   for (const statement of limitedStatements) {
@@ -337,8 +337,8 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
       
       console.log('🔍 Total unique results found:', uniqueResults.length)
       
-      // IMPROVEMENT: Take top 2 results per statement and calculate better relevance
-      for (const result of uniqueResults.slice(0, 2)) {
+      // Take top 5 results per statement for better coverage
+      for (const result of uniqueResults.slice(0, 5)) {
         const authors = result.authors.join(', ')
         const year = result.year
         
@@ -364,10 +364,9 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
     }
   }
   
-  // Sort by confidence and return top results
+  // Sort by confidence and return all results
   return citations
     .sort((a, b) => b.confidence - a.confidence)
-    .slice(0, 5) // Return up to 5 citations
 }
 
 // Extract supporting quote from abstract that relates to the statement
@@ -483,7 +482,7 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
     // Try main search first, fallback to category search
     let searchQueries = [
       orQuery, // Individual terms
-      keyTerms.slice(0, 3).join(' '), // Top 3 terms without quotes
+      keyTerms.slice(0, 6).join(' '), // Top 6 terms without quotes
       categoryQuery // Category fallback
     ]
     
@@ -682,7 +681,7 @@ async function searchPubMed(query: string): Promise<RelatedPaper[]> {
     console.log('🔍 PubMed found:', idList.length, 'papers')
 
     if (idList.length > 0) {
-      const ids = idList.slice(0, 5).join(',')
+      const ids = idList.slice(0, 10).join(',')
       const detailResponse = await axios.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi', {
         params: {
           db: 'pubmed',
@@ -694,7 +693,7 @@ async function searchPubMed(query: string): Promise<RelatedPaper[]> {
 
       const summaries = detailResponse.data.result
 
-      for (const id of idList.slice(0, 5)) {
+      for (const id of idList.slice(0, 10)) {
         const summary = summaries[id]
         if (summary && summary.title) {
           const authors = summary.authors ? summary.authors.map((a: any) => a.name) : ['Unknown Author']

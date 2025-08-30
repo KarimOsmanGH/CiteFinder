@@ -235,10 +235,7 @@ export default function PrivacyPage() {
                     <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                     <p className="text-gray-700">Opt-out tools: Use browser extensions or tools to manage cookie preferences</p>
                   </div>
-                  <div className="flex items-start">
-                    <div className="w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <p className="text-gray-700">Contact us: Email us to request cookie management assistance</p>
-                  </div>
+
                 </div>
                 <p className="text-gray-700 leading-relaxed mt-4">
                   Please note that disabling certain cookies may affect the functionality of our website.
@@ -271,27 +268,7 @@ export default function PrivacyPage() {
             </div>
           </section>
 
-          {/* Contact Information */}
-          <section className="glass rounded-2xl shadow-soft p-8 hover-lift">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Contact Us</h2>
-            
-            <div className="space-y-4">
-              <p className="text-gray-700 leading-relaxed">
-                If you have any questions about this Privacy Policy or our data practices, please contact us:
-              </p>
-              
-              <div className="bg-gray-50 rounded-lg p-6">
-                <div className="space-y-2">
-                  <p className="text-gray-700">
-                    <strong>Email:</strong> <a href="mailto:privacy@citefinder.app" className="text-blue-600 hover:text-blue-800">privacy@citefinder.app</a>
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Support:</strong> <a href="mailto:support@citefinder.app" className="text-blue-600 hover:text-blue-800">support@citefinder.app</a>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
+
 
           {/* Changes to Policy */}
           <section className="glass rounded-2xl shadow-soft p-8 hover-lift">

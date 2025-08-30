@@ -151,12 +151,12 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
     return result
   }, [filteredPapers, selectedStatement, filterByStatement, showOnlySelected, selectedPapers, sortBy, sortOrder])
   
-  // Allow up to 9 papers total (3 per statement) for free users
-  const limitedPapers = processedPapers.slice(0, 9)
+  // Show all papers without limitations
+  const limitedPapers = processedPapers
   
   console.log('🔍 RelatedPapers processing:')
   console.log('  - Filtered papers (30%+):', filteredPapers.length)
-  console.log('  - Limited papers:', limitedPapers.length)
+  console.log('  - Total papers:', limitedPapers.length)
   
   // Debug logging
   console.log('RelatedPapers Debug:', {

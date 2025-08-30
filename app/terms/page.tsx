@@ -234,27 +234,7 @@ export default function TermsPage() {
             </p>
           </section>
 
-          {/* Contact Information */}
-          <section className="glass rounded-2xl shadow-soft p-8 hover-lift">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Contact Information</h2>
-            
-            <div className="space-y-4">
-              <p className="text-gray-700 leading-relaxed">
-                If you have any questions about these Terms of Service, please contact us:
-              </p>
-              
-              <div className="bg-gray-50 rounded-lg p-6">
-                <div className="space-y-2">
-                  <p className="text-gray-700">
-                    <strong>Email:</strong> <a href="mailto:legal@citefinder.app" className="text-blue-600 hover:text-blue-800">legal@citefinder.app</a>
-                  </p>
-                  <p className="text-gray-700">
-                    <strong>Support:</strong> <a href="mailto:support@citefinder.app" className="text-blue-600 hover:text-blue-800">support@citefinder.app</a>
-                  </p>
-                </div>
-              </div>
-            </div>
-          </section>
+
         </div>
       </div>
     </main>

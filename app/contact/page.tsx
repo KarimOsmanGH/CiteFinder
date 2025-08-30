@@ -149,13 +149,7 @@ export default function ContactPage() {
               </h2>
               
               <div className="space-y-4">
-                <Link 
-                  href="/pricing" 
-                  className="block p-4 bg-white/50 rounded-lg hover:bg-white/70 transition-colors"
-                >
-                  <h3 className="font-semibold text-gray-900">Pricing & Plans</h3>
-                  <p className="text-sm text-gray-600">Learn about our free and premium features</p>
-                </Link>
+
                 
                 <Link 
                   href="/faq" 

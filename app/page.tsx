@@ -1,17 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { Upload, FileText, Search, Loader2, ChevronDown, ChevronUp, User, LogOut, BookOpen } from 'lucide-react'
+import { Upload, FileText, Search, Loader2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react'
 import PDFUploader from '@/components/PDFUploader'
 import CitationList from '@/components/CitationList'
 import RelatedPapers from '@/components/RelatedPapers'
 import InteractiveText from '@/components/InteractiveText'
 import ReferencesGenerator from '@/components/ReferencesGenerator'
-import UsageLimit from '@/components/UsageLimit'
-import { useUsage } from '@/hooks/useUsage'
-import { useSession, signIn, signOut } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import { RelatedPaper, Citation, StatementWithPosition } from '@/types'
 
 interface ProcessResponse {
@@ -34,8 +29,6 @@ interface ProcessResponse {
 }
 
 export default function Home() {
-  const router = useRouter()
-  const { data: session, status } = useSession()
   const [citations, setCitations] = useState<Citation[]>([])
   const [relatedPapers, setRelatedPapers] = useState<RelatedPaper[]>([])
   const [selectedPapers, setSelectedPapers] = useState<RelatedPaper[]>([])
@@ -51,22 +44,8 @@ export default function Home() {
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
   const [searchText, setSearchText] = useState<string>('')
   const [searchMode, setSearchMode] = useState<'pdf' | 'text'>('pdf')
-  
-  // Usage tracking
-  const { sessionId, canUseService, logUsageIfResults, subscriptionPlan, isAuthenticated } = useUsage()
-  const [hasInteracted, setHasInteracted] = useState(false)
 
   const handleFileUpload = async (file: File) => {
-    // Mark that user has interacted
-    setHasInteracted(true)
-    
-    // Check usage limit first
-    const canUse = await canUseService('pdf_upload')
-    if (!canUse) {
-              alert('Usage limit exceeded. Anonymous users get 3 citations per 24 hours. Please sign up for unlimited access.')
-      return
-    }
-
     setIsProcessing(true)
     setCurrentStep('processing')
     
@@ -94,15 +73,6 @@ export default function Home() {
       setPdfUrl(data.pdfUrl || '')
       setFileName(data.fileName || '')
       setCurrentStep('results')
-      
-      // Log usage only if we got results (papers with 30%+ similarity)
-      const hasResults = data.relatedPapers && data.relatedPapers.some(paper => paper.similarity >= 30)
-      await logUsageIfResults('pdf_upload', hasResults, {
-        fileName: data.fileName,
-        citationsFound: data.citations.length,
-        papersFound: data.relatedPapers.length,
-        hasQualityResults: hasResults
-      })
     } catch (error) {
       console.error('Error processing PDF:', error)
       alert('Error processing PDF. Please try again.')
@@ -126,9 +96,6 @@ export default function Home() {
   }
 
   const handleTextSearch = async () => {
-    // Mark that user has interacted
-    setHasInteracted(true)
-    
     console.log('🔍 handleTextSearch called with text length:', searchText.length)
     console.log('🔍 Search text:', searchText)
     if (!searchText.trim()) {
@@ -136,17 +103,7 @@ export default function Home() {
       return
     }
     
-    // Check usage limit first
-    console.log('🔍 Checking usage limit...')
-    const canUse = await canUseService('text_process')
-    console.log('🔍 Usage limit check result:', canUse)
-    if (!canUse) {
-      console.log('❌ Usage limit exceeded')
-      alert('Usage limit exceeded. Anonymous users get 3 citations per 24 hours. Please sign up for unlimited access.')
-      return
-    }
-    
-    console.log('✅ Usage limit check passed, starting text processing...')
+    console.log('✅ Starting text processing...')
     setIsProcessing(true)
     setCurrentStep('processing')
     
@@ -185,16 +142,6 @@ export default function Home() {
       setPdfUrl('')
       setFileName('')
       setCurrentStep('results')
-      
-      // Log usage only if we got results (papers with 30%+ similarity)
-      const hasResults = data.relatedPapers && data.relatedPapers.some(paper => paper.similarity >= 30)
-      console.log('🔍 Has quality results (30%+ similarity):', hasResults)
-      await logUsageIfResults('text_process', hasResults, {
-        textLength: searchText.length,
-        citationsFound: data.citations?.length || 0,
-        papersFound: data.relatedPapers?.length || 0,
-        hasQualityResults: hasResults
-      })
     } catch (error) {
       console.error('❌ Error processing text:', error)
       alert('Error processing text. Please try again.')
@@ -229,79 +176,12 @@ export default function Home() {
                 Home
               </button>
               <button 
-                onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200"
-              >
-                Pricing
-              </button>
-              <button 
                 onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })}
                 className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200"
               >
                 FAQ
               </button>
-              {session && (
-                <button 
-                  onClick={() => router.push('/dashboard')}
-                  className="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200"
-                >
-                  Dashboard
-                </button>
-              )}
             </div>
-          </div>
-          
-          {/* Right side - Auth */}
-          <div className="flex items-center">
-            {status === 'loading' ? (
-              <button 
-                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold py-2 px-6 rounded-lg opacity-50 cursor-not-allowed"
-                disabled
-              >
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block mr-2"></div>
-                Loading...
-              </button>
-            ) : session ? (
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  {session.user?.image ? (
-                    <img 
-                      src={session.user.image} 
-                      alt={session.user.name || 'User'} 
-                      className="w-8 h-8 rounded-full"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                      <User className="w-4 h-4 text-white" />
-                    </div>
-                  )}
-                  <span className="text-sm font-medium text-gray-700 hidden sm:block">
-                    {session.user?.name || session.user?.email}
-                  </span>
-                </div>
-                <button
-                  onClick={() => router.push('/dashboard')}
-                  className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
-                  title="Dashboard"
-                >
-                  <User className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => signOut()}
-                  className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
-                  title="Sign out"
-                >
-                  <LogOut className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <button 
-                onClick={() => router.push('/auth/signin')}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-2 px-6 rounded-lg transition-all duration-300 hover-lift shadow-glow"
-              >
-                Sign In
-              </button>
-            )}
           </div>
         </nav>
 
@@ -355,12 +235,6 @@ export default function Home() {
               {searchMode === 'pdf' && (
                 <div className="glass rounded-2xl shadow-soft p-4 hover-lift animate-fade-in max-w-2xl mx-auto">
                   <PDFUploader onFileUpload={handleFileUpload} />
-                  {/* Usage Limit Banner */}
-                  <UsageLimit 
-                    sessionId={sessionId} 
-                    isAuthenticated={isAuthenticated}
-                    subscriptionPlan={subscriptionPlan}
-                  />
                 </div>
               )}
 
@@ -487,120 +361,8 @@ export default function Home() {
                 </header>
                 <ReferencesGenerator citations={citations} selectedPapers={selectedPapers} />
               </article>
-
-              {/* Usage Limit / CTA */}
-              <UsageLimit 
-                sessionId={sessionId}
-                isAuthenticated={isAuthenticated}
-                subscriptionPlan={subscriptionPlan}
-                showAfterInteraction
-              />
-
             </section>
           )}
-        </section>
-
-        {/* Pricing Section */}
-        <section id="pricing" className="py-16 mt-24">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-                                        <h2 className="text-4xl font-bold gradient-text mb-6">
-                            Pricing
-                          </h2>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                We are committed to keeping academic research accessible to everyone. Our core features are free, with premium options for power users.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-              {/* Free Plan */}
-              <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                <div className="text-center mb-8">
-                  <h3 className="text-3xl font-bold text-gray-900 mb-2">Free</h3>
-                  <div className="text-4xl font-bold text-gray-900 mb-2">$0</div>
-                  <p className="text-gray-600">Forever free for academic research</p>
-                </div>
-
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-center">
-                    <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">3 citations per 24 hours</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">PDF & text processing</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">Search across academic databases</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">Up to 3 related papers per search</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">No registration required</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-blue-500 mr-3">✅</span>
-                    <span className="text-gray-700">References Generator</span>
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover-lift shadow-glow"
-                >
-                  Start Using Free
-                </button>
-              </div>
-
-              {/* Premium Plan */}
-              <div className="glass rounded-2xl shadow-soft p-8 hover-lift relative bg-gradient-to-br from-white/90 to-indigo-50/30 border-2 border-indigo-200/50 transform scale-105 z-10">
-                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <span className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
-                    Popular
-                  </span>
-                </div>
-
-                <div className="text-center mb-8">
-                  <h3 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent mb-2">Premium</h3>
-                  <div className="text-5xl font-bold text-gray-900 mb-2">$15</div>
-                  <p className="text-gray-600 font-medium">Per month for unlimited access</p>
-                </div>
-
-                <div className="space-y-4 mb-8">
-                  <div className="flex items-center">
-                    <span className="text-indigo-500 mr-3">✅</span>
-                    <span className="text-gray-700">Unlimited citations per day</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-indigo-500 mr-3">✅</span>
-                    <span className="text-gray-700">Unlimited related papers per search</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-indigo-500 mr-3">✅</span>
-                    <span className="text-gray-700">Advanced citation validation</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-indigo-500 mr-3">✅</span>
-                    <span className="text-gray-700">Export to BibTeX, EndNote, Mendeley</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="text-indigo-500 mr-3">✅</span>
-                    <span className="text-gray-700">Priority support</span>
-                  </div>
-                </div>
-
-                <button 
-                  className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 hover-lift shadow-glow text-lg"
-                >
-                  Get Premium
-                </button>
-              </div>
-            </div>
-          </div>
         </section>
 
         {/* FAQ Section */}
@@ -682,9 +444,59 @@ export default function Home() {
                 </button>
                 {expandedFaq === 2 && (
                   <div className="px-6 pb-6">
-                    <p className="text-gray-700 leading-relaxed">
-                      CiteFinder searches across major academic databases including arXiv (computer science, physics, math), OpenAlex (comprehensive academic database), CrossRef (journal articles and DOIs), and PubMed (biomedical papers).
+                    <p className="text-gray-700 leading-relaxed mb-4">
+                      CiteFinder searches across major academic databases to find the most relevant sources for your research:
                     </p>
+                    <div className="space-y-3">
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
+                        <a 
+                          href="https://arxiv.org" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
+                        >
+                          arXiv
+                        </a>
+                        <span className="text-gray-600 ml-2">- Computer science, physics, mathematics, and quantitative biology</span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+                        <a 
+                          href="https://openalex.org" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
+                        >
+                          OpenAlex
+                        </a>
+                        <span className="text-gray-600 ml-2">- Comprehensive academic database with millions of papers</span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+                        <a 
+                          href="https://crossref.org" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
+                        >
+                          CrossRef
+                        </a>
+                        <span className="text-gray-600 ml-2">- Journal articles and DOIs from publishers worldwide</span>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
+                        <a 
+                          href="https://pubmed.ncbi.nlm.nih.gov" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
+                        >
+                          PubMed
+                        </a>
+                        <span className="text-gray-600 ml-2">- Biomedical and life sciences research papers</span>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
