@@ -14,11 +14,11 @@ export default function Footer() {
 
         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
           {/* Copyright */}
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-400">
-              © {currentYear} All rights reserved.
-            </span>
-          </div>
+                      <div className="flex items-center space-x-2">
+              <span className="text-gray-400">
+                © {currentYear} CiteFinder. All rights reserved.
+              </span>
+            </div>
 
           {/* Legal Links */}
           <div className="flex items-center space-x-4">
