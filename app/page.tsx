@@ -303,27 +303,69 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Interactive PDF View Section */}
-              <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                <header className="flex items-center mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                    <Search className="w-6 h-6 text-white" />
+              {/* Interactive Content View Section */}
+              {searchMode === 'pdf' && (
+                <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                  <header className="flex items-center mb-8">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                      <Search className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold text-gray-900">
+                        Interactive PDF View
+                      </h2>
+                      <p className="text-gray-600">Review your content with highlighted statements and supporting papers</p>
+                    </div>
+                  </header>
+                  <InteractiveText 
+                    originalText={originalText}
+                    statementsWithPositions={statementsWithPositions}
+                    relatedPapers={relatedPapers}
+                    selectedPapers={selectedPapers}
+                    onPaperSelection={handlePaperSelection}
+                  />
+                </article>
+              )}
+
+              {/* Extracted Statements Section for Text Input */}
+              {searchMode === 'text' && (
+                <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                  <header className="flex items-center mb-8">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                      <Search className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-3xl font-bold text-gray-900">
+                        Extracted Statements
+                      </h2>
+                      <p className="text-gray-600">Review the statements extracted from your text and find supporting papers</p>
+                    </div>
+                  </header>
+                  <div className="space-y-4">
+                    {statementsFound && statementsFound.length > 0 ? (
+                      statementsFound.map((statement, index) => (
+                        <div key={index} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center mb-2">
+                                <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold bg-blue-600 text-white rounded-full mr-2">
+                                  {index + 1}
+                                </span>
+                                <span className="text-sm font-medium text-blue-800">Statement {index + 1}</span>
+                              </div>
+                              <p className="text-gray-800 leading-relaxed">{statement}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
+                        <p className="text-gray-600">No statements were extracted from your text.</p>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-gray-900">
-                      Interactive PDF View
-                    </h2>
-                    <p className="text-gray-600">Review your content with highlighted statements and supporting papers</p>
-                  </div>
-                </header>
-                <InteractiveText 
-                  originalText={originalText}
-                  statementsWithPositions={statementsWithPositions}
-                  relatedPapers={relatedPapers}
-                  selectedPapers={selectedPapers}
-                  onPaperSelection={handlePaperSelection}
-                />
-              </article>
+                </article>
+              )}
 
               {/* Supporting Papers Section */}
               <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
