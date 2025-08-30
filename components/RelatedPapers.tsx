@@ -167,8 +167,8 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
     similarityThreshold: 30
   })
   
-  // Show content only when a statement is selected or when no statements are found
-  if (selectedStatement || statementsFound.length === 0) {
+  // Show content when we have papers to display
+  if (limitedPapers.length > 0 || statementsFound.length === 0) {
     return (
       <div className="space-y-8">
 
@@ -188,8 +188,8 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                   <span className="text-sm font-bold">1</span>
                 </div>
                 <div>
-                  <p className="text-blue-800 font-semibold mb-1">Click Statements</p>
-                  <p className="text-blue-700 text-sm">Click highlighted statements in the PDF view above to see supporting papers</p>
+                  <p className="text-blue-800 font-semibold mb-1">Review Statements</p>
+                  <p className="text-blue-700 text-sm">Review the extracted statements above to see supporting papers</p>
                 </div>
               </div>
               <div className="flex items-start">

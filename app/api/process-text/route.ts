@@ -801,13 +801,39 @@ async function searchRelatedPapers(citations: Citation[], statements: string[] =
     statement: c.statement 
   })))
 
-  // Skip re-searching discovered citations to avoid duplicate API calls; only enrich with existing citations
-  const discoveredCitations: Citation[] = []
+  // Separate discovered citations (with statements) from existing citations
+  const discoveredCitations = citations.filter(c => c.statement)
   const existingCitations = citations.filter(c => !c.statement)
 
-  console.log('🔍 Discovered citations with statements:', 0)
+  console.log('🔍 Discovered citations with statements:', discoveredCitations.length)
   console.log('🔍 Existing citations without statements:', existingCitations.length)
   console.log('🔍 Statements to match papers against:', statements.length)
+
+  // Process discovered citations first - these already have papers associated with statements
+  for (const citation of discoveredCitations) {
+    if (!citation.statement) continue
+
+    // Convert Citation to RelatedPaper format
+    const paper: RelatedPaper = {
+      id: citation.id,
+      title: citation.title || 'Unknown Title',
+      authors: citation.authors ? citation.authors.split(', ') : ['Unknown Author'],
+      year: citation.year || 'Unknown',
+      abstract: citation.supportingQuote || 'Abstract not available.',
+      url: `https://doi.org/${citation.id.replace('discovered-', '')}`,
+      similarity: Math.round((citation.confidence || 0.5) * 100),
+      statement: citation.statement,
+      supportingQuote: citation.supportingQuote
+    }
+
+    if (!seenTitles.has(paper.title.toLowerCase())) {
+      seenTitles.add(paper.title.toLowerCase())
+      allPapers.push(paper)
+      console.log('📄 Discovered citation paper:', paper.title.substring(0, 50))
+      console.log('📊 Similarity score:', paper.similarity)
+      console.log('📝 Associated statement:', paper.statement?.substring(0, 50))
+    }
+  }
 
   // For existing citations, add a few more papers if we have room
   for (const citation of existingCitations) {
