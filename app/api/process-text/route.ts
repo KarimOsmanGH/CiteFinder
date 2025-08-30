@@ -161,22 +161,10 @@ function extractStatements(text: string): string[] {
   
   let processedCount = 0
   let skippedCount = 0
-  const maxProcessingTime = Date.now() + 8000 // Increased timeout to 8 seconds
   
   for (const sentence of candidates) {
-    if (Date.now() > maxProcessingTime) {
-      console.log('🔍 Processing timeout reached, stopping early')
-      break
-    }
-    
     const lowerSentence = sentence.toLowerCase()
     processedCount++
-
-    // Allow more statements to be found
-    if (statements.length >= 5) {
-      console.log('🔍 Early termination: found 5 statements, stopping processing')
-      break
-    }
 
     // More lenient skip conditions
     if (
@@ -203,21 +191,18 @@ function extractStatements(text: string): string[] {
           cleanStatement += '.'
         }
 
-        // Enhanced factual statement validation - only statements that need academic support
+        // More lenient statement validation - capture more potential statements
         if (
-          cleanStatement.length > 30 && // Minimum length for meaningful claims
-          cleanStatement.length < 400 && // Maximum length to avoid paragraphs
+          cleanStatement.length > 20 && // Reduced minimum length
+          cleanStatement.length < 500 && // Increased maximum length
           !statements.includes(cleanStatement) &&
           cleanStatement.includes(' ') &&
           /[a-zA-Z]/.test(cleanStatement) &&
-          cleanStatement.split(' ').length >= 6 && // Minimum words for complete thoughts
+          cleanStatement.split(' ').length >= 4 && // Reduced minimum words
           // Filter out common non-factual content
           !/^(?:abstract|introduction|conclusion|references|bibliography|figure|table|appendix|methodology|materials|methods)/i.test(cleanStatement) &&
-          !/^(?:the|this|these|those|a|an|in|on|at|to|for|of|with|by|we|our|this|that)/i.test(cleanStatement.trim()) &&
-          // Must contain factual claim indicators
-          (/\b(?:shows|indicates|suggests|reveals|demonstrates|finds|achieves|obtains|reaches|attains|better|more|superior|outperforms|significant|improvement|enhancement|propose|introduce|develop|create|design|conclude|results|findings|analysis|leads|causes|enables|facilitates|improves|reduces|increases|decreases|affects|influences|impacts|determines|predicts|correlation|efficiency|accuracy|precision|performance|speed|time|cost|usage|requirements)\b/i.test(cleanStatement)) &&
-          // Must contain specific factual content (numbers, comparisons, or strong claims)
-          (/\d+%|\d+\.\d+%|\d+\.\d+|\b(?:better|more|superior|outperforms|exceeds|surpasses|higher|lower|faster|slower|significant|improvement|enhancement|reduction|increase|decrease|correlation|efficiency|accuracy|precision|performance)\b/i.test(cleanStatement))
+          // More lenient - don't require specific factual indicators
+          (/\b(?:shows|indicates|suggests|reveals|demonstrates|finds|achieves|obtains|reaches|attains|better|more|superior|outperforms|significant|improvement|enhancement|propose|introduce|develop|create|design|conclude|results|findings|analysis|leads|causes|enables|facilitates|improves|reduces|increases|decreases|affects|influences|impacts|determines|predicts|correlation|efficiency|accuracy|precision|performance|speed|time|cost|usage|requirements|is|are|was|were|has|have|had|can|could|will|would|should|may|might)\b/i.test(cleanStatement))
         ) {
           statements.push(cleanStatement)
           console.log('✅ Statement found:', cleanStatement.substring(0, 100))
