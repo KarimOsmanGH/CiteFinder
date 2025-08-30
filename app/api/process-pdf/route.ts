@@ -302,7 +302,7 @@ function extractStatements(text: string): StatementWithPosition[] {
       !/^(?:figure|table|doi:|http)/i.test(s.trim())
     )
     
-    for (const s of academicSentences.slice(0, 5)) {
+    for (const s of academicSentences) {
       const withPunct = /[.!?]$/.test(s) ? s : s + '.'
       const startIndex = text.indexOf(withPunct)
       const endIndex = startIndex + withPunct.length
@@ -610,7 +610,7 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
         console.log('🔍 ArXiv found', entryMatches.length, 'entries with query:', query.substring(0, 40))
         
         for (const entry of entryMatches) {
-          if (papers.length >= 8) break;
+          // No limit on papers
           
           const titleMatch = entry.match(/<title>([\s\S]*?)<\/title>/);
           const summaryMatch = entry.match(/<summary>([\s\S]*?)<\/summary>/);
@@ -702,7 +702,7 @@ async function searchOpenAlex(searchQuery: string): Promise<RelatedPaper[]> {
         console.log('🔍 OpenAlex found', results.length, 'results with:', searchTerm.substring(0, 30))
         
         for (const work of results) {
-          if (papers.length >= 8) break;
+          // No limit on papers
           
           const authors = work.authorships?.map((authorship: any) => 
             authorship.author?.display_name || 'Unknown Author'
@@ -810,7 +810,7 @@ async function searchCrossRef(searchQuery: string): Promise<RelatedPaper[]> {
         console.log('🔍 CrossRef found', items.length, 'results with:', query.substring(0, 30))
         
         for (const item of items) {
-          if (papers.length >= 8) break;
+          // No limit on papers
           
           const authors = item.author?.map((author: any) => 
             `${author.given || ''} ${author.family || ''}`.trim()
@@ -1014,9 +1014,9 @@ async function searchRelatedPapers(citations: Citation[], statements: string[] =
   // This provides additional context and related work
 
   // Process existing citations first (if any)
-  for (const citation of existingCitations.slice(0, 2)) { // Process up to 2 existing citations
+  for (const citation of existingCitations) { // Process all existing citations
     const searchQuery = citation.title || citation.authors || citation.text.substring(0, 100)
-    if (!searchQuery || allPapers.length >= 8) continue // Increased cap to 8 papers
+          if (!searchQuery) continue // No limit on papers
 
     try {
       console.log('🔍 Searching for existing citation:', searchQuery.substring(0, 60))
@@ -1049,8 +1049,8 @@ async function searchRelatedPapers(citations: Citation[], statements: string[] =
   }
 
   // IMPROVEMENT: Also search based on discovered citations for broader context
-  for (const citation of discoveredCitations.slice(0, 2)) { // Process up to 2 discovered citations
-    if (!citation.statement || allPapers.length >= 8) continue
+  for (const citation of discoveredCitations) { // Process all discovered citations
+          if (!citation.statement) continue
 
     try {
       console.log('🔍 Searching for related work to statement:', citation.statement.substring(0, 60))
@@ -1109,10 +1109,9 @@ async function searchRelatedPapers(citations: Citation[], statements: string[] =
     }
   }
 
-  // Sort by similarity score (highest first) and return up to 6 papers
+  // Sort by similarity score (highest first) and return all papers
   return allPapers
     .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, 6)
 }
 
 export const runtime = 'nodejs'

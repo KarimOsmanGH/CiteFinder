@@ -250,7 +250,7 @@ function extractStatements(text: string): string[] {
       !/^(?:figure|table|doi:|http)/i.test(s.trim())
     )
     
-    for (const s of academicSentences.slice(0, 5)) {
+    for (const s of academicSentences) {
       const withPunct = /[.!?]$/.test(s) ? s : s + '.'
       statements.push(withPunct)
       console.log('✅ Academic fallback statement:', withPunct.substring(0, 100))
@@ -825,7 +825,7 @@ async function searchRelatedPapers(citations: Citation[], statements: string[] =
   console.log('🔍 Statements to match papers against:', statements.length)
 
   // For existing citations, add a few more papers if we have room
-  for (const citation of existingCitations.slice(0, 1)) {
+  for (const citation of existingCitations) {
     const searchQuery = citation.title || citation.authors || citation.text.substring(0, 100)
     if (!searchQuery || allPapers.length >= 6) continue // Cap at 6 total papers
 
@@ -866,10 +866,9 @@ async function searchRelatedPapers(citations: Citation[], statements: string[] =
   console.log('  - Total papers found:', allPapers.length)
   console.log('  - Papers with similarity scores:', allPapers.map(p => ({ title: p.title.substring(0, 30), similarity: p.similarity })))
 
-  // Sort by similarity score (highest first) and return up to 6 papers for free users
+  // Sort by similarity score (highest first) and return all papers
   const finalResults = allPapers
     .sort((a, b) => b.similarity - a.similarity)
-    .slice(0, 6)
 
   console.log('📊 Final sorted results:', finalResults.length)
   console.log('📊 Similarity range:', finalResults.length > 0 ? `${Math.min(...finalResults.map(p => p.similarity))}% - ${Math.max(...finalResults.map(p => p.similarity))}%` : 'No results')
