@@ -292,7 +292,7 @@ function extractStatements(text: string): string[] {
 
   // Remove duplicates and return results
   const uniqueStatements = [...new Set(statements)]
-  const finalStatements = uniqueStatements.slice(0, 10) // Show more statements for better coverage
+  const finalStatements = uniqueStatements // Process all statements
 
   console.log('🔍 Final statements:', finalStatements.length)
   console.log('🔍 Final statements:', finalStatements.map(s => s.substring(0, 80)))
@@ -305,8 +305,8 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
   const citations: Citation[] = []
   let idCounter = 1
   
-  // Process all statements for comprehensive coverage
-  const limitedStatements = statements.slice(0, 10)
+  // Process all statements
+  const limitedStatements = statements
   console.log('🔍 Processing statements for paper search:', limitedStatements.length, 'out of', statements.length)
   
   for (const statement of limitedStatements) {
@@ -337,8 +337,8 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
       
       console.log('🔍 Total unique results found:', uniqueResults.length)
       
-      // Take top 5 results per statement for better coverage
-      for (const result of uniqueResults.slice(0, 5)) {
+      // Take all results per statement
+      for (const result of uniqueResults) {
         const authors = result.authors.join(', ')
         const year = result.year
         
