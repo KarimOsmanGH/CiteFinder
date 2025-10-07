@@ -75,9 +75,17 @@ function extractTitle(text: string): string | undefined {
   return undefined
 }
 
+// Statement with position interface
+interface StatementWithPosition {
+  text: string
+  startIndex: number
+  endIndex: number
+  confidence: number
+}
+
 // Extract statements/claims that need academic backing
-function extractStatements(text: string): string[] {
-  const statements: string[] = []
+function extractStatements(text: string): StatementWithPosition[] {
+  const statements: StatementWithPosition[] = []
   
   console.log('🔍 extractStatements called with text length:', text.length)
   console.log('🔍 Text preview:', text.substring(0, 300))
@@ -195,7 +203,7 @@ function extractStatements(text: string): string[] {
         if (
           cleanStatement.length > 20 && // Reduced minimum length
           cleanStatement.length < 500 && // Increased maximum length
-          !statements.includes(cleanStatement) &&
+          !statements.some(s => s.text === cleanStatement) &&
           cleanStatement.includes(' ') &&
           /[a-zA-Z]/.test(cleanStatement) &&
           cleanStatement.split(' ').length >= 4 && // Reduced minimum words
@@ -204,7 +212,16 @@ function extractStatements(text: string): string[] {
           // More lenient - don't require specific factual indicators
           (/\b(?:shows|indicates|suggests|reveals|demonstrates|finds|achieves|obtains|reaches|attains|better|more|superior|outperforms|significant|improvement|enhancement|propose|introduce|develop|create|design|conclude|results|findings|analysis|leads|causes|enables|facilitates|improves|reduces|increases|decreases|affects|influences|impacts|determines|predicts|correlation|efficiency|accuracy|precision|performance|speed|time|cost|usage|requirements|is|are|was|were|has|have|had|can|could|will|would|should|may|might)\b/i.test(cleanStatement))
         ) {
-          statements.push(cleanStatement)
+          // Find the position of this statement in the original text
+          const startIndex = text.indexOf(cleanStatement)
+          const endIndex = startIndex + cleanStatement.length
+          
+          statements.push({
+            text: cleanStatement,
+            startIndex: startIndex >= 0 ? startIndex : 0,
+            endIndex: endIndex,
+            confidence: 0.8
+          })
           console.log('✅ Statement found:', cleanStatement.substring(0, 100))
         }
         break
@@ -237,7 +254,15 @@ function extractStatements(text: string): string[] {
     
     for (const s of academicSentences) {
       const withPunct = /[.!?]$/.test(s) ? s : s + '.'
-      statements.push(withPunct)
+      const startIndex = text.indexOf(withPunct)
+      const endIndex = startIndex + withPunct.length
+      
+      statements.push({
+        text: withPunct,
+        startIndex: startIndex >= 0 ? startIndex : 0,
+        endIndex: endIndex,
+        confidence: 0.7
+      })
       console.log('✅ Academic fallback statement:', withPunct.substring(0, 100))
     }
     
@@ -255,7 +280,15 @@ function extractStatements(text: string): string[] {
         
       for (const s of substantialSentences) {
         const withPunct = /[.!?]$/.test(s) ? s : s + '.'
-        statements.push(withPunct)
+        const startIndex = text.indexOf(withPunct)
+        const endIndex = startIndex + withPunct.length
+        
+        statements.push({
+          text: withPunct,
+          startIndex: startIndex >= 0 ? startIndex : 0,
+          endIndex: endIndex,
+          confidence: 0.6
+        })
         console.log('✅ General fallback statement:', withPunct.substring(0, 100))
       }
     }
@@ -271,22 +304,32 @@ function extractStatements(text: string): string[] {
     if (!/[.!?]$/.test(userStatement)) {
       userStatement += '.'
     }
-    statements.push(userStatement)
+    const startIndex = text.indexOf(userStatement)
+    const endIndex = startIndex + userStatement.length
+    
+    statements.push({
+      text: userStatement,
+      startIndex: startIndex >= 0 ? startIndex : 0,
+      endIndex: endIndex,
+      confidence: 0.5
+    })
     console.log('✅ Ultimate fallback statement:', userStatement.substring(0, 100))
   }
 
   // Remove duplicates and return results
-  const uniqueStatements = [...new Set(statements)]
+  const uniqueStatements = statements.filter((s, i, arr) => 
+    arr.findIndex(item => item.text === s.text) === i
+  )
   const finalStatements = uniqueStatements // Process all statements
 
   console.log('🔍 Final statements:', finalStatements.length)
-  console.log('🔍 Final statements:', finalStatements.map(s => s.substring(0, 80)))
+  console.log('🔍 Final statements:', finalStatements.map(s => s.text.substring(0, 80)))
 
   return finalStatements
 }
 
 // Find related papers from extracted statements
-async function findRelatedPapersFromStatements(statements: string[]): Promise<Citation[]> {
+async function findRelatedPapersFromStatements(statements: StatementWithPosition[]): Promise<Citation[]> {
   const citations: Citation[] = []
   let idCounter = 1
   
@@ -296,26 +339,27 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
   
   for (const statement of limitedStatements) {
     try {
-      console.log('🔍 Searching for statement:', statement.substring(0, 80))
+      console.log('🔍 Searching for statement:', statement.text.substring(0, 80))
       
       // Extract key terms from the statement for better search
-      const keyTerms = extractKeyTermsFromStatement(statement)
+      const keyTerms = extractKeyTermsFromStatement(statement.text)
       console.log('🔍 Key terms extracted:', keyTerms)
       
-      // IMPROVEMENT: Search 3 databases for better coverage
+      // IMPROVEMENT: Search 4 databases for better coverage (including PubMed)
       const searchPromises = [
         withTimeout(searchArxiv(keyTerms), 8000, [] as RelatedPaper[]),
         withTimeout(searchOpenAlex(keyTerms), 8000, [] as RelatedPaper[]),
-        withTimeout(searchCrossRef(keyTerms), 8000, [] as RelatedPaper[])
+        withTimeout(searchCrossRef(keyTerms), 8000, [] as RelatedPaper[]),
+        withTimeout(searchPubMed(keyTerms), 8000, [] as RelatedPaper[])
       ]
       
       const results = await Promise.allSettled(searchPromises)
-      const [arxivResults, openAlexResults, crossRefResults] = results.map(r => 
+      const [arxivResults, openAlexResults, crossRefResults, pubmedResults] = results.map(r => 
         r.status === 'fulfilled' ? r.value : []
       )
       
       // Combine and deduplicate results
-      const allResults = [...arxivResults, ...openAlexResults, ...crossRefResults]
+      const allResults = [...arxivResults, ...openAlexResults, ...crossRefResults, ...pubmedResults]
       const uniqueResults = allResults.filter((result, index, self) => 
         index === self.findIndex(r => r.title.toLowerCase() === result.title.toLowerCase())
       )
@@ -328,10 +372,10 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
         const year = result.year
         
         // Calculate relevance score based on statement-paper matching
-        const relevanceScore = calculateStatementRelevance(statement, result)
+        const relevanceScore = calculateStatementRelevance(statement.text, result)
         
         // Extract supporting quote from abstract
-        const supportingQuote = extractSupportingQuote(statement, result.abstract)
+        const supportingQuote = extractSupportingQuote(statement.text, result.abstract)
         
         citations.push({
           id: `discovered-${idCounter++}`,
@@ -340,12 +384,12 @@ async function findRelatedPapersFromStatements(statements: string[]): Promise<Ci
           year,
           title: result.title,
           confidence: Math.min(0.85 + (relevanceScore * 0.1), 0.95), // Dynamic confidence based on relevance
-          statement: statement, // Add the original statement for context
-          supportingQuote: supportingQuote
+          statement: statement.text, // Add the original statement for context
+          supportingQuote: supportingQuote || result.abstract // Use abstract as fallback
         })
       }
     } catch (error) {
-      console.error(`Error searching for statement "${statement}":`, error)
+      console.error(`Error searching for statement "${statement.text}":`, error)
     }
   }
   
@@ -789,7 +833,7 @@ function calculateStatementRelevance(statement: string, paper: RelatedPaper): nu
 }
 
 // Search for related papers using multiple academic APIs
-async function searchRelatedPapers(citations: Citation[], statements: string[] = []): Promise<RelatedPaper[]> {
+async function searchRelatedPapers(citations: Citation[], statements: StatementWithPosition[] = []): Promise<RelatedPaper[]> {
   const allPapers: RelatedPaper[] = []
   const seenTitles = new Set<string>()
 
@@ -813,14 +857,14 @@ async function searchRelatedPapers(citations: Citation[], statements: string[] =
   for (const citation of discoveredCitations) {
     if (!citation.statement) continue
 
-    // Convert Citation to RelatedPaper format
+    // Convert Citation to RelatedPaper format - preserve the abstract from the original paper
     const paper: RelatedPaper = {
       id: citation.id,
       title: citation.title || 'Unknown Title',
       authors: citation.authors ? citation.authors.split(', ') : ['Unknown Author'],
       year: citation.year || 'Unknown',
-      abstract: citation.supportingQuote || 'Abstract not available.',
-      url: `https://doi.org/${citation.id.replace('discovered-', '')}`,
+      abstract: citation.supportingQuote || 'No abstract available.',
+      url: citation.title ? `https://scholar.google.com/scholar?q=${encodeURIComponent(citation.title)}` : '#',
       similarity: Math.round((citation.confidence || 0.5) * 100),
       statement: citation.statement,
       supportingQuote: citation.supportingQuote
@@ -938,7 +982,7 @@ export async function POST(request: NextRequest) {
     // Then, analyze content and find related papers
     const statements = extractStatements(text)
     console.log('💬 Statements extracted:', statements.length)
-    console.log('💬 Statements:', statements.map(s => s.substring(0, 100)))
+    console.log('💬 Statements:', statements.map(s => s.text.substring(0, 100)))
     
     const discoveredCitations = await findRelatedPapersFromStatements(statements)
     console.log('🔍 Discovered citations from statements:', discoveredCitations.length)
@@ -948,7 +992,7 @@ export async function POST(request: NextRequest) {
     console.log('📚 Total citations (existing + discovered):', allCitations.length)
     
     // Search for related papers
-    const relatedPapers = await searchRelatedPapers(allCitations)
+    const relatedPapers = await searchRelatedPapers(allCitations, statements)
     console.log('📄 Related papers found:', relatedPapers.length)
     
     console.log('✅ Final response prepared:')
@@ -959,17 +1003,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       citations: allCitations,
       relatedPapers: relatedPapers,
+      originalText: text, // Include original text for highlighting
+      statementsWithPositions: statements, // Include full statement objects with positions
       textLength: text.length,
       pages: Math.ceil(text.length / 2000),
-      statementsFound: statements,
+      statementsFound: statements.map(s => s.text), // Keep for backward compatibility
       existingCitationsCount: existingCitations.length,
       discoveredCitationsCount: discoveredCitations.length
     })
 
   } catch (error) {
     console.error('❌ Error in process-text:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to process text' },
+      { error: `Failed to process text: ${errorMessage}. Please check your input and try again.` },
       { status: 500 }
     )
   }

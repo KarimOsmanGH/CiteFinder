@@ -75,7 +75,8 @@ export default function Home() {
       setCurrentStep('results')
     } catch (error) {
       console.error('Error processing PDF:', error)
-      alert('Error processing PDF. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert(`Error processing PDF: ${errorMessage}. Please try again with a different file or check if the PDF is valid.`)
       setCurrentStep('upload')
     } finally {
       setIsProcessing(false)
@@ -144,7 +145,8 @@ export default function Home() {
       setCurrentStep('results')
     } catch (error) {
       console.error('❌ Error processing text:', error)
-      alert('Error processing text. Please try again.')
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
+      alert(`Error processing text: ${errorMessage}. Please check your text input and try again.`)
       setCurrentStep('upload')
     } finally {
       setIsProcessing(false)
@@ -303,8 +305,8 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Interactive Content View Section */}
-              {searchMode === 'pdf' && (
+              {/* Interactive Content View Section for both PDF and Text */}
+              {(searchMode === 'pdf' || searchMode === 'text') && originalText && statementsWithPositions.length > 0 && (
                 <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
                   <header className="flex items-center mb-8">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
@@ -312,7 +314,7 @@ export default function Home() {
                     </div>
                     <div>
                       <h2 className="text-3xl font-bold text-gray-900">
-                        Interactive PDF View
+                        {searchMode === 'pdf' ? 'Interactive PDF View' : 'Interactive Text View'}
                       </h2>
                       <p className="text-gray-600">Review your content with highlighted statements and supporting papers</p>
                     </div>
@@ -327,8 +329,8 @@ export default function Home() {
                 </article>
               )}
 
-              {/* Extracted Statements Section for Text Input */}
-              {searchMode === 'text' && (
+              {/* Extracted Statements Section for Text Input without highlights */}
+              {searchMode === 'text' && (!originalText || statementsWithPositions.length === 0) && (
                 <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
                   <header className="flex items-center mb-8">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
