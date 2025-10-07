@@ -1175,8 +1175,9 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('❌ Error in process-pdf:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to process PDF' },
+      { error: `Failed to process PDF: ${errorMessage}. Please ensure the file is a valid PDF and try again.` },
       { status: 500 }
     )
   }
