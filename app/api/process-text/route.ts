@@ -502,15 +502,15 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
     // IMPROVEMENT: Use multiple search strategies for better results
     const keyTerms = searchQuery.split(' ').filter(term => term.length > 2)
     
-    // Strategy 1: Individual terms with OR logic (more flexible)
-    const orQuery = keyTerms.slice(0, 5).join(' OR ')
+    // Strategy 1: Individual terms with AND logic (more precise)
+    const andQuery = keyTerms.slice(0, 5).join(' AND ')
     
     // Strategy 2: Category-based search for broader coverage
     const categoryQuery = `cat:cs.* OR cat:eess.* OR cat:stat.ML`
     
     // Try main search first, fallback to category search
     let searchQueries = [
-      orQuery, // Individual terms
+      andQuery, // Individual terms with AND logic for better relevance
       keyTerms.slice(0, 6).join(' '), // Top 6 terms without quotes
       categoryQuery // Category fallback
     ]

@@ -106,8 +106,8 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   console.log('  - Papers data:', papers?.map(p => ({ title: p.title.substring(0, 30), similarity: p.similarity })))
   console.log('  - Statements data:', statementsFound)
   
-  // Filter papers to only show those with 20% or higher similarity (more lenient threshold)
-  const filteredPapers = papers.filter(paper => paper.similarity >= 20)
+  // Filter papers to only show those with 40% or higher similarity (quality threshold)
+  const filteredPapers = papers.filter(paper => paper.similarity >= 40)
   
   // Apply additional filters and sorting
   const processedPapers = useMemo(() => {
@@ -155,7 +155,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   const limitedPapers = processedPapers
   
   console.log('🔍 RelatedPapers processing:')
-  console.log('  - Filtered papers (30%+):', filteredPapers.length)
+  console.log('  - Filtered papers (40%+):', filteredPapers.length)
   console.log('  - Total papers:', limitedPapers.length)
   
   // Debug logging
@@ -164,7 +164,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
     papersWithSimilarity: papers.map(p => ({ title: p.title, similarity: p.similarity, statement: p.statement })),
     filteredPapersCount: filteredPapers.length,
     statementsFound: statementsFound,
-    similarityThreshold: 30
+    similarityThreshold: 40
   })
   
   // Show content when we have papers to display
@@ -430,7 +430,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
               <h3 className="text-xl font-semibold text-yellow-800">Quality Threshold Not Met</h3>
             </div>
             <p className="text-yellow-700 text-base">
-              Found {papers.length} papers, but none meet the 20% similarity threshold for quality academic citations. 
+              Found {papers.length} papers, but none meet the 40% similarity threshold for quality academic citations. 
               The statements above were extracted from your content and may need additional research to find supporting sources.
             </p>
           </div>
@@ -449,7 +449,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
         <h3 className="text-2xl font-semibold text-gray-900 mb-4">No High-Quality Matches Found</h3>
         <p className="text-gray-600 text-lg mb-6">
           {papers.length > 0 
-            ? `Found ${papers.length} papers, but none meet the 20% similarity threshold for quality matches.`
+            ? `Found ${papers.length} papers, but none meet the 40% similarity threshold for quality matches.`
             : 'No related papers were found in the academic databases'
           }
         </p>
@@ -460,7 +460,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
               <div>Total papers: {papers.length}</div>
               <div>Highest similarity: {Math.max(...papers.map(p => p.similarity || 0))}%</div>
               <div>Papers with statements: {papers.filter(p => p.statement).length}</div>
-              <div>Similarity threshold: 20%</div>
+              <div>Similarity threshold: 40%</div>
             </div>
             <div className="mt-4 text-xs text-gray-500">
               All similarity scores: {papers.map(p => p.similarity).join(', ')}
