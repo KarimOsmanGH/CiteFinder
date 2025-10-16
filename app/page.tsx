@@ -294,7 +294,7 @@ export default function Home() {
           )}
 
           {currentStep === 'results' && (
-            <section className="space-y-8 animate-fade-in" aria-label="Results">
+            <section className="animate-fade-in" aria-label="Results">
               {/* Back to Upload Button */}
               <div className="text-center mb-8">
                 <button
@@ -305,106 +305,232 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Interactive Content View Section for both PDF and Text */}
-              {(searchMode === 'pdf' || searchMode === 'text') && originalText && statementsWithPositions.length > 0 && (
-                <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                  <header className="flex items-center mb-8">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                      <Search className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-3xl font-bold text-gray-900">
-                        {searchMode === 'pdf' ? 'Interactive PDF View' : 'Interactive Text View'}
-                      </h2>
-                      <p className="text-gray-600">Review your content with highlighted statements and supporting papers</p>
-                    </div>
-                  </header>
-                  <InteractiveText 
-                    originalText={originalText}
-                    statementsWithPositions={statementsWithPositions}
-                    relatedPapers={relatedPapers}
-                    selectedPapers={selectedPapers}
-                    onPaperSelection={handlePaperSelection}
-                  />
-                </article>
-              )}
-
-              {/* Extracted Statements Section for Text Input without highlights */}
-              {searchMode === 'text' && (!originalText || statementsWithPositions.length === 0) && (
-                <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                  <header className="flex items-center mb-8">
-                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                      <Search className="w-6 h-6 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-3xl font-bold text-gray-900">
-                        Extracted Statements
-                      </h2>
-                      <p className="text-gray-600">Review the statements extracted from your text and find supporting papers</p>
-                    </div>
-                  </header>
-                  <div className="space-y-4">
-                    {statementsFound && statementsFound.length > 0 ? (
-                      statementsFound.map((statement, index) => (
-                        <div key={index} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center mb-2">
-                                <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold bg-blue-600 text-white rounded-full mr-2">
-                                  {index + 1}
-                                </span>
-                                <span className="text-sm font-medium text-blue-800">Statement {index + 1}</span>
-                              </div>
-                              <p className="text-gray-800 leading-relaxed">{statement}</p>
-                            </div>
-                          </div>
+              {/* IMPROVED: Two-Column Layout with Sidebar Navigation */}
+              <div className="flex flex-col lg:flex-row gap-8">
+                
+                {/* LEFT SIDEBAR - Progress & Navigation */}
+                <aside className="lg:w-80 flex-shrink-0">
+                  <div className="glass rounded-2xl shadow-soft p-6 sticky top-8">
+                    <h3 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+                      <span className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-3">
+                        <FileText className="w-5 h-5 text-white" />
+                      </span>
+                      Your Progress
+                    </h3>
+                    
+                    {/* Step 1: Statements */}
+                    <div className="mb-6">
+                      <div className="flex items-center mb-3">
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3">
+                          ✓
                         </div>
-                      ))
-                    ) : (
-                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
-                        <p className="text-gray-600">No statements were extracted from your text.</p>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Step 1: Statements</h4>
+                          <p className="text-sm text-gray-600">{statementsFound.length} extracted</p>
+                        </div>
                       </div>
+                      <button
+                        onClick={() => document.getElementById('statements-section')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="w-full text-left px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-sm transition-colors"
+                      >
+                        View Statements →
+                      </button>
+                    </div>
+
+                    {/* Step 2: Papers */}
+                    <div className="mb-6">
+                      <div className="flex items-center mb-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3 ${
+                          relatedPapers.length > 0 ? 'bg-green-500' : 'bg-gray-400'
+                        }`}>
+                          {relatedPapers.length > 0 ? '✓' : '2'}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Step 2: Papers</h4>
+                          <p className="text-sm text-gray-600">{relatedPapers.length} found</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => document.getElementById('papers-section')?.scrollIntoView({ behavior: 'smooth' })}
+                        className="w-full text-left px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-sm transition-colors"
+                      >
+                        View Papers →
+                      </button>
+                    </div>
+
+                    {/* Step 3: Selection */}
+                    <div className="mb-6">
+                      <div className="flex items-center mb-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3 ${
+                          selectedPapers.length > 0 ? 'bg-green-500' : 'bg-gray-400'
+                        }`}>
+                          {selectedPapers.length > 0 ? '✓' : '3'}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Step 3: Selection</h4>
+                          <p className="text-sm text-gray-600">{selectedPapers.length} selected</p>
+                        </div>
+                      </div>
+                      <div className="px-4 py-2 bg-purple-50 text-purple-700 rounded-lg text-sm">
+                        Select papers from above
+                      </div>
+                    </div>
+
+                    {/* Step 4: Generate */}
+                    <div>
+                      <div className="flex items-center mb-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-sm mr-3 ${
+                          selectedPapers.length > 0 ? 'bg-green-500' : 'bg-gray-400'
+                        }`}>
+                          {selectedPapers.length > 0 ? '✓' : '4'}
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">Step 4: Generate</h4>
+                          <p className="text-sm text-gray-600">Create references</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => document.getElementById('references-section')?.scrollIntoView({ behavior: 'smooth' })}
+                        className={`w-full text-left px-4 py-2 rounded-lg text-sm transition-colors ${
+                          selectedPapers.length > 0 
+                            ? 'bg-purple-50 hover:bg-purple-100 text-purple-700' 
+                            : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                        }`}
+                        disabled={selectedPapers.length === 0}
+                      >
+                        {selectedPapers.length > 0 ? 'Generate References →' : 'Select papers first'}
+                      </button>
+                    </div>
+
+                    {/* Quick Stats */}
+                    <div className="mt-8 pt-6 border-t border-gray-200">
+                      <h4 className="text-sm font-semibold text-gray-700 mb-3">Summary</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Statements:</span>
+                          <span className="font-semibold text-gray-900">{statementsFound.length}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Papers Found:</span>
+                          <span className="font-semibold text-gray-900">{relatedPapers.length}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-600">Selected:</span>
+                          <span className="font-semibold text-green-600">{selectedPapers.length}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </aside>
+
+                {/* RIGHT CONTENT - Main Results */}
+                <main className="flex-1 min-w-0 space-y-8">
+                  
+                  {/* Interactive Content View Section for both PDF and Text */}
+                  <div id="statements-section">
+                    {(searchMode === 'pdf' || searchMode === 'text') && originalText && statementsWithPositions.length > 0 && (
+                      <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                        <header className="flex items-center mb-8">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                            <Search className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h2 className="text-3xl font-bold text-gray-900">
+                              {searchMode === 'pdf' ? 'Interactive PDF View' : 'Interactive Text View'}
+                            </h2>
+                            <p className="text-gray-600">Review your content with highlighted statements and supporting papers</p>
+                          </div>
+                        </header>
+                        <InteractiveText 
+                          originalText={originalText}
+                          statementsWithPositions={statementsWithPositions}
+                          relatedPapers={relatedPapers}
+                          selectedPapers={selectedPapers}
+                          onPaperSelection={handlePaperSelection}
+                        />
+                      </article>
+                    )}
+
+                    {/* Extracted Statements Section for Text Input without highlights */}
+                    {searchMode === 'text' && (!originalText || statementsWithPositions.length === 0) && (
+                      <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                        <header className="flex items-center mb-8">
+                          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                            <Search className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h2 className="text-3xl font-bold text-gray-900">
+                              Extracted Statements
+                            </h2>
+                            <p className="text-gray-600">Review the statements extracted from your text and find supporting papers</p>
+                          </div>
+                        </header>
+                        <div className="space-y-4">
+                          {statementsFound && statementsFound.length > 0 ? (
+                            statementsFound.map((statement, index) => (
+                              <div key={index} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center mb-2">
+                                      <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold bg-blue-600 text-white rounded-full mr-2">
+                                        {index + 1}
+                                      </span>
+                                      <span className="text-sm font-medium text-blue-800">Statement {index + 1}</span>
+                                    </div>
+                                    <p className="text-gray-800 leading-relaxed">{statement}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
+                              <p className="text-gray-600">No statements were extracted from your text.</p>
+                            </div>
+                          )}
+                        </div>
+                      </article>
                     )}
                   </div>
-                </article>
-              )}
 
-              {/* Supporting Papers Section */}
-              <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                <header className="flex items-center mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                    <BookOpen className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-gray-900">
-                      Supporting Papers
-                    </h2>
-                    <p className="text-gray-600">Select academic papers to support your statements and claims</p>
-                  </div>
-                </header>
-                <RelatedPapers 
-                  papers={relatedPapers} 
-                  statementsFound={statementsFound}
-                  selectedPapers={selectedPapers}
-                  onPaperSelection={handlePaperSelection}
-                />
-              </article>
+                  {/* Supporting Papers Section */}
+                  <article id="papers-section" className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                    <header className="flex items-center mb-8">
+                      <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                        <BookOpen className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-bold text-gray-900">
+                          Supporting Papers
+                        </h2>
+                        <p className="text-gray-600">Select academic papers to support your statements and claims</p>
+                      </div>
+                    </header>
+                    <RelatedPapers 
+                      papers={relatedPapers} 
+                      statementsFound={statementsFound}
+                      selectedPapers={selectedPapers}
+                      onPaperSelection={handlePaperSelection}
+                    />
+                  </article>
 
-              {/* References Generator Section */}
-              <article className="glass rounded-2xl shadow-soft p-8 hover-lift">
-                <header className="flex items-center mb-8">
-                  <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
-                    <FileText className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-3xl font-bold text-gray-900">
-                      References Generator
-                    </h2>
-                    <p className="text-gray-600">Generate formatted references from your extracted citations</p>
-                  </div>
-                </header>
-                <ReferencesGenerator citations={citations} selectedPapers={selectedPapers} />
-              </article>
+                  {/* References Generator Section */}
+                  <article id="references-section" className="glass rounded-2xl shadow-soft p-8 hover-lift">
+                    <header className="flex items-center mb-8">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mr-4" aria-hidden="true">
+                        <FileText className="w-6 h-6 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-3xl font-bold text-gray-900">
+                          References Generator
+                        </h2>
+                        <p className="text-gray-600">Generate formatted references from your extracted citations</p>
+                      </div>
+                    </header>
+                    <ReferencesGenerator citations={citations} selectedPapers={selectedPapers} />
+                  </article>
+
+                </main>
+              </div>
             </section>
           )}
         </section>

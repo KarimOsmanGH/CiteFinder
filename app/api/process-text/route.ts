@@ -430,29 +430,62 @@ function extractSupportingQuote(statement: string, abstract: string): string | u
   return bestSentence + '.'
 }
 
-// Extract key terms from a statement for better search
+// IMPROVED: Extract key terms from a statement with phrase preservation
 function extractKeyTermsFromStatement(statement: string): string {
-  // Remove common words but preserve important context
-  const stopWords = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them']
+  // Expanded stop words list for better filtering
+  const stopWords = [
+    'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+    'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did',
+    'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those',
+    'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them',
+    // Additional generic words that dilute search relevance
+    'using', 'used', 'based', 'through', 'during', 'between', 'various', 'different',
+    'several', 'many', 'some', 'such', 'other', 'make', 'made', 'show', 'shows', 'shown',
+    'find', 'finds', 'found', 'use', 'uses', 'provide', 'provides', 'improve', 'improves',
+    'improved', 'enhance', 'enhances', 'enhanced', 'include', 'includes', 'also', 'more',
+    'most', 'very', 'just', 'than', 'into', 'over', 'after', 'before', 'under', 'while'
+  ]
   
-  // Clean the statement but preserve more context
-  const cleanedStatement = statement
-    .replace(/[^\w\s]/g, ' ') // Replace punctuation with spaces
-    .replace(/\s+/g, ' ') // Normalize whitespace
+  // Important academic phrases to preserve as single units
+  const importantPhrases = [
+    'machine learning', 'deep learning', 'neural network', 'computer vision',
+    'natural language processing', 'remote sensing', 'climate change',
+    'environmental monitoring', 'data analysis', 'artificial intelligence',
+    'quantum computing', 'blockchain technology', 'renewable energy',
+    'gene editing', 'stem cells', 'clinical trial', 'randomized controlled'
+  ]
+  
+  // Clean the statement
+  let cleanedStatement = statement
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim()
+    .toLowerCase()
   
-  // Split into words and filter out stop words
-  const words = cleanedStatement.toLowerCase()
+  // Extract and preserve important phrases
+  const preservedPhrases: string[] = []
+  importantPhrases.forEach(phrase => {
+    if (cleanedStatement.includes(phrase)) {
+      preservedPhrases.push(phrase)
+      // Remove the phrase from statement to avoid duplicate terms
+      cleanedStatement = cleanedStatement.replace(phrase, '')
+    }
+  })
+  
+  // Extract individual meaningful words
+  const words = cleanedStatement
     .split(/\s+/)
-    .filter(word => word.length > 2 && !stopWords.includes(word))
+    .filter(word => word.length > 3 && !stopWords.includes(word))
   
-  // If we have enough meaningful words, use them all (up to 10)
-  if (words.length > 0) {
-    return words.slice(0, 10).join(' ')
+  // Combine preserved phrases with top individual words
+  const allTerms = [...preservedPhrases, ...words.slice(0, 6)]
+  
+  if (allTerms.length > 0) {
+    return allTerms.join(' ')
   }
   
-  // Fallback: return the original statement cleaned up
-  return cleanedStatement.toLowerCase()
+  // Fallback: use original words if no terms extracted
+  return words.slice(0, 5).join(' ') || statement.toLowerCase()
 }
 
 function extractCitations(text: string): Citation[] {
@@ -502,17 +535,31 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
     // IMPROVEMENT: Use multiple search strategies for better results
     const keyTerms = searchQuery.split(' ').filter(term => term.length > 2)
     
-    // Strategy 1: Individual terms with AND logic (more precise)
+    // IMPROVED: Use phrase matching + AND logic for better relevance
+    
+    // Extract important phrases (2-3 word combinations)
+    const phrases = []
+    const words = keyTerms.slice(0, 8)
+    for (let i = 0; i < Math.min(words.length - 1, 3); i++) {
+      phrases.push(`"${words[i]} ${words[i+1]}"`)
+    }
+    
+    // Strategy 1: Phrase matching with key terms (most precise)
+    const phraseQuery = phrases.length > 0 
+      ? `${phrases[0]} AND (${keyTerms.slice(0, 4).join(' OR ')})`
+      : keyTerms.slice(0, 5).join(' AND ')
+    
+    // Strategy 2: Individual terms with AND logic
     const andQuery = keyTerms.slice(0, 5).join(' AND ')
     
-    // Strategy 2: Category-based search for broader coverage
+    // Strategy 3: Category-based search for broader coverage
     const categoryQuery = `cat:cs.* OR cat:eess.* OR cat:stat.ML`
     
-    // Try main search first, fallback to category search
+    // Try main search first, fallback to broader searches
     let searchQueries = [
-      andQuery, // Individual terms with AND logic for better relevance
-      keyTerms.slice(0, 6).join(' '), // Top 6 terms without quotes
-      categoryQuery // Category fallback
+      phraseQuery, // Best: phrase matching + key terms
+      andQuery,    // Good: all key terms must appear
+      categoryQuery // Fallback: category search
     ]
     
     for (const query of searchQueries) {
@@ -783,14 +830,32 @@ function calculateSimilarityScore(searchQuery: string, paper: RelatedPaper): num
   const maxPossibleScore = queryWords.length * 4; // 3 for title + 1 for abstract
   let percentage = maxPossibleScore > 0 ? (score / maxPossibleScore) * 100 : 0;
   
-  // Bonus for exact phrase matches
-  if (title.includes(query) || abstract.includes(query)) {
-    percentage += 20;
+  // IMPROVED: Bonus for exact phrase matches (more significant)
+  if (title.includes(query)) {
+    percentage += 30; // Huge bonus for exact query in title
+  } else if (abstract.includes(query)) {
+    percentage += 20; // Good bonus for exact query in abstract
   }
   
-  // More lenient scoring: boost scores for papers with any matches
-  if (totalMatches > 0) {
-    percentage = Math.max(percentage, 25); // Minimum 25% for any match
+  // Additional bonus for key phrases in title
+  const keyPhrases = query.split(' ').filter(p => p.length > 10)
+  keyPhrases.forEach(phrase => {
+    if (title.includes(phrase)) percentage += 15
+  })
+  
+  // IMPROVED: Require meaningful matches, not just any match
+  if (totalMatches === 0) {
+    return 0; // No matches = 0% similarity
+  }
+  
+  // Require at least 2 term matches for minimum score
+  if (totalMatches < 2) {
+    percentage = Math.min(percentage, 30); // Cap at 30% for single match
+  }
+  
+  // Boost for multiple matches
+  if (totalMatches >= 3) {
+    percentage = Math.max(percentage, 50); // Minimum 50% for 3+ matches
   }
   
   // Additional bonus for domain relevance (common academic terms)
