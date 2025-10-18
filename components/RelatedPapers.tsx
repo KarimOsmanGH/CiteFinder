@@ -173,47 +173,6 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
     return (
       <div className="space-y-8">
 
-        
-        {/* Enhanced Instructions - only show when no statement is selected */}
-        {!selectedStatement && (
-          <div className="bg-gradient-to-r from-blue-100 to-indigo-100 border-2 border-blue-300 rounded-xl p-6">
-            <div className="flex items-center mb-4">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center mr-4">
-                <span className="text-white font-bold text-lg">📋</span>
-              </div>
-              <h3 className="text-lg font-bold text-blue-900">How to Build Your References</h3>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-start">
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
-                  <span className="text-sm font-bold">1</span>
-                </div>
-                <div>
-                  <p className="text-blue-800 font-semibold mb-1">Review Statements</p>
-                  <p className="text-blue-700 text-sm">Review the extracted statements above to see supporting papers</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
-                  <span className="text-sm font-bold">2</span>
-                </div>
-                <div>
-                  <p className="text-blue-800 font-semibold mb-1">Select Papers</p>
-                  <p className="text-blue-700 text-sm">Click checkboxes next to papers you want in your references</p>
-                </div>
-              </div>
-              <div className="flex items-start">
-                <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center mr-3 flex-shrink-0 mt-1">
-                  <span className="text-sm font-bold">3</span>
-                </div>
-                <div>
-                  <p className="text-blue-800 font-semibold mb-1">Generate Bibliography</p>
-                  <p className="text-blue-700 text-sm">Use the References Generator to create your formatted bibliography</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Selected Statement Indicator */}
         {selectedStatement && (
@@ -241,158 +200,200 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
 
 
         
-        {/* Statements and Papers */}
+        {/* Statements and Papers - Mobile Friendly with Table View */}
         {statementsFound.map((statement, index) => (
-          <div key={index} className="space-y-6">
-            {/* Enhanced Statement Card */}
-            <div className="relative overflow-hidden rounded-2xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-8 shadow-lg">
+          <div key={index} className="space-y-4">
+            {/* Enhanced Statement Card - Mobile Responsive */}
+            <div className="relative overflow-hidden rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-6 lg:p-8 shadow-lg">
               <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-blue-400 to-indigo-400 opacity-10 rounded-full" aria-hidden="true"></div>
-              <div className="flex items-start">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mr-6 flex-shrink-0 shadow-lg">
-                  <span className="text-white text-xl font-bold">{index + 1}</span>
+              <div className="flex flex-col sm:flex-row items-start gap-4">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <span className="text-white text-lg sm:text-xl font-bold">{index + 1}</span>
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center mb-4">
-                    <h3 className="text-xl font-bold text-blue-900 tracking-wide uppercase">Statement {index + 1}</h3>
-                    <div className="ml-4 px-3 py-1 bg-blue-200 text-blue-800 text-sm font-semibold rounded-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3">
+                    <h3 className="text-lg sm:text-xl font-bold text-blue-900 tracking-wide uppercase">Statement {index + 1}</h3>
+                    <div className="px-3 py-1 bg-blue-200 text-blue-800 text-xs sm:text-sm font-semibold rounded-full w-fit">
                       {(() => {
                         const statementPapers = limitedPapers.filter(paper => paper.statement === statement)
                         return `${statementPapers.length} supporting paper${statementPapers.length !== 1 ? 's' : ''}`
                       })()}
                     </div>
                   </div>
-                  <p className="text-lg leading-relaxed text-blue-900 font-medium">
+                  <p className="text-sm sm:text-base lg:text-lg leading-relaxed text-blue-900 font-medium">
                     {statement}
                   </p>
                 </div>
               </div>
             </div>
             
-            {/* Enhanced Papers for this statement */}
+            {/* Papers Table for this statement */}
             {(() => {
               const statementPapers = limitedPapers.filter(paper => paper.statement === statement)
               if (statementPapers.length > 0) {
                 return (
-                  <div className="space-y-6">
-                    {statementPapers.map((paper, paperIndex) => {
-                      const isSelected = selectedPapers.some(p => p.id === paper.id)
-                      return (
-                        <div
-                          key={paper.id}
-                          className={`bg-white border-2 rounded-2xl p-8 hover-lift transition-all duration-300 animate-slide-in-right ${
-                            isSelected 
-                              ? 'border-green-300 bg-green-50 shadow-xl' 
-                              : 'border-gray-200 hover:border-blue-300 shadow-lg'
-                          }`}
-                          style={{ animationDelay: `${paperIndex * 0.1}s` }}
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              {/* Enhanced Paper Header */}
-                              <div className="flex items-start justify-between mb-6">
-                                <div className="flex-1">
-                                  <h3 className="text-2xl font-bold text-gray-900 mb-4 leading-tight">
-                                    {paper.title}
-                                  </h3>
-                                  <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
-                                    <div className="flex items-center">
-                                      <Users className="w-4 h-4 mr-2 text-blue-600" />
-                                      <span className="font-medium">{paper.authors.join(', ')}</span>
-                                    </div>
-                                    <div className="flex items-center">
-                                      <Calendar className="w-4 h-4 mr-2 text-green-600" />
-                                      <span className="font-semibold text-gray-800">{paper.year}</span>
-                                    </div>
-                                    <div className="flex items-center">
-                                      <Target className="w-4 h-4 mr-2 text-purple-600" />
-                                      <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs font-semibold rounded-full">
+                  <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden shadow-lg">
+                    {/* Table Header - Hidden on mobile, shown on larger screens */}
+                    <div className="hidden md:grid md:grid-cols-12 bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300 px-4 py-3 font-semibold text-gray-700 text-sm">
+                      <div className="col-span-1 flex items-center justify-center">Select</div>
+                      <div className="col-span-5">Title & Authors</div>
+                      <div className="col-span-2 text-center">Year</div>
+                      <div className="col-span-2 text-center">Match</div>
+                      <div className="col-span-2 text-center">Actions</div>
+                    </div>
+                    
+                    {/* Scrollable Table Body */}
+                    <div className="overflow-y-auto max-h-[600px]">
+                      {statementPapers.map((paper, paperIndex) => {
+                        const isSelected = selectedPapers.some(p => p.id === paper.id)
+                        const supportingQuote = paper.supportingQuote || extractSupportingQuoteFromAbstract(statement, paper.abstract)
+                        
+                        return (
+                          <div
+                            key={paper.id}
+                            className={`border-b border-gray-200 last:border-b-0 transition-all duration-200 ${
+                              isSelected 
+                                ? 'bg-green-50' 
+                                : 'hover:bg-gray-50'
+                            }`}
+                          >
+                            {/* Desktop View - Table Row */}
+                            <div className="hidden md:grid md:grid-cols-12 px-4 py-4 items-center gap-4">
+                              {/* Select Checkbox */}
+                              <div className="col-span-1 flex items-center justify-center">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
+                                  className="w-5 h-5 text-green-600 bg-white border-2 border-gray-300 rounded focus:ring-green-500 focus:ring-2 hover:bg-green-50 transition-colors cursor-pointer"
+                                  title={isSelected ? "Remove from references" : "Add to references"}
+                                />
+                              </div>
+                              
+                              {/* Title & Authors */}
+                              <div className="col-span-5">
+                                <h4 className="font-bold text-gray-900 text-sm mb-1 leading-tight line-clamp-2">
+                                  {paper.title}
+                                </h4>
+                                <p className="text-xs text-gray-600 line-clamp-1">
+                                  {paper.authors.join(', ')}
+                                </p>
+                              </div>
+                              
+                              {/* Year */}
+                              <div className="col-span-2 text-center">
+                                <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
+                                  {paper.year}
+                                </span>
+                              </div>
+                              
+                              {/* Match Percentage */}
+                              <div className="col-span-2 text-center">
+                                <span className="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
+                                  {paper.similarity}%
+                                </span>
+                              </div>
+                              
+                              {/* Actions */}
+                              <div className="col-span-2 flex justify-center gap-2">
+                                {paper.url && (
+                                  <a
+                                    href={paper.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
+                                    title="Open paper"
+                                  >
+                                    <ExternalLink className="w-3 h-3 mr-1" />
+                                    View
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Mobile View - Card Style */}
+                            <div className="md:hidden p-4 space-y-3">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-3 flex-1">
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
+                                    className="w-5 h-5 mt-1 text-green-600 bg-white border-2 border-gray-300 rounded focus:ring-green-500 focus:ring-2 hover:bg-green-50 transition-colors cursor-pointer flex-shrink-0"
+                                    title={isSelected ? "Remove from references" : "Add to references"}
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-gray-900 text-sm mb-2 leading-tight">
+                                      {paper.title}
+                                    </h4>
+                                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                                      <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
+                                        {paper.year}
+                                      </span>
+                                      <span className="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
                                         {paper.similarity}% match
                                       </span>
                                     </div>
+                                    <p className="text-xs text-gray-600 mb-2">
+                                      {paper.authors.join(', ')}
+                                    </p>
                                   </div>
-                                </div>
-                                
-                                {/* Enhanced Selection Controls */}
-                                <div className="flex flex-col items-end space-y-4 ml-6">
-                                  <div className="flex items-center space-x-3">
-                                    <input
-                                      type="checkbox"
-                                      checked={isSelected}
-                                      onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
-                                      className="w-6 h-6 text-green-600 bg-white border-2 border-gray-300 rounded-lg focus:ring-green-500 focus:ring-2 hover:bg-green-50 transition-colors"
-                                      title={isSelected ? "Remove from references" : "Add to references"}
-                                    />
-                                    <span className="text-sm font-medium text-gray-700">
-                                      {isSelected ? (
-                                        <span className="text-green-700 flex items-center">
-                                          <CheckCircle className="w-5 h-5 mr-2" />
-                                          Selected
-                                        </span>
-                                      ) : (
-                                        "Select for references"
-                                      )}
-                                    </span>
-                                  </div>
-                                  
-                                  {/* Enhanced External Link */}
-                                  {paper.url && (
-                                    <a
-                                      href={paper.url}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-colors"
-                                    >
-                                      <ExternalLink className="w-4 h-4 mr-2" />
-                                      {paper.url.includes('doi.org') ? 'View DOI' : 'Open Paper'}
-                                    </a>
-                                  )}
                                 </div>
                               </div>
                               
-                              {/* Enhanced Supporting Quote or Abstract */}
-                              {(() => {
-                                // Try to get supporting quote - either from paper or extract from abstract
-                                const supportingQuote = paper.supportingQuote || extractSupportingQuoteFromAbstract(statement, paper.abstract)
-                                
-                                if (supportingQuote) {
-                                  return (
-                                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-6 mb-6">
-                                      <div className="flex items-center mb-4">
-                                        <CheckCircle className="w-6 h-6 text-green-600 mr-3" />
-                                        <p className="text-lg font-bold text-green-800">Supporting Evidence</p>
-                                      </div>
-                                      <p className="text-green-700 text-base italic leading-relaxed">"{supportingQuote}"</p>
-                                    </div>
-                                  )
-                                } else {
-                                  return (
-                                    <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 mb-6">
-                                      <div className="flex items-center mb-3">
-                                        <BookOpen className="w-5 h-5 text-gray-600 mr-2" />
-                                        <p className="text-sm font-semibold text-gray-700">Abstract</p>
-                                      </div>
-                                      <p className="text-gray-600 text-base leading-relaxed">
-                                        {paper.abstract}
-                                      </p>
-                                    </div>
-                                  )
-                                }
-                              })()}
+                              {/* Supporting Evidence - Mobile */}
+                              {supportingQuote && (
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                  <div className="flex items-center mb-2">
+                                    <CheckCircle className="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />
+                                    <p className="text-xs font-bold text-green-800">Evidence</p>
+                                  </div>
+                                  <p className="text-xs text-green-700 italic leading-relaxed">"{supportingQuote}"</p>
+                                </div>
+                              )}
+                              
+                              {/* Actions - Mobile */}
+                              {paper.url && (
+                                <div className="flex justify-end">
+                                  <a
+                                    href={paper.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
+                                  >
+                                    <ExternalLink className="w-3 h-3 mr-1" />
+                                    {paper.url.includes('doi.org') ? 'View DOI' : 'Open Paper'}
+                                  </a>
+                                </div>
+                              )}
                             </div>
+                            
+                            {/* Supporting Evidence - Desktop (Expandable row) */}
+                            {supportingQuote && (
+                              <div className="hidden md:block px-4 pb-4 pt-0">
+                                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                                  <div className="flex items-center mb-2">
+                                    <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                                    <p className="text-xs font-bold text-green-800">Supporting Evidence</p>
+                                  </div>
+                                  <p className="text-xs text-green-700 italic leading-relaxed">"{supportingQuote}"</p>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                      )
-                    })}
+                        )
+                      })}
+                    </div>
                   </div>
                 )
               } else {
                 return (
-                  <div className="bg-gray-50 border-2 border-gray-200 rounded-2xl p-10 text-center">
-                    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                      <Search className="w-10 h-10 text-gray-400" />
+                  <div className="bg-gray-50 border-2 border-gray-200 rounded-xl p-6 sm:p-10 text-center">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
+                      <Search className="w-8 h-8 sm:w-10 sm:h-10 text-gray-400" />
                     </div>
-                    <h4 className="text-xl font-semibold text-gray-700 mb-3">No Supporting Papers Found</h4>
-                    <p className="text-gray-600 text-base max-w-md mx-auto">
+                    <h4 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2 sm:mb-3">No Supporting Papers Found</h4>
+                    <p className="text-sm sm:text-base text-gray-600 max-w-md mx-auto">
                       We couldn't find academic papers that strongly support this statement. 
                       This might be because the statement is too specific or needs additional context.
                     </p>
@@ -403,19 +404,19 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
           </div>
         ))}
         
-        {/* Enhanced Summary Footer */}
-        <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-gray-200 rounded-2xl p-8">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        {/* Enhanced Summary Footer - Mobile Responsive */}
+        <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8">
+          <div className="flex flex-col gap-4 sm:gap-6">
             <div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Selection Summary</h3>
-              <p className="text-gray-600 text-lg">
+              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">Selection Summary</h3>
+              <p className="text-gray-600 text-sm sm:text-base lg:text-lg">
                 {selectedPapers.length} of {limitedPapers.length} papers selected for references
               </p>
             </div>
-            <div className="text-right">
-              <div className="bg-blue-100 border-2 border-blue-200 rounded-xl p-4">
-                <p className="text-blue-800 font-semibold mb-1">Next Step</p>
-                <p className="text-blue-700 text-sm">
+            <div>
+              <div className="bg-blue-100 border-2 border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
+                <p className="text-blue-800 font-semibold mb-1 text-sm sm:text-base">Next Step</p>
+                <p className="text-blue-700 text-xs sm:text-sm">
                   Use the References Generator below to create your formatted bibliography
                 </p>
               </div>
