@@ -9,7 +9,7 @@ function extractSupportingQuoteFromAbstract(statement: string, abstract: string)
   if (!abstract || abstract.length < 50) return undefined
   
   // Extract key terms from statement
-  const statementTerms = extractKeyTermsFromStatement(statement).toLowerCase().split(' ')
+  const statementTerms = extractKeyTermsFromStatement(statement).toLowerCase().split(' ').filter(t => t.length > 3)
   
   // Split abstract into sentences
   const sentences = abstract.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 20)
@@ -17,21 +17,28 @@ function extractSupportingQuoteFromAbstract(statement: string, abstract: string)
   // Find sentences that contain statement terms
   const relevantSentences = sentences.filter(sentence => {
     const lowerSentence = sentence.toLowerCase()
-    return statementTerms.some(term => lowerSentence.includes(term))
+    // Require at least 2 term matches for relevance
+    const matchCount = statementTerms.filter(term => lowerSentence.includes(term)).length
+    return matchCount >= 2
   })
   
+  // Only return evidence if we have meaningful matches
   if (relevantSentences.length === 0) {
-    // Fallback: return first meaningful sentence
-    const firstSentence = sentences.find(s => s.length > 30 && s.length < 200)
-    return firstSentence ? firstSentence + '.' : undefined
+    return undefined // No good match, don't show evidence
   }
   
-  // Return the most relevant sentence (longest match or first match)
+  // Return the most relevant sentence (best match based on term count)
   const bestSentence = relevantSentences.reduce((best, current) => {
     const currentScore = statementTerms.filter(term => current.toLowerCase().includes(term)).length
     const bestScore = statementTerms.filter(term => best.toLowerCase().includes(term)).length
     return currentScore > bestScore ? current : best
   })
+  
+  // Final check: only return if it has good overlap
+  const finalScore = statementTerms.filter(term => bestSentence.toLowerCase().includes(term)).length
+  if (finalScore < 2) {
+    return undefined // Not enough term overlap
+  }
   
   return bestSentence + '.'
 }
@@ -236,7 +243,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                     {/* Table Header - Hidden on mobile, shown on larger screens */}
                     <div className="hidden md:grid md:grid-cols-12 bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300 px-4 py-3 font-semibold text-gray-700 text-sm">
                       <div className="col-span-1 flex items-center justify-center">Select</div>
-                      <div className="col-span-5">Title & Authors</div>
+                      <div className="col-span-5">Title</div>
                       <div className="col-span-2 text-center">Year</div>
                       <div className="col-span-2 text-center">Match</div>
                       <div className="col-span-2 text-center">Actions</div>
@@ -270,14 +277,11 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                                 />
                               </div>
                               
-                              {/* Title & Authors */}
+                              {/* Title */}
                               <div className="col-span-5">
-                                <h4 className="font-bold text-gray-900 text-sm mb-1 leading-tight line-clamp-2">
+                                <h4 className="font-bold text-gray-900 text-sm leading-tight line-clamp-3">
                                   {paper.title}
                                 </h4>
-                                <p className="text-xs text-gray-600 line-clamp-1">
-                                  {paper.authors.join(', ')}
-                                </p>
                               </div>
                               
                               {/* Year */}
@@ -326,7 +330,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                                     <h4 className="font-bold text-gray-900 text-sm mb-2 leading-tight">
                                       {paper.title}
                                     </h4>
-                                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                                    <div className="flex flex-wrap items-center gap-2">
                                       <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
                                         {paper.year}
                                       </span>
@@ -334,9 +338,6 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                                         {paper.similarity}% match
                                       </span>
                                     </div>
-                                    <p className="text-xs text-gray-600 mb-2">
-                                      {paper.authors.join(', ')}
-                                    </p>
                                   </div>
                                 </div>
                               </div>

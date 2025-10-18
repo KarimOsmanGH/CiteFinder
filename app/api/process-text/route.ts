@@ -403,7 +403,7 @@ function extractSupportingQuote(statement: string, abstract: string): string | u
   if (!abstract || abstract.length < 50) return undefined
   
   // Extract key terms from statement
-  const statementTerms = extractKeyTermsFromStatement(statement).toLowerCase().split(' ')
+  const statementTerms = extractKeyTermsFromStatement(statement).toLowerCase().split(' ').filter(t => t.length > 3)
   
   // Split abstract into sentences
   const sentences = abstract.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 20)
@@ -411,21 +411,28 @@ function extractSupportingQuote(statement: string, abstract: string): string | u
   // Find sentences that contain statement terms
   const relevantSentences = sentences.filter(sentence => {
     const lowerSentence = sentence.toLowerCase()
-    return statementTerms.some(term => lowerSentence.includes(term))
+    // Require at least 2 term matches for relevance
+    const matchCount = statementTerms.filter(term => lowerSentence.includes(term)).length
+    return matchCount >= 2
   })
   
+  // Only return evidence if we have meaningful matches
   if (relevantSentences.length === 0) {
-    // Fallback: return first meaningful sentence
-    const firstSentence = sentences.find(s => s.length > 30 && s.length < 200)
-    return firstSentence ? firstSentence + '.' : undefined
+    return undefined // No good match, don't show evidence
   }
   
-  // Return the most relevant sentence (longest match or first match)
+  // Return the most relevant sentence (best match based on term count)
   const bestSentence = relevantSentences.reduce((best, current) => {
     const currentScore = statementTerms.filter(term => current.toLowerCase().includes(term)).length
     const bestScore = statementTerms.filter(term => best.toLowerCase().includes(term)).length
     return currentScore > bestScore ? current : best
   })
+  
+  // Final check: only return if it has good overlap
+  const finalScore = statementTerms.filter(term => bestSentence.toLowerCase().includes(term)).length
+  if (finalScore < 2) {
+    return undefined // Not enough term overlap
+  }
   
   return bestSentence + '.'
 }
@@ -1058,7 +1065,15 @@ export async function POST(request: NextRequest) {
     
     // Search for related papers
     const relatedPapers = await searchRelatedPapers(allCitations, statements)
+    
+    // Filter out papers with no abstract
+    const papersWithAbstract = relatedPapers.filter(paper => 
+      paper.abstract && 
+      paper.abstract.trim().length > 0 && 
+      !paper.abstract.toLowerCase().includes('no abstract available')
+    )
     console.log('📄 Related papers found:', relatedPapers.length)
+    console.log('📄 Papers with valid abstracts:', papersWithAbstract.length)
     
     console.log('✅ Final response prepared:')
     console.log('  - Citations:', allCitations.length)
@@ -1067,7 +1082,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       citations: allCitations,
-      relatedPapers: relatedPapers,
+      relatedPapers: papersWithAbstract,
       originalText: text, // Include original text for highlighting
       statementsWithPositions: statements, // Include full statement objects with positions
       textLength: text.length,
