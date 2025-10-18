@@ -138,28 +138,28 @@ export default function InteractiveText({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Statements Section */}
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Interactive PDF View</h3>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Statements Section - Mobile Responsive */}
+      <div className="bg-white border border-gray-200 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-900">Interactive PDF View</h3>
         </div>
         
 
         
-        <div className="max-h-96 overflow-y-auto border border-gray-300 rounded-lg bg-gray-50 w-full">
-          <div className="p-6 bg-white mx-4 my-4 shadow-sm border border-gray-200">
+        <div className="max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto border border-gray-300 rounded-lg bg-gray-50 w-full">
+          <div className="p-3 sm:p-4 lg:p-6 bg-white mx-2 sm:mx-3 lg:mx-4 my-2 sm:my-3 lg:my-4 shadow-sm border border-gray-200">
             {/* PDF-like header */}
-            <div className="border-b border-gray-300 pb-2 mb-4">
+            <div className="border-b border-gray-300 pb-1 sm:pb-2 mb-2 sm:mb-4">
               <div className="text-xs text-gray-500 font-mono">Click highlighted statements</div>
             </div>
-            <div className="font-mono text-sm leading-6 text-gray-800 w-full max-w-none">
+            <div className="font-mono text-xs sm:text-sm leading-5 sm:leading-6 text-gray-800 w-full max-w-none">
               {renderTextWithHighlights()}
             </div>
           </div>
         </div>
         
-        <div className="mt-3 text-xs text-gray-500">
+        <div className="mt-2 sm:mt-3 text-xs text-gray-500">
           💡 Click on highlighted statements to view supporting academic papers
         </div>
       </div>
