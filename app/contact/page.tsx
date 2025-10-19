@@ -40,10 +40,10 @@ export default function ContactPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-blue-100">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-600/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-full blur-3xl"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-pink-400/20 to-orange-400/20 rounded-full blur-3xl"></div>
       </div>
 
@@ -91,8 +91,8 @@ export default function ContactPage() {
                 </div>
                 
                 <div className="flex items-start">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-4">
-                    <Github className="w-5 h-5 text-purple-600" />
+                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
+                    <Github className="w-5 h-5 text-blue-600" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">GitHub</h3>
@@ -268,7 +268,7 @@ export default function ContactPage() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover-lift shadow-glow flex items-center justify-center"
+                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover-lift shadow-glow flex items-center justify-center"
               >
                 {isSubmitting ? (
                   <>
@@ -296,7 +296,7 @@ export default function ContactPage() {
           </p>
           <Link 
             href="/"
-            className="inline-flex items-center bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover-lift shadow-glow"
+            className="inline-flex items-center bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover-lift shadow-glow"
           >
             Start Using CiteFinder Free
           </Link>

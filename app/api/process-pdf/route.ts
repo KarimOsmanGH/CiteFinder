@@ -382,16 +382,19 @@ async function findRelatedPapersFromStatements(statements: StatementWithPosition
       
       // IMPROVEMENT: Search 3 databases for better coverage
       const searchPromises = [
-        withTimeout(searchArxiv(keyTerms), 8000, [] as RelatedPaper[]),
-        withTimeout(searchOpenAlex(keyTerms), 8000, [] as RelatedPaper[]),
-        withTimeout(searchCrossRef(keyTerms), 8000, [] as RelatedPaper[])
+        withTimeout(searchArxiv(keyTerms), 12000, [] as RelatedPaper[]),
+        withTimeout(searchOpenAlex(keyTerms), 12000, [] as RelatedPaper[]),
+        withTimeout(searchCrossRef(keyTerms), 12000, [] as RelatedPaper[])
       ]
       
       // Wait for searches with a timeout guard
       const results = await Promise.allSettled(searchPromises)
-      const [arxivResults, openAlexResults, crossRefResults] = results.map(r => 
-        r.status === 'fulfilled' ? r.value : []
-      )
+      const [arxivResults, openAlexResults, crossRefResults] = results.map((r, index) => {
+        if (r.status === 'rejected') {
+          console.error(`❌ Search ${index} failed:`, r.reason)
+        }
+        return r.status === 'fulfilled' ? r.value : []
+      })
       
       // Combine and deduplicate results
       const allResults = [...arxivResults, ...openAlexResults, ...crossRefResults]
@@ -1107,7 +1110,7 @@ async function searchRelatedPapers(citations: Citation[], statements: string[] =
 }
 
 export const runtime = 'nodejs'
-export const maxDuration = 60
+export const maxDuration = 300
 
 export async function POST(request: NextRequest) {
   try {
@@ -1123,42 +1126,85 @@ export async function POST(request: NextRequest) {
 
     console.log('📄 Processing PDF file:', file.name, 'size:', file.size)
 
+    // Validate file size
+    if (file.size > 50 * 1024 * 1024) { // 50MB limit
+      return NextResponse.json(
+        { error: 'File size too large. Please upload a PDF smaller than 50MB.' },
+        { status: 400 }
+      )
+    }
+
     // Convert PDF to text
     const arrayBuffer = await file.arrayBuffer()
     const pdfBuffer = Buffer.from(arrayBuffer)
     
     let text = ''
     try {
+      console.log('📝 Starting PDF parsing...')
       const data = await pdf(pdfBuffer)
       text = data.text
       console.log('📝 PDF text extracted, length:', text.length)
       console.log('📝 Text preview:', text.substring(0, 200))
+      
+      if (!text || text.trim().length === 0) {
+        console.error('❌ PDF appears to be empty or unreadable')
+        return NextResponse.json(
+          { error: 'PDF appears to be empty or unreadable. Please ensure the PDF contains text and is not password-protected.' },
+          { status: 400 }
+        )
+      }
     } catch (error) {
       console.error('❌ Error parsing PDF:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
       return NextResponse.json(
-        { error: 'Failed to parse PDF' },
+        { error: `Failed to parse PDF: ${errorMessage}. Please ensure the file is a valid PDF and try again.` },
         { status: 500 }
       )
     }
 
     // First, try to extract existing citations
-    const existingCitations = extractCitations(text)
-    console.log('📚 Existing citations found:', existingCitations.length)
+    let existingCitations: Citation[] = []
+    try {
+      existingCitations = extractCitations(text)
+      console.log('📚 Existing citations found:', existingCitations.length)
+    } catch (error) {
+      console.error('❌ Error extracting citations:', error)
+      existingCitations = []
+    }
     
     // Then, analyze content and find related papers
-    const statements = extractStatements(text)
-    console.log('💬 Statements extracted:', statements.length)
-    console.log('💬 Statements:', statements.map(s => s.text.substring(0, 100)))
+    let statements: StatementWithPosition[] = []
+    try {
+      statements = extractStatements(text)
+      console.log('💬 Statements extracted:', statements.length)
+      console.log('💬 Statements:', statements.map(s => s.text.substring(0, 100)))
+    } catch (error) {
+      console.error('❌ Error extracting statements:', error)
+      statements = []
+    }
     
-    const discoveredCitations = await findRelatedPapersFromStatements(statements)
-    console.log('🔍 Discovered citations from statements:', discoveredCitations.length)
+    let discoveredCitations: Citation[] = []
+    try {
+      discoveredCitations = await findRelatedPapersFromStatements(statements)
+      console.log('🔍 Discovered citations from statements:', discoveredCitations.length)
+    } catch (error) {
+      console.error('❌ Error finding related papers:', error)
+      discoveredCitations = []
+    }
     
     // Combine all citations
     const allCitations = [...existingCitations, ...discoveredCitations]
     console.log('📚 Total citations (existing + discovered):', allCitations.length)
     
     // Search for related papers
-    const relatedPapers = await searchRelatedPapers(allCitations, statements.map(s => s.text))
+    let relatedPapers: RelatedPaper[] = []
+    try {
+      relatedPapers = await searchRelatedPapers(allCitations, statements.map(s => s.text))
+      console.log('📄 Related papers found:', relatedPapers.length)
+    } catch (error) {
+      console.error('❌ Error searching for related papers:', error)
+      relatedPapers = []
+    }
     
     // Filter out papers with no abstract
     const papersWithAbstract = relatedPapers.filter(paper => 
