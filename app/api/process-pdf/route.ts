@@ -1185,7 +1185,7 @@ export async function POST(request: NextRequest) {
       existingCitationsCount: existingCitations.length,
       discoveredCitationsCount: discoveredCitations.length,
       fileName: file.name,
-      pdfUrl: null // We don't store PDFs, so this is null
+      pdfUrl: '' // Empty string instead of null for consistency
     })
 
   } catch (error) {
