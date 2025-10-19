@@ -74,9 +74,6 @@ export default function InteractiveText({
               : 'bg-gray-200 hover:bg-gray-300 border border-gray-400 text-gray-700'
           }`}
           onClick={() => {
-            console.log('Statement clicked:', statement.text)
-            console.log('Papers for statement:', papersForStatement.length)
-            
             if (papersForStatement.length === 0) {
               alert('No supporting papers found for this statement.')
               return
@@ -130,10 +127,6 @@ export default function InteractiveText({
     const papers = relatedPapers.filter(paper => 
       paper.statement === statement.text
     )
-    console.log('Papers for statement:', statement.text.substring(0, 50))
-    console.log('Total papers:', relatedPapers.length)
-    console.log('Filtered papers:', papers.length)
-    console.log('Paper details:', papers.map(p => ({ title: p.title.substring(0, 30), similarity: p.similarity, statement: p.statement?.substring(0, 30) })))
     return papers
   }
 
@@ -147,8 +140,8 @@ export default function InteractiveText({
         
 
         
-        <div className="max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto border border-gray-300 rounded-lg bg-gray-50 w-full">
-          <div className="p-3 sm:p-4 lg:p-6 bg-white mx-2 sm:mx-3 lg:mx-4 my-2 sm:my-3 lg:my-4 shadow-sm border border-gray-200">
+        <div className="max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto border border-gray-400 rounded-lg bg-gray-100 w-full">
+          <div className="p-3 sm:p-4 lg:p-6 bg-white mx-2 sm:mx-3 lg:mx-4 my-2 sm:my-3 lg:my-4 shadow-sm border border-gray-300">
             {/* PDF-like header */}
             <div className="border-b border-gray-300 pb-1 sm:pb-2 mb-2 sm:mb-4">
               <div className="text-xs text-gray-500 font-mono">Click highlighted statements</div>

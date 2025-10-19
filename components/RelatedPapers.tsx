@@ -106,12 +106,6 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   const [filterByStatement, setFilterByStatement] = useState<string>('all')
   const [showOnlySelected, setShowOnlySelected] = useState(false)
 
-  console.log('🔍 RelatedPapers component received:')
-  console.log('  - Papers:', papers?.length || 0)
-  console.log('  - Statements found:', statementsFound?.length || 0)
-  console.log('  - Selected papers:', selectedPapers?.length || 0)
-  console.log('  - Papers data:', papers?.map(p => ({ title: p.title.substring(0, 30), similarity: p.similarity })))
-  console.log('  - Statements data:', statementsFound)
   
   // IMPROVED: Filter papers to only show those with 50% or higher similarity (quality threshold)
   // This ensures only relevant papers are shown to users
@@ -162,18 +156,6 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   // Show all papers without limitations
   const limitedPapers = processedPapers
   
-  console.log('🔍 RelatedPapers processing:')
-  console.log('  - Filtered papers (40%+):', filteredPapers.length)
-  console.log('  - Total papers:', limitedPapers.length)
-  
-  // Debug logging
-  console.log('RelatedPapers Debug:', {
-    totalPapers: papers.length,
-    papersWithSimilarity: papers.map(p => ({ title: p.title, similarity: p.similarity, statement: p.statement })),
-    filteredPapersCount: filteredPapers.length,
-    statementsFound: statementsFound,
-    similarityThreshold: 40
-  })
   
   // Show content when we have papers to display
   if (limitedPapers.length > 0 || statementsFound.length === 0) {
@@ -211,7 +193,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
         {statementsFound.map((statement, index) => (
           <div key={index} className="space-y-4">
             {/* Enhanced Statement Card - Mobile Responsive */}
-            <div className="relative overflow-hidden rounded-xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50 p-4 sm:p-6 lg:p-8 shadow-lg">
+            <div className="relative overflow-hidden rounded-xl border-2 border-blue-300 bg-gradient-to-br from-blue-100 to-indigo-100 p-4 sm:p-6 lg:p-8 shadow-lg">
               <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-blue-400 to-indigo-400 opacity-10 rounded-full" aria-hidden="true"></div>
               <div className="flex flex-col sm:flex-row items-start gap-4">
                 <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg">
@@ -241,7 +223,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                 return (
                   <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden shadow-lg">
                     {/* Table Header - Hidden on mobile, shown on larger screens */}
-                    <div className="hidden md:grid md:grid-cols-12 bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-300 px-4 py-3 font-semibold text-gray-700 text-sm">
+                    <div className="hidden md:grid md:grid-cols-12 bg-gradient-to-r from-gray-200 to-gray-100 border-b-2 border-gray-400 px-4 py-3 font-semibold text-gray-800 text-sm">
                       <div className="col-span-1 flex items-center justify-center">Select</div>
                       <div className="col-span-5">Title</div>
                       <div className="col-span-2 text-center">Year</div>
@@ -406,7 +388,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
         ))}
         
         {/* Enhanced Summary Footer - Mobile Responsive */}
-        <div className="bg-gradient-to-r from-gray-50 to-blue-50 border-2 border-gray-200 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8">
+        <div className="bg-gradient-to-r from-gray-100 to-blue-100 border-2 border-gray-300 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col gap-4 sm:gap-6">
             <div>
               <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">Selection Summary</h3>
@@ -415,7 +397,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
               </p>
             </div>
             <div>
-              <div className="bg-blue-100 border-2 border-blue-200 rounded-lg sm:rounded-xl p-3 sm:p-4">
+              <div className="bg-blue-200 border-2 border-blue-300 rounded-lg sm:rounded-xl p-3 sm:p-4">
                 <p className="text-blue-800 font-semibold mb-1 text-sm sm:text-base">Next Step</p>
                 <p className="text-blue-700 text-xs sm:text-sm">
                   Use the References Generator below to create your formatted bibliography

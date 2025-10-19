@@ -84,7 +84,6 @@ export default function Home() {
   }
 
   const toggleFaq = (index: number) => {
-    console.log('Toggling FAQ:', index, 'Current expanded:', expandedFaq)
     setExpandedFaq(expandedFaq === index ? null : index)
   }
 
@@ -97,19 +96,14 @@ export default function Home() {
   }
 
   const handleTextSearch = async () => {
-    console.log('🔍 handleTextSearch called with text length:', searchText.length)
-    console.log('🔍 Search text:', searchText)
     if (!searchText.trim()) {
-      console.log('❌ Text is empty, returning')
       return
     }
     
-    console.log('✅ Starting text processing...')
     setIsProcessing(true)
     setCurrentStep('processing')
     
     try {
-      console.log('🔍 Making API call to /api/process-text...')
       const response = await fetch('/api/process-text', {
         method: 'POST',
         headers: {
@@ -118,9 +112,6 @@ export default function Home() {
         body: JSON.stringify({ text: searchText }),
       })
 
-      console.log('🔍 API response status:', response.status)
-      console.log('🔍 API response ok:', response.ok)
-
       if (!response.ok) {
         const errorText = await response.text()
         console.error('❌ API error response:', errorText)
@@ -128,12 +119,6 @@ export default function Home() {
       }
 
       const data: ProcessResponse = await response.json()
-      console.log('✅ API response received:')
-      console.log('  - Citations:', data.citations?.length || 0)
-      console.log('  - Related papers:', data.relatedPapers?.length || 0)
-      console.log('  - Statements found:', data.statementsFound?.length || 0)
-      console.log('  - Existing citations:', data.existingCitationsCount || 0)
-      console.log('  - Discovered citations:', data.discoveredCitationsCount || 0)
       
       setCitations(data.citations || [])
       setRelatedPapers(data.relatedPapers || [])
@@ -206,7 +191,6 @@ export default function Home() {
                 <div className="bg-white/70 backdrop-blur-sm rounded-xl p-1 border border-gray-300 shadow-sm">
                   <button
                     onClick={() => {
-                      console.log('Switching to PDF mode, current mode:', searchMode)
                       setSearchMode('pdf')
                     }}
                     className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
@@ -219,7 +203,6 @@ export default function Home() {
                   </button>
                   <button
                     onClick={() => {
-                      console.log('Switching to text mode, current mode:', searchMode)
                       setSearchMode('text')
                     }}
                     className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
@@ -269,7 +252,7 @@ export default function Home() {
 
           {currentStep === 'processing' && (
             <section className="animate-fade-in" aria-label="Processing Status">
-              <div className="glass rounded-2xl shadow-soft p-12 text-center">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-12 text-center border border-gray-200">
                 <div className="relative mb-8">
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto animate-pulse-slow" role="status" aria-label="Processing">
                     <Loader2 className="w-10 h-10 text-white animate-spin" />
@@ -310,7 +293,7 @@ export default function Home() {
                 
                 {/* LEFT SIDEBAR - Progress & Navigation - Mobile Optimized */}
                 <aside className="w-full lg:w-80 flex-shrink-0">
-                  <div className="glass rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:sticky lg:top-8">
+                  <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:sticky lg:top-8 border border-gray-200">
                     <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center">
                       <span className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3">
                         <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
@@ -432,7 +415,7 @@ export default function Home() {
                   {/* Interactive Content View Section for both PDF and Text */}
                   <div id="statements-section">
                     {(searchMode === 'pdf' || searchMode === 'text') && originalText && statementsWithPositions.length > 0 && (
-                      <article className="glass rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift">
+                      <article className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
                         <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
                           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
                             <Search className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -456,7 +439,7 @@ export default function Home() {
 
                     {/* Extracted Statements Section for Text Input without highlights */}
                     {searchMode === 'text' && (!originalText || statementsWithPositions.length === 0) && (
-                      <article className="glass rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift">
+                      <article className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
                         <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
                           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
                             <Search className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -496,7 +479,7 @@ export default function Home() {
                   </div>
 
                   {/* Supporting Papers Section */}
-                  <article id="papers-section" className="glass rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift">
+                  <article id="papers-section" className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
                     <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
                         <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -517,7 +500,7 @@ export default function Home() {
                   </article>
 
                   {/* References Generator Section */}
-                  <article id="references-section" className="glass rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift">
+                  <article id="references-section" className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
                     <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
                       <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
                         <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -553,7 +536,7 @@ export default function Home() {
 
             <div className="space-y-4">
               {/* FAQ Item 1 */}
-              <div className="glass rounded-2xl shadow-soft overflow-hidden">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
                 <button
                   onClick={() => toggleFaq(0)}
                   className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
@@ -577,7 +560,7 @@ export default function Home() {
               </div>
 
               {/* FAQ Item 2 */}
-              <div className="glass rounded-2xl shadow-soft overflow-hidden">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
                 <button
                   onClick={() => toggleFaq(1)}
                   className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
@@ -601,7 +584,7 @@ export default function Home() {
               </div>
 
               {/* FAQ Item 3 */}
-              <div className="glass rounded-2xl shadow-soft overflow-hidden">
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
                 <button
                   onClick={() => toggleFaq(2)}
                   className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
@@ -675,7 +658,7 @@ export default function Home() {
               </div>
 
                             {/* FAQ Item 4 */}
-                <div className="glass rounded-2xl shadow-soft overflow-hidden">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
                   <button
                     onClick={() => toggleFaq(3)}
                     className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
