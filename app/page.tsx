@@ -235,7 +235,7 @@ export default function Home() {
               
               {/* PDF Upload Option */}
               {searchMode === 'pdf' && (
-                <div className="glass rounded-2xl shadow-soft p-4 hover-lift animate-fade-in max-w-2xl mx-auto">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-4 hover-lift animate-fade-in max-w-2xl mx-auto border border-gray-200">
                   <PDFUploader onFileUpload={handleFileUpload} />
                 </div>
               )}
