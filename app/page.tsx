@@ -242,7 +242,7 @@ export default function Home() {
 
               {/* Text Search Option */}
               {searchMode === 'text' && (
-                <div className="glass rounded-2xl shadow-soft p-8 hover-lift animate-fade-in">
+                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-8 hover-lift animate-fade-in border border-gray-200">
                   <div className="text-center mb-6">
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Enter Your Text</h3>
                     <p className="text-gray-600">Paste your content and our AI will identify statements that need academic backing, then find sources to support them</p>
@@ -252,7 +252,7 @@ export default function Home() {
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
                       placeholder="Paste your paper content here... Our AI will find academic sources to support your ideas and generate proper citations."
-                      className="w-full h-48 p-4 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm text-gray-900"
+                      className="w-full h-48 p-4 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
                     />
                     <button
                       onClick={handleTextSearch}
