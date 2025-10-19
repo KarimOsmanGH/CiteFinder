@@ -193,10 +193,10 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
         {statementsFound.map((statement, index) => (
           <div key={index} className="space-y-4">
             {/* Enhanced Statement Card - Mobile Responsive */}
-            <div className="relative overflow-hidden rounded-xl border-2 border-blue-300 bg-gradient-to-br from-blue-100 to-indigo-100 p-4 sm:p-6 lg:p-8 shadow-lg">
-              <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-blue-400 to-indigo-400 opacity-10 rounded-full" aria-hidden="true"></div>
+            <div className="relative overflow-hidden rounded-xl border-2 border-blue-300 bg-gradient-to-br from-blue-100 to-blue-100 p-4 sm:p-6 lg:p-8 shadow-lg">
+              <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-blue-400 to-blue-400 opacity-10 rounded-full" aria-hidden="true"></div>
               <div className="flex flex-col sm:flex-row items-start gap-4">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0 shadow-lg">
                   <span className="text-white text-lg sm:text-xl font-bold">{index + 1}</span>
                 </div>
                 <div className="flex-1">
@@ -275,7 +275,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                               
                               {/* Match Percentage */}
                               <div className="col-span-2 text-center">
-                                <span className="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
+                                      <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">
                                   {paper.similarity}%
                                 </span>
                               </div>
@@ -316,7 +316,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
                                       <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
                                         {paper.year}
                                       </span>
-                                      <span className="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs font-bold rounded">
+                                      <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">
                                         {paper.similarity}% match
                                       </span>
                                     </div>

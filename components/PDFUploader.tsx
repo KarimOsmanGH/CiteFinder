@@ -34,7 +34,7 @@ export default function PDFUploader({ onFileUpload }: PDFUploaderProps) {
         {...getRootProps()}
         className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 hover-lift ${
           isDragActive
-            ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-purple-50 shadow-glow'
+            ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-50 shadow-glow'
             : 'border-gray-300 hover:border-blue-400 hover:bg-gradient-to-br from-gray-50 to-blue-50'
         }`}
         role="button"
@@ -46,7 +46,7 @@ export default function PDFUploader({ onFileUpload }: PDFUploaderProps) {
         <div className="flex flex-col items-center">
           <div className="mb-4">
             {isDragActive ? (
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-glow" aria-hidden="true">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-glow" aria-hidden="true">
                 <Upload className="w-8 h-8 text-white" />
               </div>
             ) : (

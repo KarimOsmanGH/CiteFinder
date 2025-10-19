@@ -83,7 +83,7 @@ export default function CitationList({
                     </div>
                   </div>
                   {citation.year && (
-                    <span className="text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-600 px-3 py-1 rounded-full">
+                    <span className="text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-1 rounded-full">
                       {citation.year}
                     </span>
                   )}
@@ -100,9 +100,9 @@ export default function CitationList({
                   )}
                   
                   {citation.title && (
-                    <div className="bg-purple-50 rounded-lg p-3">
-                      <p className="text-sm font-semibold text-purple-900 mb-1">Title</p>
-                      <p className="text-sm text-purple-700">{citation.title}</p>
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-blue-900 mb-1">Title</p>
+                      <p className="text-sm text-blue-700">{citation.title}</p>
                     </div>
                   )}
                 </div>
@@ -124,7 +124,7 @@ export default function CitationList({
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center">
-                    <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center mr-3">
+                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
                       <CheckCircle className="w-4 h-4 text-white" />
                     </div>
                     <div>
@@ -133,14 +133,14 @@ export default function CitationList({
                       </span>
                       <div className="w-24 h-2 bg-gray-200 rounded-full mt-1">
                         <div 
-                          className="h-2 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full transition-all duration-500"
+                          className="h-2 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500"
                           style={{ width: `${citation.confidence * 100}%` }}
                         ></div>
                       </div>
                     </div>
                   </div>
                   {citation.year && (
-                    <span className="text-sm font-semibold text-white bg-gradient-to-r from-indigo-500 to-indigo-600 px-3 py-1 rounded-full">
+                    <span className="text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 px-3 py-1 rounded-full">
                       {citation.year}
                     </span>
                   )}
@@ -150,16 +150,16 @@ export default function CitationList({
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {citation.authors && (
-                    <div className="bg-indigo-50 rounded-lg p-3">
-                      <p className="text-sm font-semibold text-indigo-900 mb-1">Authors</p>
-                      <p className="text-sm text-indigo-700">{citation.authors}</p>
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-blue-900 mb-1">Authors</p>
+                      <p className="text-sm text-blue-700">{citation.authors}</p>
                     </div>
                   )}
                   
                   {citation.title && (
-                    <div className="bg-indigo-50 rounded-lg p-3">
-                      <p className="text-sm font-semibold text-indigo-900 mb-1">Title</p>
-                      <p className="text-sm text-indigo-700">{citation.title}</p>
+                    <div className="bg-blue-50 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-blue-900 mb-1">Title</p>
+                      <p className="text-sm text-blue-700">{citation.title}</p>
                     </div>
                   )}
                 </div>

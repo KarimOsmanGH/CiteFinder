@@ -139,7 +139,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-blue-100">
 
       <div className="relative container mx-auto px-4 py-8">
         {/* Navigation - Mobile Responsive */}
@@ -148,7 +148,7 @@ export default function Home() {
           <div className="flex items-center space-x-3 sm:space-x-6 lg:space-x-8">
             {/* Logo */}
             <div className="flex items-center">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-2 sm:mr-3">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-2 sm:mr-3">
                 <FileText className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
               </div>
               <span className="text-base sm:text-lg lg:text-xl font-bold text-gray-900">CiteFinder</span>
@@ -195,7 +195,7 @@ export default function Home() {
                     }}
                     className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                       searchMode === 'pdf'
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
@@ -207,7 +207,7 @@ export default function Home() {
                     }}
                     className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                       searchMode === 'text'
-                        ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md'
+                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
@@ -240,7 +240,7 @@ export default function Home() {
                     <button
                       onClick={handleTextSearch}
                       disabled={!searchText.trim()}
-                      className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover-lift shadow-glow disabled:cursor-not-allowed"
+                      className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover-lift shadow-glow disabled:cursor-not-allowed"
                     >
                       Find Sources & Generate Citations
                     </button>
@@ -254,10 +254,10 @@ export default function Home() {
             <section className="animate-fade-in" aria-label="Processing Status">
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-12 text-center border border-gray-200">
                 <div className="relative mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto animate-pulse-slow" role="status" aria-label="Processing">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto animate-pulse-slow" role="status" aria-label="Processing">
                     <Loader2 className="w-10 h-10 text-white animate-spin" />
                   </div>
-                  <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full opacity-20 animate-ping" aria-hidden="true"></div>
+                  <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full opacity-20 animate-ping" aria-hidden="true"></div>
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">
                   Processing your {searchMode === 'pdf' ? 'PDF' : 'text'}...
@@ -269,7 +269,7 @@ export default function Home() {
                 {/* Progress indicators */}
                 <div className="flex justify-center space-x-2 mt-8" aria-label="Progress indicators">
                   <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" aria-hidden="true"></div>
-                  <div className="w-3 h-3 bg-purple-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}} aria-hidden="true"></div>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}} aria-hidden="true"></div>
                   <div className="w-3 h-3 bg-pink-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}} aria-hidden="true"></div>
                 </div>
               </div>
@@ -295,7 +295,7 @@ export default function Home() {
                 <aside className="w-full lg:w-80 flex-shrink-0">
                   <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:sticky lg:top-8 border border-gray-200">
                     <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center">
-                      <span className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3">
+                      <span className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3">
                         <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                       </span>
                       Your Progress
@@ -356,7 +356,7 @@ export default function Home() {
                             <p className="text-xs text-gray-600">{selectedPapers.length} selected</p>
                           </div>
                         </div>
-                        <div className="px-3 sm:px-4 py-2 bg-purple-50 text-purple-700 rounded-lg text-xs sm:text-sm">
+                        <div className="px-3 sm:px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs sm:text-sm">
                           Select papers
                         </div>
                       </div>
@@ -378,7 +378,7 @@ export default function Home() {
                           onClick={() => document.getElementById('references-section')?.scrollIntoView({ behavior: 'smooth' })}
                           className={`w-full text-left px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${
                             selectedPapers.length > 0 
-                              ? 'bg-purple-50 hover:bg-purple-100 text-purple-700' 
+                              ? 'bg-blue-50 hover:bg-blue-100 text-blue-700' 
                               : 'bg-gray-100 text-gray-400 cursor-not-allowed'
                           }`}
                           disabled={selectedPapers.length === 0}
@@ -502,7 +502,7 @@ export default function Home() {
                   {/* References Generator Section */}
                   <article id="references-section" className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
                     <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
                         <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                       </div>
                       <div>
@@ -641,7 +641,7 @@ export default function Home() {
                         <span className="text-gray-600 ml-2">- Journal articles and DOIs from publishers worldwide</span>
                       </div>
                       <div className="flex items-center">
-                        <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
                         <a 
                           href="https://pubmed.ncbi.nlm.nih.gov" 
                           target="_blank" 
