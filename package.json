@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@xenova/transformers": "^2.15.1",
     "@types/multer": "^1.4.11",
     "@types/node": "^20",
     "@types/react": "^18",

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
+import { embedText, cosineSimilarity } from '@/lib/embeddings'
 
 interface Citation {
   id: string
@@ -365,27 +366,70 @@ async function findRelatedPapersFromStatements(statements: StatementWithPosition
       )
       
       console.log('🔍 Total unique results found:', uniqueResults.length)
-      
-      // Take all results per statement
-      for (const result of uniqueResults) {
+
+      const scoredResults = await Promise.all(
+        uniqueResults.map(async (result) => {
+          const semanticSimilarity = await getSemanticSimilarity(statement.text, result)
+          const overlapScore = calculateStatementOverlapScore(statement.text, result)
+          const combinedScore = Math.max(Math.round(semanticSimilarity * 100), Math.round(overlapScore))
+
+          return {
+            result,
+            semanticSimilarity,
+            overlapScore,
+            combinedScore
+          }
+        })
+      )
+
+      const rankedResults = scoredResults
+        .sort((a, b) => {
+          if (b.semanticSimilarity !== a.semanticSimilarity) {
+            return b.semanticSimilarity - a.semanticSimilarity
+          }
+          return b.combinedScore - a.combinedScore
+        })
+
+      const filteredResults = rankedResults
+        .filter((item, index) => {
+          if (item.semanticSimilarity >= 0.2) {
+            return true
+          }
+
+          if (index === 0 && rankedResults.length > 0) {
+            return item.combinedScore >= 25
+          }
+
+          return item.combinedScore >= 35
+        })
+        .slice(0, 6)
+
+      const selectedResults = filteredResults.length > 0
+        ? filteredResults
+        : rankedResults.slice(0, Math.min(rankedResults.length, 2))
+
+      for (const { result, semanticSimilarity, overlapScore, combinedScore } of selectedResults) {
         const authors = result.authors.join(', ')
         const year = result.year
-        
-        // Calculate relevance score based on statement-paper matching
-        const relevanceScore = calculateStatementRelevance(statement.text, result)
-        
-        // Extract supporting quote from abstract
+
+        result.similarity = combinedScore
+
         const supportingQuote = extractSupportingQuote(statement.text, result.abstract)
-        
+
+        const semanticConfidence = semanticSimilarity > 0 ? 0.55 + semanticSimilarity * 0.4 : 0
+        const overlapConfidence = overlapScore > 0 ? 0.5 + (overlapScore / 100) * 0.25 : 0
+        const rawConfidence = Math.max(semanticConfidence, overlapConfidence, 0.55)
+        const confidence = Math.min(rawConfidence, 0.95)
+
         citations.push({
           id: `discovered-${idCounter++}`,
           text: `${authors} (${year}). ${result.title}.`,
           authors,
           year,
           title: result.title,
-          confidence: Math.min(0.85 + (relevanceScore * 0.1), 0.95), // Dynamic confidence based on relevance
-          statement: statement.text, // Add the original statement for context
-          supportingQuote: supportingQuote || result.abstract // Use abstract as fallback
+          confidence,
+          statement: statement.text,
+          supportingQuote: supportingQuote || result.abstract
         })
       }
     } catch (error) {
@@ -804,7 +848,7 @@ async function searchPubMed(query: string): Promise<RelatedPaper[]> {
 }
 
 // Calculate similarity score between search query and paper content
-function calculateSimilarityScore(searchQuery: string, paper: RelatedPaper): number {
+function calculateLexicalSimilarityScore(searchQuery: string, paper: RelatedPaper): number {
   const query = searchQuery.toLowerCase();
   const title = paper.title.toLowerCase();
   const abstract = paper.abstract.toLowerCase();
@@ -874,8 +918,48 @@ function calculateSimilarityScore(searchQuery: string, paper: RelatedPaper): num
   return Math.min(percentage, 100);
 }
 
+async function getSemanticSimilarity(text: string, paper: RelatedPaper): Promise<number> {
+  if (!text || !paper.title) {
+    return 0
+  }
+
+  try {
+    const abstractText = (paper.abstract || '').trim()
+    const useTitleOnly = abstractText.length < 40 || /no abstract available/i.test(abstractText)
+    const paperText = useTitleOnly ? paper.title : `${paper.title}. ${abstractText}`
+
+    const [textEmbedding, paperEmbedding] = await Promise.all([
+      embedText(text),
+      embedText(paperText)
+    ])
+
+    if (textEmbedding.length === 0 || paperEmbedding.length === 0) {
+      return 0
+    }
+
+    const similarity = cosineSimilarity(textEmbedding, paperEmbedding)
+
+    if (!Number.isFinite(similarity)) {
+      return 0
+    }
+
+    return Math.max(similarity, 0)
+  } catch (error) {
+    console.error('❌ Semantic similarity computation failed:', error)
+    return 0
+  }
+}
+
+async function calculateSimilarityScore(searchQuery: string, paper: RelatedPaper): Promise<number> {
+  const semanticSimilarity = await getSemanticSimilarity(searchQuery, paper)
+  const semanticScore = Math.round(semanticSimilarity * 100)
+  const lexicalScore = Math.round(calculateLexicalSimilarityScore(searchQuery, paper))
+
+  return Math.max(semanticScore, lexicalScore)
+}
+
 // Calculate relevance score based on statement-paper matching
-function calculateStatementRelevance(statement: string, paper: RelatedPaper): number {
+function calculateStatementOverlapScore(statement: string, paper: RelatedPaper): number {
   const statementTerms = extractKeyTermsFromStatement(statement).toLowerCase().split(' ');
   const paperTitleTerms = paper.title.toLowerCase().split(' ');
   const paperAbstractTerms = paper.abstract.toLowerCase().split(' ');
@@ -972,15 +1056,19 @@ async function searchRelatedPapers(citations: Citation[], statements: StatementW
 
       for (const paper of results) {
         if (!seenTitles.has(paper.title.toLowerCase()) && allPapers.length < 6) {
+          const similarityScore = await calculateSimilarityScore(searchQuery, paper)
+
+          if (similarityScore < 15) {
+            continue
+          }
+
           seenTitles.add(paper.title.toLowerCase())
-          
-          const similarityScore = calculateSimilarityScore(searchQuery, paper);
-          paper.similarity = similarityScore;
-          console.log('📊 Similarity score for', paper.title.substring(0, 50), ':', similarityScore + '%');
-          
+          paper.similarity = similarityScore
+
+          console.log('📊 Similarity score for', paper.title.substring(0, 50), ':', similarityScore + '%')
           console.log('📄 Existing citation paper:', paper.title.substring(0, 50))
           console.log('📊 Similarity score:', similarityScore)
-          
+
           allPapers.push(paper)
         }
       }
