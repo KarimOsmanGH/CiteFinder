@@ -12,13 +12,7 @@ import { RelatedPaper, Citation, StatementWithPosition } from '@/types'
 interface ProcessResponse {
   citations: Citation[]
   relatedPapers: RelatedPaper[]
-  originalText?: string
-  statementsWithPositions?: Array<{
-    text: string
-    startIndex: number
-    endIndex: number
-    confidence: number
-  }>
+  statementsWithPositions?: StatementWithPosition[]
   textLength: number
   pages: number
   pdfUrl?: string
@@ -35,7 +29,6 @@ export default function Home() {
   const [pdfUrl, setPdfUrl] = useState<string>('')
   const [fileName, setFileName] = useState<string>('')
   const [statementsFound, setStatementsFound] = useState<string[]>([])
-  const [originalText, setOriginalText] = useState<string>('')
   const [statementsWithPositions, setStatementsWithPositions] = useState<StatementWithPosition[]>([])
   const [existingCitationsCount, setExistingCitationsCount] = useState<number>(0)
   const [discoveredCitationsCount, setDiscoveredCitationsCount] = useState<number>(0)
@@ -66,7 +59,6 @@ export default function Home() {
       setCitations(data.citations)
       setRelatedPapers(data.relatedPapers)
       setStatementsFound(data.statementsFound || [])
-      setOriginalText(data.originalText || '')
       setStatementsWithPositions(data.statementsWithPositions || [])
       setExistingCitationsCount(data.existingCitationsCount || 0)
       setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
@@ -123,6 +115,7 @@ export default function Home() {
       setCitations(data.citations || [])
       setRelatedPapers(data.relatedPapers || [])
       setStatementsFound(data.statementsFound || [])
+      setStatementsWithPositions(data.statementsWithPositions || [])
       setExistingCitationsCount(data.existingCitationsCount || 0)
       setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
       setPdfUrl('')
@@ -414,7 +407,7 @@ export default function Home() {
                   
                   {/* Interactive Content View Section for both PDF and Text */}
                   <div id="statements-section">
-                    {(searchMode === 'pdf' || searchMode === 'text') && originalText && statementsWithPositions.length > 0 && (
+                    {(searchMode === 'pdf' || searchMode === 'text') && statementsWithPositions.length > 0 && (
                       <article className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
                         <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
                           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
@@ -428,17 +421,14 @@ export default function Home() {
                           </div>
                         </header>
                         <InteractiveText 
-                          originalText={originalText}
                           statementsWithPositions={statementsWithPositions}
                           relatedPapers={relatedPapers}
-                          selectedPapers={selectedPapers}
-                          onPaperSelection={handlePaperSelection}
                         />
                       </article>
                     )}
 
                     {/* Extracted Statements Section for Text Input without highlights */}
-                    {searchMode === 'text' && (!originalText || statementsWithPositions.length === 0) && (
+                    {searchMode === 'text' && statementsWithPositions.length === 0 && (
                       <article className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
                         <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
                           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
