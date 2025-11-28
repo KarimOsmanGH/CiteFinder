@@ -82,19 +82,19 @@ interface StatementWithPosition {
   startIndex: number
   endIndex: number
   confidence: number
+  contextBefore?: string
+  contextAfter?: string
+  snippet?: string
 }
 
 // Extract statements/claims that need academic backing
 function extractStatements(text: string): StatementWithPosition[] {
   const statements: StatementWithPosition[] = []
   
-  console.log('🔍 extractStatements called with text length:', text.length)
-  console.log('🔍 Text preview:', text.substring(0, 300))
   
   // OPTIMIZATION: Limit text size to prevent timeout on very large documents
   const maxTextLength = 8000 // Increased from 5000 to capture more content
   const processedText = text.length > maxTextLength ? text.substring(0, maxTextLength) : text
-  console.log('🔍 Processing text length (limited):', processedText.length)
   
   // Better text normalization for academic papers
   let normalized = processedText
@@ -105,15 +105,11 @@ function extractStatements(text: string): StatementWithPosition[] {
     .replace(/\s+/g, ' ') // Normalize whitespace
     .trim()
 
-  console.log('🔍 After normalization, text length:', normalized.length)
-  console.log('🔍 Normalized text preview:', normalized.substring(0, 200))
 
   if (!normalized.trim()) {
-    console.log('🔍 Normalization removed everything, using original text')
     normalized = processedText
   }
 
-  console.log('🔍 Normalized text preview:', normalized.substring(0, 300))
   
   // Better sentence splitting for academic text
   let candidates = normalized
@@ -132,14 +128,16 @@ function extractStatements(text: string): StatementWithPosition[] {
     candidates = [processedText.trim()]
   }
   
-  // Increased candidate limit for better coverage
-  if (candidates.length > 15) {
-    console.log('🔍 Limiting candidates from', candidates.length, 'to 15')
-    candidates = candidates.slice(0, 15)
+  const maxCandidates = 60
+  if (candidates.length > maxCandidates) {
+    const step = Math.ceil(candidates.length / maxCandidates)
+    const sampled: string[] = []
+    for (let i = 0; i < candidates.length && sampled.length < maxCandidates; i += step) {
+      sampled.push(candidates[i])
+    }
+    candidates = sampled
   }
   
-  console.log('🔍 Total candidates found:', candidates.length)
-  console.log('🔍 First few candidates:', candidates.slice(0, 5))
   
   // Enhanced factual statement patterns - focus on claims that need academic support
   const factualPatterns = [
@@ -223,7 +221,6 @@ function extractStatements(text: string): StatementWithPosition[] {
             endIndex: endIndex,
             confidence: 0.8
           })
-          console.log('✅ Statement found:', cleanStatement.substring(0, 100))
         }
         break
       }
@@ -231,18 +228,12 @@ function extractStatements(text: string): StatementWithPosition[] {
     
     // Log unmatched sentences for debugging
     if (!patternMatched && processedCount <= 10) {
-      console.log('❌ No pattern matched for:', sentence.substring(0, 100))
     }
   }
 
-  console.log('🔍 Processing summary:')
-  console.log('  - Total candidates processed:', processedCount)
-  console.log('  - Candidates skipped:', skippedCount)
-  console.log('  - Statements found:', statements.length)
 
   // Enhanced fallback logic
   if (statements.length === 0) {
-    console.log('🔍 No statements found, trying enhanced fallback...')
     
     // First fallback: Look for sentences with academic keywords
     const academicKeywords = /\b(?:study|research|analysis|method|result|conclusion|finding|data|experiment|test|evaluation|assessment|investigation)\b/gi
@@ -264,12 +255,10 @@ function extractStatements(text: string): StatementWithPosition[] {
         endIndex: endIndex,
         confidence: 0.7
       })
-      console.log('✅ Academic fallback statement:', withPunct.substring(0, 100))
     }
     
     // Second fallback: Look for any substantial sentences
     if (statements.length === 0) {
-      console.log('🔍 No academic statements, trying general fallback...')
       const substantialSentences = candidates
         .filter(s => 
           s.length >= 35 && 
@@ -290,14 +279,12 @@ function extractStatements(text: string): StatementWithPosition[] {
           endIndex: endIndex,
           confidence: 0.6
         })
-        console.log('✅ General fallback statement:', withPunct.substring(0, 100))
       }
     }
   }
 
   // Ultimate fallback: if still nothing, use the processed text
   if (statements.length === 0 && processedText.trim().length > 20) {
-    console.log('🔍 Ultimate fallback: using processed text as statement')
     let userStatement = processedText.trim()
     if (userStatement.length > 300) {
       userStatement = userStatement.substring(0, 300) + '...'
@@ -314,17 +301,28 @@ function extractStatements(text: string): StatementWithPosition[] {
       endIndex: endIndex,
       confidence: 0.5
     })
-    console.log('✅ Ultimate fallback statement:', userStatement.substring(0, 100))
   }
 
   // Remove duplicates and return results
   const uniqueStatements = statements.filter((s, i, arr) => 
     arr.findIndex(item => item.text === s.text) === i
   )
-  const finalStatements = uniqueStatements // Process all statements
+  const contextRadius = 200
+  const finalStatements = uniqueStatements.map((statement) => {
+    const start = Math.max(0, statement.startIndex - contextRadius)
+    const end = Math.min(text.length, statement.endIndex + contextRadius)
+    const snippet = text.slice(start, end)
+    const beforeLength = Math.max(statement.startIndex - start, 0)
+    const contextBefore = snippet.slice(0, beforeLength)
+    const contextAfter = snippet.slice(beforeLength + statement.text.length)
 
-  console.log('🔍 Final statements:', finalStatements.length)
-  console.log('🔍 Final statements:', finalStatements.map(s => s.text.substring(0, 80)))
+    return {
+      ...statement,
+      contextBefore,
+      contextAfter,
+      snippet
+    }
+  })
 
   return finalStatements
 }
@@ -336,15 +334,12 @@ async function findRelatedPapersFromStatements(statements: StatementWithPosition
   
   // Process all statements
   const limitedStatements = statements
-  console.log('🔍 Processing statements for paper search:', limitedStatements.length, 'out of', statements.length)
   
   for (const statement of limitedStatements) {
     try {
-      console.log('🔍 Searching for statement:', statement.text.substring(0, 80))
       
       // Extract key terms from the statement for better search
       const keyTerms = extractKeyTermsFromStatement(statement.text)
-      console.log('🔍 Key terms extracted:', keyTerms)
       
       // IMPROVEMENT: Search 4 databases for better coverage (including PubMed)
       const searchPromises = [
@@ -365,7 +360,6 @@ async function findRelatedPapersFromStatements(statements: StatementWithPosition
         index === self.findIndex(r => r.title.toLowerCase() === result.title.toLowerCase())
       )
       
-      console.log('🔍 Total unique results found:', uniqueResults.length)
 
       const scoredResults = await Promise.all(
         uniqueResults.map(async (result) => {
@@ -433,7 +427,7 @@ async function findRelatedPapersFromStatements(statements: StatementWithPosition
         })
       }
     } catch (error) {
-      console.error(`Error searching for statement "${statement.text}":`, error)
+      console.error('Error searching for statement batch:', error)
     }
   }
   
@@ -614,7 +608,6 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
     ]
     
     for (const query of searchQueries) {
-      console.log('🔍 Trying ArXiv search:', query.substring(0, 60))
       
       const response = await axios.get('http://export.arxiv.org/api/query', {
         params: {
@@ -634,7 +627,6 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
       const entryMatches = xmlText.match(/<entry>([\s\S]*?)<\/entry>/g);
       
       if (entryMatches && entryMatches.length > 0) {
-        console.log('🔍 ArXiv found', entryMatches.length, 'entries with query:', query.substring(0, 40))
         
         for (const entry of entryMatches) {
           if (papers.length >= 8) break;
@@ -677,13 +669,11 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
         
         // If we found papers with this query, return them
         if (papers.length > 0) {
-          console.log('✅ ArXiv returning', papers.length, 'papers')
           return papers;
         }
       }
     }
     
-    console.log('⚠️ ArXiv found no papers with any search strategy')
     return [];
   } catch (error) {
     console.error('ArXiv API error:', error);
@@ -693,7 +683,6 @@ async function searchArxiv(searchQuery: string): Promise<RelatedPaper[]> {
 
 // Search OpenAlex API
 async function searchOpenAlex(query: string): Promise<RelatedPaper[]> {
-  console.log('🔍 Searching OpenAlex for:', query.substring(0, 50))
   try {
     const response = await axios.get('https://api.openalex.org/works', {
       params: {
@@ -707,7 +696,6 @@ async function searchOpenAlex(query: string): Promise<RelatedPaper[]> {
     const papers: RelatedPaper[] = []
     const results = response.data.results || []
 
-    console.log('🔍 OpenAlex found:', results.length, 'papers')
 
     for (const work of results) {
       const authors = work.authorships ? work.authorships.map((a: any) => a.author?.display_name || 'Unknown Author') : ['Unknown Author']
@@ -733,7 +721,6 @@ async function searchOpenAlex(query: string): Promise<RelatedPaper[]> {
       })
     }
 
-    console.log('🔍 OpenAlex papers processed:', papers.length)
     return papers
   } catch (error) {
     console.error('❌ OpenAlex search failed:', error instanceof Error ? error.message : String(error))
@@ -743,7 +730,6 @@ async function searchOpenAlex(query: string): Promise<RelatedPaper[]> {
 
 // Search CrossRef API
 async function searchCrossRef(query: string): Promise<RelatedPaper[]> {
-  console.log('🔍 Searching CrossRef for:', query.substring(0, 50))
   try {
     const response = await axios.get('https://api.crossref.org/works', {
       params: {
@@ -760,7 +746,6 @@ async function searchCrossRef(query: string): Promise<RelatedPaper[]> {
     const papers: RelatedPaper[] = []
     const items = response.data.message?.items || []
 
-    console.log('🔍 CrossRef found:', items.length, 'papers')
 
     for (const item of items) {
       if (item.title && item.title[0]) {
@@ -779,7 +764,6 @@ async function searchCrossRef(query: string): Promise<RelatedPaper[]> {
       }
     }
 
-    console.log('🔍 CrossRef papers processed:', papers.length)
     return papers
   } catch (error) {
     console.error('❌ CrossRef search failed:', error instanceof Error ? error.message : String(error))
@@ -789,7 +773,6 @@ async function searchCrossRef(query: string): Promise<RelatedPaper[]> {
 
 // Search PubMed API
 async function searchPubMed(query: string): Promise<RelatedPaper[]> {
-  console.log('🔍 Searching PubMed for:', query.substring(0, 50))
   try {
     const response = await axios.get('https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi', {
       params: {
@@ -805,7 +788,6 @@ async function searchPubMed(query: string): Promise<RelatedPaper[]> {
     const papers: RelatedPaper[] = []
     const idList = response.data.esearchresult?.idlist || []
 
-    console.log('🔍 PubMed found:', idList.length, 'papers')
 
     if (idList.length > 0) {
       const ids = idList.slice(0, 10).join(',')
@@ -839,7 +821,6 @@ async function searchPubMed(query: string): Promise<RelatedPaper[]> {
       }
     }
 
-    console.log('🔍 PubMed papers processed:', papers.length)
     return papers
   } catch (error) {
     console.error('❌ PubMed search failed:', error instanceof Error ? error.message : String(error))
@@ -993,8 +974,6 @@ async function searchRelatedPapers(citations: Citation[], statements: StatementW
   const allPapers: RelatedPaper[] = []
   const seenTitles = new Set<string>()
 
-  console.log('🔍 searchRelatedPapers called with citations:', citations.length)
-  console.log('📝 Citations:', citations.map(c => ({ 
     title: c.title, 
     authors: c.authors, 
     text: c.text?.substring(0, 50), 
@@ -1005,9 +984,6 @@ async function searchRelatedPapers(citations: Citation[], statements: StatementW
   const discoveredCitations = citations.filter(c => c.statement)
   const existingCitations = citations.filter(c => !c.statement)
 
-  console.log('🔍 Discovered citations with statements:', discoveredCitations.length)
-  console.log('🔍 Existing citations without statements:', existingCitations.length)
-  console.log('🔍 Statements to match papers against:', statements.length)
 
   // Process discovered citations first - these already have papers associated with statements
   for (const citation of discoveredCitations) {
@@ -1029,9 +1005,6 @@ async function searchRelatedPapers(citations: Citation[], statements: StatementW
     if (!seenTitles.has(paper.title.toLowerCase())) {
       seenTitles.add(paper.title.toLowerCase())
       allPapers.push(paper)
-      console.log('📄 Discovered citation paper:', paper.title.substring(0, 50))
-      console.log('📊 Similarity score:', paper.similarity)
-      console.log('📝 Associated statement:', paper.statement?.substring(0, 50))
     }
   }
 
@@ -1040,7 +1013,6 @@ async function searchRelatedPapers(citations: Citation[], statements: StatementW
     const searchQuery = citation.title || citation.authors || citation.text.substring(0, 100)
     if (!searchQuery || allPapers.length >= 6) continue // Cap at 6 total papers
 
-    console.log('🔍 Searching for existing citation:', searchQuery.substring(0, 50))
 
     try {
       const [arxivResults, openAlexResults, crossrefResults, pubmedResults] = await Promise.allSettled([
@@ -1065,9 +1037,6 @@ async function searchRelatedPapers(citations: Citation[], statements: StatementW
           seenTitles.add(paper.title.toLowerCase())
           paper.similarity = similarityScore
 
-          console.log('📊 Similarity score for', paper.title.substring(0, 50), ':', similarityScore + '%')
-          console.log('📄 Existing citation paper:', paper.title.substring(0, 50))
-          console.log('📊 Similarity score:', similarityScore)
 
           allPapers.push(paper)
         }
@@ -1077,16 +1046,11 @@ async function searchRelatedPapers(citations: Citation[], statements: StatementW
     }
   }
 
-  console.log('📊 Final results:')
-  console.log('  - Total papers found:', allPapers.length)
-  console.log('  - Papers with similarity scores:', allPapers.map(p => ({ title: p.title.substring(0, 30), similarity: p.similarity })))
 
   // Sort by similarity score (highest first) and return all papers
   const finalResults = allPapers
     .sort((a, b) => b.similarity - a.similarity)
 
-  console.log('📊 Final sorted results:', finalResults.length)
-  console.log('📊 Similarity range:', finalResults.length > 0 ? `${Math.min(...finalResults.map(p => p.similarity))}% - ${Math.max(...finalResults.map(p => p.similarity))}%` : 'No results')
 
   return finalResults
 }
@@ -1132,24 +1096,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('📝 Processing text input, length:', text.length)
-    console.log('📝 Text preview:', text.substring(0, 200))
 
     // First, try to extract existing citations
     const existingCitations = extractCitations(text)
-    console.log('📚 Existing citations found:', existingCitations.length)
     
     // Then, analyze content and find related papers
     const statements = extractStatements(text)
-    console.log('💬 Statements extracted:', statements.length)
-    console.log('💬 Statements:', statements.map(s => s.text.substring(0, 100)))
     
     const discoveredCitations = await findRelatedPapersFromStatements(statements)
-    console.log('🔍 Discovered citations from statements:', discoveredCitations.length)
     
     // Combine all citations
     const allCitations = [...existingCitations, ...discoveredCitations]
-    console.log('📚 Total citations (existing + discovered):', allCitations.length)
     
     // Search for related papers
     const relatedPapers = await searchRelatedPapers(allCitations, statements)
@@ -1160,18 +1117,11 @@ export async function POST(request: NextRequest) {
       paper.abstract.trim().length > 0 && 
       !paper.abstract.toLowerCase().includes('no abstract available')
     )
-    console.log('📄 Related papers found:', relatedPapers.length)
-    console.log('📄 Papers with valid abstracts:', papersWithAbstract.length)
     
-    console.log('✅ Final response prepared:')
-    console.log('  - Citations:', allCitations.length)
-    console.log('  - Related papers:', relatedPapers.length)
-    console.log('  - Statements:', statements.length)
 
     return NextResponse.json({
       citations: allCitations,
       relatedPapers: papersWithAbstract,
-      originalText: text, // Include original text for highlighting
       statementsWithPositions: statements, // Include full statement objects with positions
       textLength: text.length,
       pages: Math.ceil(text.length / 2000),

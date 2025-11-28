@@ -155,6 +155,7 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
   
   // Show all papers without limitations
   const limitedPapers = processedPapers
+  const generalPapers = limitedPapers.filter(paper => !paper.statement)
   
   
   // Show content when we have papers to display
@@ -386,6 +387,159 @@ export default function RelatedPapers({ papers, statementsFound = [], selectedPa
             })()}
           </div>
         ))}
+
+        {generalPapers.length > 0 && (
+          <div className="space-y-4">
+            <div className="relative overflow-hidden rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-100 to-emerald-50 p-4 sm:p-6 lg:p-8 shadow-lg">
+              <div className="absolute -top-8 -right-8 w-24 h-24 bg-gradient-to-br from-emerald-400 to-emerald-400 opacity-10 rounded-full" aria-hidden="true"></div>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                  <BookOpen className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold text-emerald-900 tracking-wide uppercase">General supporting papers</h3>
+                  <p className="text-sm sm:text-base text-emerald-800">
+                    These papers are relevant but were not matched to a specific statement yet
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white border-2 border-gray-200 rounded-xl overflow-hidden shadow-lg">
+              <div className="hidden md:grid md:grid-cols-12 bg-gradient-to-r from-gray-200 to-gray-100 border-b-2 border-gray-400 px-4 py-3 font-semibold text-gray-800 text-sm">
+                <div className="col-span-1 flex items-center justify-center">Select</div>
+                <div className="col-span-5">Title</div>
+                <div className="col-span-2 text-center">Year</div>
+                <div className="col-span-2 text-center">Match</div>
+                <div className="col-span-2 text-center">Actions</div>
+              </div>
+
+              <div className="overflow-y-auto max-h-[600px]">
+                {generalPapers.map((paper) => {
+                  const isSelected = selectedPapers.some(p => p.id === paper.id)
+                  const supportingQuote = paper.supportingQuote
+
+                  return (
+                    <div
+                      key={paper.id}
+                      className={`border-b border-gray-200 last:border-b-0 transition-all duration-200 ${
+                        isSelected ? 'bg-green-50' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="hidden md:grid md:grid-cols-12 px-4 py-4 items-center gap-4">
+                        <div className="col-span-1 flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
+                            className="w-5 h-5 text-green-600 bg-white border-2 border-gray-300 rounded focus:ring-green-500 focus:ring-2 hover:bg-green-50 transition-colors cursor-pointer"
+                            title={isSelected ? "Remove from references" : "Add to references"}
+                          />
+                        </div>
+
+                        <div className="col-span-5">
+                          <h4 className="font-bold text-gray-900 text-sm leading-tight line-clamp-3">
+                            {paper.title}
+                          </h4>
+                        </div>
+
+                        <div className="col-span-2 text-center">
+                          <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
+                            {paper.year}
+                          </span>
+                        </div>
+
+                        <div className="col-span-2 text-center">
+                          <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">
+                            {paper.similarity}%
+                          </span>
+                        </div>
+
+                        <div className="col-span-2 flex justify-center gap-2">
+                          {paper.url && (
+                            <a
+                              href={paper.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-3 py-1 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
+                              title="Open paper"
+                            >
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              View
+                            </a>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="md:hidden p-4 space-y-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3 flex-1">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
+                              className="w-5 h-5 mt-1 text-green-600 bg-white border-2 border-gray-300 rounded focus:ring-green-500 focus:ring-2 hover:bg-green-50 transition-colors cursor-pointer flex-shrink-0"
+                              title={isSelected ? "Remove from references" : "Add to references"}
+                            />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="font-bold text-gray-900 text-sm mb-2 leading-tight">
+                                {paper.title}
+                              </h4>
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-semibold rounded">
+                                  {paper.year}
+                                </span>
+                                <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 text-xs font-bold rounded">
+                                  {paper.similarity}% match
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {supportingQuote && (
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div className="flex items-center mb-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 mr-2 flex-shrink-0" />
+                              <p className="text-xs font-bold text-green-800">Evidence</p>
+                            </div>
+                            <p className="text-xs text-green-700 italic leading-relaxed">"{supportingQuote}"</p>
+                          </div>
+                        )}
+
+                        {paper.url && (
+                          <div className="flex justify-end">
+                            <a
+                              href={paper.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center px-3 py-2 text-xs font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors"
+                            >
+                              <ExternalLink className="w-3 h-3 mr-1" />
+                              {paper.url.includes('doi.org') ? 'View DOI' : 'Open Paper'}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+
+                      {supportingQuote && (
+                        <div className="hidden md:block px-4 pb-4 pt-0">
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                            <div className="flex items-center mb-2">
+                              <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
+                              <p className="text-xs font-bold text-green-800">Supporting Evidence</p>
+                            </div>
+                            <p className="text-xs text-green-700 italic leading-relaxed">"{supportingQuote}"</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* Enhanced Summary Footer - Mobile Responsive */}
         <div className="bg-gradient-to-r from-gray-100 to-blue-100 border-2 border-gray-300 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8">

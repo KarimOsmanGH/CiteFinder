@@ -26,4 +26,7 @@ export interface StatementWithPosition {
   startIndex: number
   endIndex: number
   confidence: number
+  contextBefore?: string
+  contextAfter?: string
+  snippet?: string
 } 
