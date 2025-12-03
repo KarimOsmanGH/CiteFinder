@@ -3,6 +3,8 @@ import './globals.css'
 import Footer from '@/components/Footer'
 import { Providers } from './providers'
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://citefinder.app'
+
 export const metadata: Metadata = {
   title: 'Academic Source Finder | Statements, Sources, and Citations',
   description: "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
@@ -27,7 +29,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://citefinder.app'),
+  metadataBase: new URL(siteUrl),
   alternates: {
     canonical: '/',
   },
@@ -65,17 +67,11 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'your-google-verification-code',
-    yandex: 'your-yandex-verification-code',
-    yahoo: 'your-yahoo-verification-code',
-  },
   icons: {
     icon: [
       { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: 'any' }
     ],
-    apple: '/apple-touch-icon.png',
   }
 }
 
@@ -89,9 +85,7 @@ export default function RootLayout({
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
         <link rel="manifest" href="/site.webmanifest" />
         <meta name="theme-color" content="#667eea" />
         
@@ -104,7 +98,7 @@ export default function RootLayout({
               "@type": "WebApplication",
               "name": "Academic Source Finder",
               "description": "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
-              "url": "https://citefinder.app",
+              "url": siteUrl,
               "applicationCategory": "EducationalApplication",
               "operatingSystem": "Web Browser",
               "offers": {
@@ -128,4 +122,4 @@ export default function RootLayout({
       </body>
     </html>
   )
-} 
+}

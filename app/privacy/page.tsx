@@ -275,7 +275,7 @@ export default function PrivacyPage() {
             <h2 className="text-3xl font-bold text-gray-900 mb-6">Changes to This Policy</h2>
             
             <p className="text-gray-700 leading-relaxed">
-              We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new Privacy Policy on this page and updating the "Last updated" date. We encourage you to review this Privacy Policy periodically for any changes.
+              We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new Privacy Policy on this page and updating the &ldquo;Last updated&rdquo; date. We encourage you to review this Privacy Policy periodically for any changes.
             </p>
           </section>
         </div>

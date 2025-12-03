@@ -1,3 +1,5 @@
+// Centralized type definitions for CiteFinder
+
 export interface RelatedPaper {
   id: string
   title: string
@@ -29,4 +31,17 @@ export interface StatementWithPosition {
   contextBefore?: string
   contextAfter?: string
   snippet?: string
-} 
+}
+
+export interface ProcessResponse {
+  citations: Citation[]
+  relatedPapers: RelatedPaper[]
+  statementsWithPositions?: StatementWithPosition[]
+  textLength: number
+  pages: number
+  pdfUrl?: string
+  fileName?: string
+  statementsFound?: string[]
+  existingCitationsCount?: number
+  discoveredCitationsCount?: number
+}
