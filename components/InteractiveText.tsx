@@ -40,7 +40,6 @@ export default function InteractiveText({
         <div className="space-y-4 max-h-[28rem] overflow-y-auto pr-1">
           {sortedStatements.map((statement, index) => {
             const supportingPapers = relatedPapers.filter(paper => paper.statement === statement.text)
-            const snippetAvailable = statement.contextBefore || statement.contextAfter || statement.snippet
             
             return (
               <article
@@ -62,20 +61,13 @@ export default function InteractiveText({
                 </div>
 
                 <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
-                  {snippetAvailable ? (
-                    <p className="text-sm text-gray-800 leading-relaxed">
-                      {statement.contextBefore && <span>{statement.contextBefore}</span>}
-                      <mark className="bg-yellow-100 px-1 py-0.5 rounded text-gray-900 font-semibold">
-                        {statement.text}
-                      </mark>
-                      {statement.contextAfter && <span>{statement.contextAfter}</span>}
-                      {!statement.contextBefore && !statement.contextAfter && statement.snippet && (
-                        <span>{statement.snippet}</span>
-                      )}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-gray-800 leading-relaxed">{statement.text}</p>
-                  )}
+                  <p className="text-sm text-gray-800 leading-relaxed">
+                    {statement.contextBefore && <span>{statement.contextBefore}</span>}
+                    <mark className="bg-yellow-100 px-1 py-0.5 rounded text-gray-900 font-semibold">
+                      {statement.text}
+                    </mark>
+                    {statement.contextAfter && <span>{statement.contextAfter}</span>}
+                  </p>
                 </div>
 
                 {supportingPapers.length > 0 ? (
