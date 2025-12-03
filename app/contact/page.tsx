@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Mail, MessageSquare, Github, Twitter, Linkedin, Send, MapPin, Phone } from 'lucide-react'
+import { Mail, MessageSquare, Github, Twitter, Linkedin, Send } from 'lucide-react'
 import Link from 'next/link'
 
 export default function ContactPage() {
@@ -21,7 +21,6 @@ export default function ContactPage() {
     // Simulate form submission
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    // For now, just show success message
     setSubmitStatus('success')
     setIsSubmitting(false)
     
@@ -43,8 +42,8 @@ export default function ContactPage() {
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-blue-100">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-pink-400/20 to-orange-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-blue-600/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-blue-400/20 to-blue-500/20 rounded-full blur-3xl" />
       </div>
 
       <div className="relative container mx-auto px-4 py-12">
@@ -54,23 +53,23 @@ export default function ContactPage() {
             Get in Touch
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Have questions, feedback, or want to collaborate? We'd love to hear from you. 
+            Have questions, feedback, or want to collaborate? We&apos;d love to hear from you. 
             Our team is here to help with any academic research needs.
           </p>
         </header>
 
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-12">
           {/* Contact Information */}
-          <section className="space-y-8">
+          <section className="space-y-8" aria-labelledby="contact-info-heading">
             <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              <h2 id="contact-info-heading" className="text-2xl font-bold text-gray-900 mb-6">
                 Contact Information
               </h2>
               
               <div className="space-y-6">
                 <div className="flex items-start">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                    <Mail className="w-5 h-5 text-blue-600" />
+                    <Mail className="w-5 h-5 text-blue-600" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Email</h3>
@@ -81,7 +80,7 @@ export default function ContactPage() {
                 
                 <div className="flex items-start">
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-4">
-                    <MessageSquare className="w-5 h-5 text-green-600" />
+                    <MessageSquare className="w-5 h-5 text-green-600" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">Discord Community</h3>
@@ -92,7 +91,7 @@ export default function ContactPage() {
                 
                 <div className="flex items-start">
                   <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4">
-                    <Github className="w-5 h-5 text-blue-600" />
+                    <Github className="w-5 h-5 text-blue-600" aria-hidden="true" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900">GitHub</h3>
@@ -115,9 +114,9 @@ export default function ContactPage() {
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors"
-                  aria-label="Twitter"
+                  aria-label="Follow us on Twitter"
                 >
-                  <Twitter className="w-5 h-5 text-blue-600" />
+                  <Twitter className="w-5 h-5 text-blue-600" aria-hidden="true" />
                 </a>
                 
                 <a 
@@ -125,9 +124,9 @@ export default function ContactPage() {
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center hover:bg-blue-200 transition-colors"
-                  aria-label="LinkedIn"
+                  aria-label="Connect on LinkedIn"
                 >
-                  <Linkedin className="w-5 h-5 text-blue-600" />
+                  <Linkedin className="w-5 h-5 text-blue-600" aria-hidden="true" />
                 </a>
                 
                 <a 
@@ -135,22 +134,20 @@ export default function ContactPage() {
                   target="_blank" 
                   rel="noopener noreferrer"
                   className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center hover:bg-gray-200 transition-colors"
-                  aria-label="GitHub"
+                  aria-label="View our GitHub"
                 >
-                  <Github className="w-5 h-5 text-gray-600" />
+                  <Github className="w-5 h-5 text-gray-600" aria-hidden="true" />
                 </a>
               </div>
             </div>
 
-            {/* FAQ Quick Links */}
+            {/* Quick Links */}
             <div className="glass rounded-2xl shadow-soft p-8 hover-lift">
               <h2 className="text-2xl font-bold text-gray-900 mb-6">
                 Quick Help
               </h2>
               
               <div className="space-y-4">
-
-                
                 <Link 
                   href="/faq" 
                   className="block p-4 bg-white/50 rounded-lg hover:bg-white/70 transition-colors"
@@ -160,32 +157,32 @@ export default function ContactPage() {
                 </Link>
                 
                 <Link 
-                  href="/docs" 
+                  href="/" 
                   className="block p-4 bg-white/50 rounded-lg hover:bg-white/70 transition-colors"
                 >
-                  <h3 className="font-semibold text-gray-900">Documentation</h3>
-                  <p className="text-sm text-gray-600">Detailed guides and API documentation</p>
+                  <h3 className="font-semibold text-gray-900">Try CiteFinder</h3>
+                  <p className="text-sm text-gray-600">Start using our citation finder tool</p>
                 </Link>
               </div>
             </div>
           </section>
 
           {/* Contact Form */}
-          <section className="glass rounded-2xl shadow-soft p-8 hover-lift">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+          <section className="glass rounded-2xl shadow-soft p-8 hover-lift" aria-labelledby="contact-form-heading">
+            <h2 id="contact-form-heading" className="text-2xl font-bold text-gray-900 mb-6">
               Send us a Message
             </h2>
             
             {submitStatus === 'success' && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg" role="alert">
                 <p className="text-green-800 font-medium">
-                  Thank you! Your message has been sent successfully. We'll get back to you soon.
+                  Thank you! Your message has been sent successfully. We&apos;ll get back to you soon.
                 </p>
               </div>
             )}
             
             {submitStatus === 'error' && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg" role="alert">
                 <p className="text-red-800 font-medium">
                   Sorry, there was an error sending your message. Please try again or email us directly.
                 </p>
@@ -196,7 +193,7 @@ export default function ContactPage() {
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    Name *
+                    Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -212,7 +209,7 @@ export default function ContactPage() {
                 
                 <div>
                   <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    Email *
+                    Email <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="email"
@@ -229,7 +226,7 @@ export default function ContactPage() {
               
               <div>
                 <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject *
+                  Subject <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="subject"
@@ -251,7 +248,7 @@ export default function ContactPage() {
               
               <div>
                 <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-2">
-                  Message *
+                  Message <span className="text-red-500">*</span>
                 </label>
                 <textarea
                   id="message"
@@ -272,12 +269,12 @@ export default function ContactPage() {
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" aria-hidden="true" />
                     Sending...
                   </>
                 ) : (
                   <>
-                    <Send className="w-4 h-4 mr-2" />
+                    <Send className="w-4 h-4 mr-2" aria-hidden="true" />
                     Send Message
                   </>
                 )}
@@ -287,8 +284,8 @@ export default function ContactPage() {
         </div>
 
         {/* CTA Section */}
-        <section className="text-center mt-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
+        <section className="text-center mt-16" aria-labelledby="cta-heading">
+          <h2 id="cta-heading" className="text-3xl font-bold text-gray-900 mb-4">
             Ready to Get Started?
           </h2>
           <p className="text-xl text-gray-600 mb-8">
@@ -304,4 +301,4 @@ export default function ContactPage() {
       </div>
     </main>
   )
-} 
+}

@@ -1,37 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { Upload, FileText, Search, Loader2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react'
+import { FileText, Loader2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react'
 import PDFUploader from '@/components/PDFUploader'
-import CitationList from '@/components/CitationList'
 import RelatedPapers from '@/components/RelatedPapers'
 import InteractiveText from '@/components/InteractiveText'
 import ReferencesGenerator from '@/components/ReferencesGenerator'
-import { RelatedPaper, Citation, StatementWithPosition } from '@/types'
-
-interface ProcessResponse {
-  citations: Citation[]
-  relatedPapers: RelatedPaper[]
-  statementsWithPositions?: StatementWithPosition[]
-  textLength: number
-  pages: number
-  pdfUrl?: string
-  fileName?: string
-  statementsFound?: string[]
-  existingCitationsCount?: number
-  discoveredCitationsCount?: number
-}
+import { useToast } from '@/components/ui/Toast'
+import { RelatedPaper, Citation, StatementWithPosition, ProcessResponse } from '@/types'
 
 export default function Home() {
+  const { showToast } = useToast()
   const [citations, setCitations] = useState<Citation[]>([])
   const [relatedPapers, setRelatedPapers] = useState<RelatedPaper[]>([])
   const [selectedPapers, setSelectedPapers] = useState<RelatedPaper[]>([])
-  const [pdfUrl, setPdfUrl] = useState<string>('')
-  const [fileName, setFileName] = useState<string>('')
   const [statementsFound, setStatementsFound] = useState<string[]>([])
   const [statementsWithPositions, setStatementsWithPositions] = useState<StatementWithPosition[]>([])
-  const [existingCitationsCount, setExistingCitationsCount] = useState<number>(0)
-  const [discoveredCitationsCount, setDiscoveredCitationsCount] = useState<number>(0)
   const [isProcessing, setIsProcessing] = useState(false)
   const [currentStep, setCurrentStep] = useState<'upload' | 'processing' | 'results'>('upload')
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
@@ -52,7 +36,8 @@ export default function Home() {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to process PDF')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to process PDF')
       }
 
       const data: ProcessResponse = await response.json()
@@ -60,15 +45,11 @@ export default function Home() {
       setRelatedPapers(data.relatedPapers)
       setStatementsFound(data.statementsFound || [])
       setStatementsWithPositions(data.statementsWithPositions || [])
-      setExistingCitationsCount(data.existingCitationsCount || 0)
-      setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
-      setPdfUrl(data.pdfUrl || '')
-      setFileName(data.fileName || '')
       setCurrentStep('results')
+      showToast('PDF processed successfully!', 'success')
     } catch (error) {
-      console.error('Error processing PDF:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      alert(`Error processing PDF: ${errorMessage}. Please try again with a different file or check if the PDF is valid.`)
+      showToast(`Error processing PDF: ${errorMessage}`, 'error')
       setCurrentStep('upload')
     } finally {
       setIsProcessing(false)
@@ -89,6 +70,7 @@ export default function Home() {
 
   const handleTextSearch = async () => {
     if (!searchText.trim()) {
+      showToast('Please enter some text to analyze', 'warning')
       return
     }
     
@@ -105,9 +87,8 @@ export default function Home() {
       })
 
       if (!response.ok) {
-        const errorText = await response.text()
-        console.error('❌ API error response:', errorText)
-        throw new Error('Failed to process text')
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || 'Failed to process text')
       }
 
       const data: ProcessResponse = await response.json()
@@ -116,33 +97,32 @@ export default function Home() {
       setRelatedPapers(data.relatedPapers || [])
       setStatementsFound(data.statementsFound || [])
       setStatementsWithPositions(data.statementsWithPositions || [])
-      setExistingCitationsCount(data.existingCitationsCount || 0)
-      setDiscoveredCitationsCount(data.discoveredCitationsCount || 0)
-      setPdfUrl('')
-      setFileName('')
       setCurrentStep('results')
+      showToast('Text analyzed successfully!', 'success')
     } catch (error) {
-      console.error('❌ Error processing text:', error)
       const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
-      alert(`Error processing text: ${errorMessage}. Please check your text input and try again.`)
+      showToast(`Error processing text: ${errorMessage}`, 'error')
       setCurrentStep('upload')
     } finally {
       setIsProcessing(false)
     }
   }
 
+  const handleBackToUpload = () => {
+    setCurrentStep('upload')
+    setSelectedPapers([])
+  }
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-blue-100">
-
       <div className="relative container mx-auto px-4 py-8">
-        {/* Navigation - Mobile Responsive */}
-        <nav className="flex justify-between items-center mb-4">
-          {/* Logo and Menu Items */}
+        {/* Navigation */}
+        <nav className="flex justify-between items-center mb-4" role="navigation" aria-label="Main navigation">
           <div className="flex items-center space-x-3 sm:space-x-6 lg:space-x-8">
             {/* Logo */}
             <div className="flex items-center">
               <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-2 sm:mr-3">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" />
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" aria-hidden="true" />
               </div>
               <span className="text-base sm:text-lg lg:text-xl font-bold text-gray-900">CiteFinder</span>
             </div>
@@ -165,13 +145,13 @@ export default function Home() {
           </div>
         </nav>
 
-        {/* Header - Mobile Responsive */}
+        {/* Header */}
         <header className="text-center mb-8 sm:mb-12 lg:mb-16 animate-fade-in-up px-4">
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold gradient-text mb-4 sm:mb-6 lg:mb-8 mt-8 sm:mt-12 lg:mt-16 leading-tight sm:leading-relaxed py-2 sm:py-4">
             Academic Source Finder
           </h1>
           <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-            Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.
+            Automatically extract statements from your paper, find sources from the world&apos;s largest academic databases, and generate citations.
           </p>
         </header>
 
@@ -181,11 +161,11 @@ export default function Home() {
             <section className="animate-fade-in-up" aria-label="Search Options">
               {/* Search Mode Toggle */}
               <div className="flex justify-center mb-8">
-                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-1 border border-gray-300 shadow-sm">
+                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-1 border border-gray-300 shadow-sm" role="tablist">
                   <button
-                    onClick={() => {
-                      setSearchMode('pdf')
-                    }}
+                    role="tab"
+                    aria-selected={searchMode === 'pdf'}
+                    onClick={() => setSearchMode('pdf')}
                     className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                       searchMode === 'pdf'
                         ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
@@ -195,9 +175,9 @@ export default function Home() {
                     Upload PDF
                   </button>
                   <button
-                    onClick={() => {
-                      setSearchMode('text')
-                    }}
+                    role="tab"
+                    aria-selected={searchMode === 'text'}
+                    onClick={() => setSearchMode('text')}
                     className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
                       searchMode === 'text'
                         ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
@@ -211,20 +191,30 @@ export default function Home() {
               
               {/* PDF Upload Option */}
               {searchMode === 'pdf' && (
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-4 hover-lift animate-fade-in max-w-2xl mx-auto border border-gray-200">
+                <div 
+                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-4 hover-lift animate-fade-in max-w-2xl mx-auto border border-gray-200"
+                  role="tabpanel"
+                  aria-labelledby="Upload PDF"
+                >
                   <PDFUploader onFileUpload={handleFileUpload} />
                 </div>
               )}
 
               {/* Text Search Option */}
               {searchMode === 'text' && (
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-8 hover-lift animate-fade-in border border-gray-200">
+                <div 
+                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-8 hover-lift animate-fade-in border border-gray-200"
+                  role="tabpanel"
+                  aria-labelledby="Enter Text"
+                >
                   <div className="text-center mb-6">
                     <h3 className="text-2xl font-bold text-gray-900 mb-2">Enter Your Text</h3>
                     <p className="text-gray-600">Paste your content and our AI will identify statements that need academic backing, then find sources to support them</p>
                   </div>
                   <div className="space-y-4">
+                    <label htmlFor="search-text" className="sr-only">Enter your academic text</label>
                     <textarea
+                      id="search-text"
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
                       placeholder="Paste your paper content here... Our AI will find academic sources to support your ideas and generate proper citations."
@@ -250,7 +240,7 @@ export default function Home() {
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto animate-pulse-slow" role="status" aria-label="Processing">
                     <Loader2 className="w-10 h-10 text-white animate-spin" />
                   </div>
-                  <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full opacity-20 animate-ping" aria-hidden="true"></div>
+                  <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full opacity-20 animate-ping mx-auto" aria-hidden="true"></div>
                 </div>
                 <h2 className="text-3xl font-bold text-gray-900 mb-4">
                   Processing your {searchMode === 'pdf' ? 'PDF' : 'text'}...
@@ -260,10 +250,10 @@ export default function Home() {
                 </p>
                 
                 {/* Progress indicators */}
-                <div className="flex justify-center space-x-2 mt-8" aria-label="Progress indicators">
+                <div className="flex justify-center space-x-2 mt-8" aria-label="Progress indicators" role="status">
                   <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" aria-hidden="true"></div>
                   <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}} aria-hidden="true"></div>
-                  <div className="w-3 h-3 bg-pink-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}} aria-hidden="true"></div>
+                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}} aria-hidden="true"></div>
                 </div>
               </div>
             </section>
@@ -274,32 +264,31 @@ export default function Home() {
               {/* Back to Upload Button */}
               <div className="text-center mb-8">
                 <button
-                  onClick={() => setCurrentStep('upload')}
+                  onClick={handleBackToUpload}
                   className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-xl transition-all duration-300 hover-lift shadow-glow"
                 >
                   ← Back to Upload
                 </button>
               </div>
 
-              {/* IMPROVED: Two-Column Layout with Sidebar Navigation - Mobile Responsive */}
+              {/* Two-Column Layout */}
               <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
                 
-                {/* LEFT SIDEBAR - Progress & Navigation - Mobile Optimized */}
-                <aside className="w-full lg:w-80 flex-shrink-0">
+                {/* Left Sidebar - Progress & Navigation */}
+                <aside className="w-full lg:w-80 flex-shrink-0" aria-label="Progress sidebar">
                   <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:sticky lg:top-8 border border-gray-200">
                     <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center">
                       <span className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3">
-                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" aria-hidden="true" />
                       </span>
                       Your Progress
                     </h3>
                     
-                    {/* Mobile: Horizontal Steps, Desktop: Vertical Steps */}
                     <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 lg:gap-6">
                       {/* Step 1: Statements */}
-                      <div className="lg:mb-0">
+                      <div>
                         <div className="flex items-center mb-2 lg:mb-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3 flex-shrink-0">
+                          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3 flex-shrink-0" aria-hidden="true">
                             ✓
                           </div>
                           <div className="min-w-0">
@@ -316,11 +305,11 @@ export default function Home() {
                       </div>
 
                       {/* Step 2: Papers */}
-                      <div className="lg:mb-0">
+                      <div>
                         <div className="flex items-center mb-2 lg:mb-3">
                           <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3 flex-shrink-0 ${
                             relatedPapers.length > 0 ? 'bg-green-500' : 'bg-gray-400'
-                          }`}>
+                          }`} aria-hidden="true">
                             {relatedPapers.length > 0 ? '✓' : '2'}
                           </div>
                           <div className="min-w-0">
@@ -337,11 +326,11 @@ export default function Home() {
                       </div>
 
                       {/* Step 3: Selection */}
-                      <div className="lg:mb-0">
+                      <div>
                         <div className="flex items-center mb-2 lg:mb-3">
                           <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3 flex-shrink-0 ${
                             selectedPapers.length > 0 ? 'bg-green-500' : 'bg-gray-400'
-                          }`}>
+                          }`} aria-hidden="true">
                             {selectedPapers.length > 0 ? '✓' : '3'}
                           </div>
                           <div className="min-w-0">
@@ -359,7 +348,7 @@ export default function Home() {
                         <div className="flex items-center mb-2 lg:mb-3">
                           <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3 flex-shrink-0 ${
                             selectedPapers.length > 0 ? 'bg-green-500' : 'bg-gray-400'
-                          }`}>
+                          }`} aria-hidden="true">
                             {selectedPapers.length > 0 ? '✓' : '4'}
                           </div>
                           <div className="min-w-0">
@@ -381,7 +370,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Quick Stats - Hidden on smallest mobile, shown on sm+ */}
+                    {/* Quick Stats */}
                     <div className="hidden sm:block mt-6 lg:mt-8 pt-4 lg:pt-6 border-t border-gray-200">
                       <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Summary</h4>
                       <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
@@ -402,16 +391,16 @@ export default function Home() {
                   </div>
                 </aside>
 
-                {/* RIGHT CONTENT - Main Results - Mobile Responsive */}
+                {/* Right Content - Main Results */}
                 <main className="flex-1 min-w-0 space-y-4 sm:space-y-6 lg:space-y-8">
                   
-                  {/* Interactive Content View Section for both PDF and Text */}
+                  {/* Interactive Content View Section */}
                   <div id="statements-section">
-                    {(searchMode === 'pdf' || searchMode === 'text') && statementsWithPositions.length > 0 && (
+                    {statementsWithPositions.length > 0 && (
                       <article className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
                         <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
                           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                            <Search className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                           </div>
                           <div>
                             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
@@ -427,42 +416,36 @@ export default function Home() {
                       </article>
                     )}
 
-                    {/* Extracted Statements Section for Text Input without highlights */}
-                    {searchMode === 'text' && statementsWithPositions.length === 0 && (
+                    {/* Fallback for text mode without highlights */}
+                    {searchMode === 'text' && statementsWithPositions.length === 0 && statementsFound.length > 0 && (
                       <article className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
                         <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
                           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                            <Search className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
                           </div>
                           <div>
                             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                               Extracted Statements
                             </h2>
-                            <p className="text-sm sm:text-base text-gray-600">Review the statements extracted from your text and find supporting papers</p>
+                            <p className="text-sm sm:text-base text-gray-600">Review the statements extracted from your text</p>
                           </div>
                         </header>
                         <div className="space-y-4">
-                          {statementsFound && statementsFound.length > 0 ? (
-                            statementsFound.map((statement, index) => (
-                              <div key={index} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <div className="flex items-center mb-2">
-                                      <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold bg-blue-600 text-white rounded-full mr-2">
-                                        {index + 1}
-                                      </span>
-                                      <span className="text-sm font-medium text-blue-800">Statement {index + 1}</span>
-                                    </div>
-                                    <p className="text-gray-800 leading-relaxed">{statement}</p>
+                          {statementsFound.map((statement, index) => (
+                            <div key={index} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <div className="flex items-center mb-2">
+                                    <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold bg-blue-600 text-white rounded-full mr-2">
+                                      {index + 1}
+                                    </span>
+                                    <span className="text-sm font-medium text-blue-800">Statement {index + 1}</span>
                                   </div>
+                                  <p className="text-gray-800 leading-relaxed">{statement}</p>
                                 </div>
                               </div>
-                            ))
-                          ) : (
-                            <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg text-center">
-                              <p className="text-gray-600">No statements were extracted from your text.</p>
                             </div>
-                          )}
+                          ))}
                         </div>
                       </article>
                     )}
@@ -499,12 +482,11 @@ export default function Home() {
                         <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
                           References Generator
                         </h2>
-                        <p className="text-sm sm:text-base text-gray-600">Generate formatted references from your extracted citations</p>
+                        <p className="text-sm sm:text-base text-gray-600">Generate formatted references from your selected papers</p>
                       </div>
                     </header>
                     <ReferencesGenerator citations={citations} selectedPapers={selectedPapers} />
                   </article>
-
                 </main>
               </div>
             </section>
@@ -512,38 +494,39 @@ export default function Home() {
         </section>
 
         {/* FAQ Section */}
-        <section id="faq" className="py-16">
+        <section id="faq" className="py-16" aria-labelledby="faq-heading">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold gradient-text mb-6">
+              <h2 id="faq-heading" className="text-4xl font-bold gradient-text mb-6">
                 Frequently Asked Questions
               </h2>
               <p className="text-xl text-gray-600">
-                Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.
+                Common questions about using CiteFinder for your research.
               </p>
-
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4" role="list">
               {/* FAQ Item 1 */}
               <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
                 <button
                   onClick={() => toggleFaq(0)}
                   className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
+                  aria-expanded={expandedFaq === 0}
+                  aria-controls="faq-content-0"
                 >
                   <h3 className="text-xl font-bold text-gray-900">
                     How do I use CiteFinder?
                   </h3>
                   {expandedFaq === 0 ? (
-                    <ChevronUp className="w-6 h-6 text-gray-600" />
+                    <ChevronUp className="w-6 h-6 text-gray-600" aria-hidden="true" />
                   ) : (
-                    <ChevronDown className="w-6 h-6 text-gray-600" />
+                    <ChevronDown className="w-6 h-6 text-gray-600" aria-hidden="true" />
                   )}
                 </button>
                 {expandedFaq === 0 && (
-                  <div className="px-6 pb-6">
+                  <div id="faq-content-0" className="px-6 pb-6">
                     <p className="text-gray-700 leading-relaxed">
-                      Upload a PDF or paste text. We automatically extract key statements that need academic backing, search the world's largest academic databases (arXiv, OpenAlex, CrossRef, PubMed) to find supporting sources, and generate citations and references for you.
+                      Upload a PDF or paste text. We automatically extract key statements that need academic backing, search the world&apos;s largest academic databases (arXiv, OpenAlex, CrossRef, PubMed) to find supporting sources, and generate citations and references for you.
                     </p>
                   </div>
                 )}
@@ -554,21 +537,29 @@ export default function Home() {
                 <button
                   onClick={() => toggleFaq(1)}
                   className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
+                  aria-expanded={expandedFaq === 1}
+                  aria-controls="faq-content-1"
                 >
                   <h3 className="text-xl font-bold text-gray-900">
-                    What citation formats does CiteFinder recognize?
+                    Which academic databases does CiteFinder search?
                   </h3>
                   {expandedFaq === 1 ? (
-                    <ChevronUp className="w-6 h-6 text-gray-600" />
+                    <ChevronUp className="w-6 h-6 text-gray-600" aria-hidden="true" />
                   ) : (
-                    <ChevronDown className="w-6 h-6 text-gray-600" />
+                    <ChevronDown className="w-6 h-6 text-gray-600" aria-hidden="true" />
                   )}
                 </button>
                 {expandedFaq === 1 && (
-                  <div className="px-6 pb-6">
-                    <p className="text-gray-700 leading-relaxed">
-                      CiteFinder recognizes multiple citation formats including APA, MLA, Chicago, Harvard, and simple author-year formats. We also detect citations with 'et al.' and various punctuation styles.
+                  <div id="faq-content-1" className="px-6 pb-6">
+                    <p className="text-gray-700 leading-relaxed mb-4">
+                      CiteFinder searches across major academic databases:
                     </p>
+                    <ul className="space-y-2 text-gray-700">
+                      <li className="flex items-center"><span className="w-3 h-3 bg-orange-500 rounded-full mr-3"></span><strong>arXiv</strong> - Computer science, physics, mathematics</li>
+                      <li className="flex items-center"><span className="w-3 h-3 bg-blue-500 rounded-full mr-3"></span><strong>OpenAlex</strong> - Comprehensive academic database</li>
+                      <li className="flex items-center"><span className="w-3 h-3 bg-green-500 rounded-full mr-3"></span><strong>CrossRef</strong> - Journal articles and DOIs</li>
+                      <li className="flex items-center"><span className="w-3 h-3 bg-purple-500 rounded-full mr-3"></span><strong>PubMed</strong> - Biomedical and life sciences</li>
+                    </ul>
                   </div>
                 )}
               </div>
@@ -578,104 +569,56 @@ export default function Home() {
                 <button
                   onClick={() => toggleFaq(2)}
                   className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
+                  aria-expanded={expandedFaq === 2}
+                  aria-controls="faq-content-2"
                 >
                   <h3 className="text-xl font-bold text-gray-900">
-                    Which academic databases does CiteFinder search?
+                    Can I generate formatted references?
                   </h3>
                   {expandedFaq === 2 ? (
-                    <ChevronUp className="w-6 h-6 text-gray-600" />
+                    <ChevronUp className="w-6 h-6 text-gray-600" aria-hidden="true" />
                   ) : (
-                    <ChevronDown className="w-6 h-6 text-gray-600" />
+                    <ChevronDown className="w-6 h-6 text-gray-600" aria-hidden="true" />
                   )}
                 </button>
                 {expandedFaq === 2 && (
-                  <div className="px-6 pb-6">
-                    <p className="text-gray-700 leading-relaxed mb-4">
-                      CiteFinder searches across major academic databases to find the most relevant sources for your research:
+                  <div id="faq-content-2" className="px-6 pb-6">
+                    <p className="text-gray-700 leading-relaxed">
+                      Yes! CiteFinder includes a References Generator that formats your selected papers into APA, MLA, Chicago, Harvard, or BibTeX formats. You can copy or download the formatted references.
                     </p>
-                    <div className="space-y-3">
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-orange-500 rounded-full mr-3"></div>
-                        <a 
-                          href="https://arxiv.org" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
-                        >
-                          arXiv
-                        </a>
-                        <span className="text-gray-600 ml-2">- Computer science, physics, mathematics, and quantitative biology</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                        <a 
-                          href="https://openalex.org" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
-                        >
-                          OpenAlex
-                        </a>
-                        <span className="text-gray-600 ml-2">- Comprehensive academic database with millions of papers</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-                        <a 
-                          href="https://crossref.org" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
-                        >
-                          CrossRef
-                        </a>
-                        <span className="text-gray-600 ml-2">- Journal articles and DOIs from publishers worldwide</span>
-                      </div>
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-                        <a 
-                          href="https://pubmed.ncbi.nlm.nih.gov" 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 font-medium hover:underline transition-colors"
-                        >
-                          PubMed
-                        </a>
-                        <span className="text-gray-600 ml-2">- Biomedical and life sciences research papers</span>
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
 
-                            {/* FAQ Item 4 */}
-                <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
-                  <button
-                    onClick={() => toggleFaq(3)}
-                    className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
-                  >
-                    <h3 className="text-xl font-bold text-gray-900">
-                      Can I generate a references page from the extracted citations?
-                    </h3>
-                    {expandedFaq === 3 ? (
-                      <ChevronUp className="w-6 h-6 text-gray-600" />
-                    ) : (
-                      <ChevronDown className="w-6 h-6 text-gray-600" />
-                    )}
-                  </button>
-                  {expandedFaq === 3 && (
-                  <div className="px-6 pb-6">
+              {/* FAQ Item 4 */}
+              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
+                <button
+                  onClick={() => toggleFaq(3)}
+                  className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
+                  aria-expanded={expandedFaq === 3}
+                  aria-controls="faq-content-3"
+                >
+                  <h3 className="text-xl font-bold text-gray-900">
+                    Is my data secure?
+                  </h3>
+                  {expandedFaq === 3 ? (
+                    <ChevronUp className="w-6 h-6 text-gray-600" aria-hidden="true" />
+                  ) : (
+                    <ChevronDown className="w-6 h-6 text-gray-600" aria-hidden="true" />
+                  )}
+                </button>
+                {expandedFaq === 3 && (
+                  <div id="faq-content-3" className="px-6 pb-6">
                     <p className="text-gray-700 leading-relaxed">
-                      Yes! CiteFinder includes a References Generator that can format your extracted citations into properly formatted reference lists in APA, MLA, Chicago, Harvard, or BibTeX formats. You can copy or download the formatted references.
+                      Yes! We never store your PDF files or text content. All processing happens temporarily, and your documents are deleted immediately after processing. Your research data remains private and secure.
                     </p>
                   </div>
                 )}
               </div>
             </div>
-
-
           </div>
         </section>
       </div>
     </main>
   )
-} 
+}

@@ -28,7 +28,7 @@ export default function InteractiveText({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
-              <Search className="w-5 h-5 text-white" />
+              <Search className="w-5 h-5 text-white" aria-hidden="true" />
             </div>
             <div>
               <h3 className="text-lg font-semibold text-gray-900">Contextual Statement View</h3>
@@ -41,9 +41,10 @@ export default function InteractiveText({
           {sortedStatements.map((statement, index) => {
             const supportingPapers = relatedPapers.filter(paper => paper.statement === statement.text)
             const snippetAvailable = statement.contextBefore || statement.contextAfter || statement.snippet
+            
             return (
-              <div
-                key={`${statement.text}-${statement.startIndex}-${index}`}
+              <article
+                key={`${statement.text.slice(0, 20)}-${statement.startIndex}-${index}`}
                 className="border border-gray-200 rounded-xl p-4 bg-white shadow-sm"
               >
                 <div className="flex items-center justify-between mb-3">
@@ -51,7 +52,9 @@ export default function InteractiveText({
                     <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-800 font-semibold flex items-center justify-center">
                       {index + 1}
                     </div>
-                    <span className="text-sm font-semibold text-blue-800 uppercase tracking-wide">Statement {index + 1}</span>
+                    <span className="text-sm font-semibold text-blue-800 uppercase tracking-wide">
+                      Statement {index + 1}
+                    </span>
                   </div>
                   <div className="text-sm font-medium text-gray-600">
                     {supportingPapers.length} supporting paper{supportingPapers.length === 1 ? '' : 's'}
@@ -62,9 +65,9 @@ export default function InteractiveText({
                   {snippetAvailable ? (
                     <p className="text-sm text-gray-800 leading-relaxed">
                       {statement.contextBefore && <span>{statement.contextBefore}</span>}
-                      <span className="bg-yellow-100 px-1 py-0.5 rounded text-gray-900 font-semibold">
+                      <mark className="bg-yellow-100 px-1 py-0.5 rounded text-gray-900 font-semibold">
                         {statement.text}
-                      </span>
+                      </mark>
                       {statement.contextAfter && <span>{statement.contextAfter}</span>}
                       {!statement.contextBefore && !statement.contextAfter && statement.snippet && (
                         <span>{statement.snippet}</span>
@@ -78,7 +81,7 @@ export default function InteractiveText({
                 {supportingPapers.length > 0 ? (
                   <div className="mt-3 space-y-2">
                     <div className="flex items-center gap-2 text-sm font-semibold text-green-700">
-                      <CheckCircle className="w-4 h-4" />
+                      <CheckCircle className="w-4 h-4" aria-hidden="true" />
                       Top supporting papers
                     </div>
                     {supportingPapers.slice(0, 3).map((paper) => (
@@ -94,7 +97,7 @@ export default function InteractiveText({
                             rel="noopener noreferrer"
                             className="inline-flex items-center text-xs text-green-700 mt-2 hover:underline"
                           >
-                            <ExternalLink className="w-3 h-3 mr-1" />
+                            <ExternalLink className="w-3 h-3 mr-1" aria-hidden="true" />
                             View paper
                           </a>
                         )}
@@ -103,11 +106,11 @@ export default function InteractiveText({
                   </div>
                 ) : (
                   <div className="mt-3 text-sm text-gray-500 flex items-center gap-2">
-                    <CheckCircle className="w-4 h-4 text-gray-400" />
+                    <CheckCircle className="w-4 h-4 text-gray-400" aria-hidden="true" />
                     No supporting papers found yet
                   </div>
                 )}
-              </div>
+              </article>
             )
           })}
         </div>

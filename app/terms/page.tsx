@@ -52,7 +52,7 @@ export default function TermsPage() {
             </div>
             
             <p className="text-gray-700 leading-relaxed">
-              By accessing and using CiteFinder ("the Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+              By accessing and using CiteFinder (&ldquo;the Service&rdquo;), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
             </p>
           </section>
 
@@ -107,7 +107,7 @@ export default function TermsPage() {
                   </div>
                   <div className="flex items-start">
                     <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                    <p className="text-gray-700">Attempt to gain unauthorized access to our systems or other users' data</p>
+                    <p className="text-gray-700">Attempt to gain unauthorized access to our systems or other users&apos; data</p>
                   </div>
                   <div className="flex items-start">
                     <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
