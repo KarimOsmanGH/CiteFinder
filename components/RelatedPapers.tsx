@@ -371,7 +371,9 @@ function PapersTable({ papers, statement, selectedPapers, onPaperSelection }: Pa
                       <CheckCircle className="w-4 h-4 text-green-600 mr-2 flex-shrink-0" aria-hidden="true" />
                       <p className="text-xs font-bold text-green-800">Evidence</p>
                     </div>
-                    <p className="text-xs text-green-700 italic leading-relaxed">&ldquo;{supportingQuote}&rdquo;</p>
+                    <pre className="text-xs text-green-800 bg-white/60 border border-green-200 rounded-md p-2 overflow-auto whitespace-pre-wrap break-words font-mono leading-relaxed">
+                      <code>{supportingQuote}</code>
+                    </pre>
                   </div>
                 )}
                 
@@ -398,7 +400,9 @@ function PapersTable({ papers, statement, selectedPapers, onPaperSelection }: Pa
                       <CheckCircle className="w-4 h-4 text-green-600 mr-2" aria-hidden="true" />
                       <p className="text-xs font-bold text-green-800">Supporting Evidence</p>
                     </div>
-                    <p className="text-xs text-green-700 italic leading-relaxed">&ldquo;{supportingQuote}&rdquo;</p>
+                    <pre className="text-xs text-green-800 bg-white/60 border border-green-200 rounded-md p-2 overflow-auto whitespace-pre-wrap break-words font-mono leading-relaxed">
+                      <code>{supportingQuote}</code>
+                    </pre>
                   </div>
                 </div>
               )}
