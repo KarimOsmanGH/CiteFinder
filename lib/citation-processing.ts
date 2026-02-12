@@ -31,21 +31,21 @@ const CITATION_PATTERNS = [
 // Factual statement patterns
 const FACTUAL_PATTERNS = [
   // Quantitative claims
-  /\b(?:achieves|reaches|obtains|attains|achieves.*\d+%|achieves.*\d+\.\d+%|accuracy.*\d+%|precision.*\d+%|performance.*\d+%|improvement.*\d+%|reduction.*\d+%|increase.*\d+%)\b/gi,
+  /\b(?:achieves|reaches|obtains|attains|achieves.*\d+%|achieves.*\d+\.\d+%|accuracy.*\d+%|precision.*\d+%|performance.*\d+%|improvement.*\d+%|reduction.*\d+%|increase.*\d+%)\b/i,
   // Comparative claims
-  /\b(?:better than|more effective|superior to|outperforms|exceeds|surpasses|compared to|in contrast|versus|against|higher than|lower than|faster than|slower than|more accurate|less accurate)\b/gi,
+  /\b(?:better than|more effective|superior to|outperforms|exceeds|surpasses|compared to|in contrast|versus|against|higher than|lower than|faster than|slower than|more accurate|less accurate)\b/i,
   // Causal relationships
-  /\b(?:leads to|results in|causes|enables|facilitates|improves|enhances|reduces|increases|decreases|affects|influences|impacts|determines|predicts)\b/gi,
+  /\b(?:leads to|results in|causes|enables|facilitates|improves|enhances|reduces|increases|decreases|affects|influences|impacts|determines|predicts)\b/i,
   // Research findings
-  /\b(?:research shows|studies indicate|evidence suggests|data reveals|findings indicate|has been shown|has been found|results show|analysis demonstrates|investigation reveals|experiments show|empirical evidence|statistical analysis)\b/gi,
+  /\b(?:research shows|studies indicate|evidence suggests|data reveals|findings indicate|has been shown|has been found|results show|analysis demonstrates|investigation reveals|experiments show|empirical evidence|statistical analysis)\b/i,
   // Methodological innovations
-  /\b(?:propose.*method|introduce.*approach|develop.*technique|create.*algorithm|design.*framework|implement.*system|establish.*protocol|formulate.*model)\b/gi,
+  /\b(?:propose.*method|introduce.*approach|develop.*technique|create.*algorithm|design.*framework|implement.*system|establish.*protocol|formulate.*model)\b/i,
   // Significant findings
-  /\b(?:significant|statistically significant|p-?value.*<|correlation.*=|correlation.*\d+\.\d+|improvement.*of|enhancement.*by|effect size|confidence interval)\b/gi,
+  /\b(?:significant|statistically significant|p-?value.*<|correlation.*=|correlation.*\d+\.\d+|improvement.*of|enhancement.*by|effect size|confidence interval)\b/i,
   // Results and conclusions
-  /\b(?:conclude.*that|results.*demonstrate|findings.*suggest|analysis.*reveals|study.*finds|research.*confirms|data.*supports|evidence.*indicates)\b/gi,
+  /\b(?:conclude.*that|results.*demonstrate|findings.*suggest|analysis.*reveals|study.*finds|research.*confirms|data.*supports|evidence.*indicates)\b/i,
   // Performance metrics
-  /\b(?:efficiency.*\d+%|accuracy.*\d+%|speed.*\d+%|precision.*\d+%|recall.*\d+%|f1.*score|processing.*time|computational.*cost|memory.*usage|storage.*requirements)\b/gi
+  /\b(?:efficiency.*\d+%|accuracy.*\d+%|speed.*\d+%|precision.*\d+%|recall.*\d+%|f1.*score|processing.*time|computational.*cost|memory.*usage|storage.*requirements)\b/i
 ]
 
 // Factual indicator pattern for validation

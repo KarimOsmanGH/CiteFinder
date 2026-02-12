@@ -20,6 +20,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Validate file type (some browsers may send empty type)
+    if (file.type && file.type !== 'application/pdf') {
+      return NextResponse.json(
+        { error: 'Invalid file type. Please upload a PDF.' },
+        { status: 400 }
+      )
+    }
+
     // Validate file size
     if (file.size > FILE_LIMITS.MAX_SIZE_BYTES) {
       return NextResponse.json(

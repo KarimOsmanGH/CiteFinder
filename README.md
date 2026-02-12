@@ -2,7 +2,7 @@
 
 Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.
 
-![CiteFinder](https://img.shields.io/badge/Next.js-14.0.0-black?style=for-the-badge&logo=next.js)
+![CiteFinder](https://img.shields.io/badge/Next.js-14.2.35-black?style=for-the-badge&logo=next.js)
 ![React](https://img.shields.io/badge/React-18.0.0-blue?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0.0-blue?style=for-the-badge&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.3.0-38B2AC?style=for-the-badge&logo=tailwind-css)

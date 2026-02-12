@@ -6,6 +6,8 @@ import { findRelatedPapersFromStatements, searchRelatedPapers } from '@/lib/api-
 export const runtime = 'nodejs'
 export const maxDuration = 300
 
+const MAX_TEXT_INPUT_CHARS = 200_000
+
 export async function POST(request: NextRequest) {
   try {
     const { text } = await request.json()
@@ -17,10 +19,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    const trimmedText = text.trim()
+    if (!trimmedText) {
+      return NextResponse.json(
+        { error: 'Text content is required' },
+        { status: 400 }
+      )
+    }
+
+    if (trimmedText.length > MAX_TEXT_INPUT_CHARS) {
+      return NextResponse.json(
+        { error: `Text is too long. Please provide ${MAX_TEXT_INPUT_CHARS.toLocaleString()} characters or less.` },
+        { status: 413 }
+      )
+    }
+
     // Extract existing citations
     let existingCitations: Citation[] = []
     try {
-      existingCitations = extractCitations(text)
+      existingCitations = extractCitations(trimmedText)
     } catch (error) {
       existingCitations = []
     }
@@ -28,7 +45,7 @@ export async function POST(request: NextRequest) {
     // Extract statements
     let statements: StatementWithPosition[] = []
     try {
-      statements = extractStatements(text)
+      statements = extractStatements(trimmedText)
     } catch (error) {
       statements = []
     }
@@ -63,8 +80,8 @@ export async function POST(request: NextRequest) {
       citations: allCitations,
       relatedPapers: papersWithAbstract,
       statementsWithPositions: statements,
-      textLength: text.length,
-      pages: Math.ceil(text.length / 2000),
+      textLength: trimmedText.length,
+      pages: Math.ceil(trimmedText.length / 2000),
       statementsFound: statements.map(s => s.text),
       existingCitationsCount: existingCitations.length,
       discoveredCitationsCount: discoveredCitations.length
