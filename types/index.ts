@@ -44,4 +44,5 @@ export interface ProcessResponse {
   statementsFound?: string[]
   existingCitationsCount?: number
   discoveredCitationsCount?: number
+  warnings?: string[]
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FileText, Loader2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react'
+import { FileText, Loader2, ChevronDown, ChevronUp, BookOpen, AlertTriangle } from 'lucide-react'
 import PDFUploader from '@/components/PDFUploader'
 import RelatedPapers from '@/components/RelatedPapers'
 import InteractiveText from '@/components/InteractiveText'
@@ -16,6 +16,7 @@ export default function Home() {
   const [selectedPapers, setSelectedPapers] = useState<RelatedPaper[]>([])
   const [statementsFound, setStatementsFound] = useState<string[]>([])
   const [statementsWithPositions, setStatementsWithPositions] = useState<StatementWithPosition[]>([])
+  const [warnings, setWarnings] = useState<string[]>([])
   const [isProcessing, setIsProcessing] = useState(false)
   const [currentStep, setCurrentStep] = useState<'upload' | 'processing' | 'results'>('upload')
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
@@ -45,6 +46,7 @@ export default function Home() {
       setRelatedPapers(data.relatedPapers)
       setStatementsFound(data.statementsFound || [])
       setStatementsWithPositions(data.statementsWithPositions || [])
+      setWarnings(data.warnings || [])
       setCurrentStep('results')
       showToast('PDF processed successfully!', 'success')
     } catch (error) {
@@ -97,6 +99,7 @@ export default function Home() {
       setRelatedPapers(data.relatedPapers || [])
       setStatementsFound(data.statementsFound || [])
       setStatementsWithPositions(data.statementsWithPositions || [])
+      setWarnings(data.warnings || [])
       setCurrentStep('results')
       showToast('Text analyzed successfully!', 'success')
     } catch (error) {
@@ -111,6 +114,7 @@ export default function Home() {
   const handleBackToUpload = () => {
     setCurrentStep('upload')
     setSelectedPapers([])
+    setWarnings([])
   }
 
   return (
@@ -393,6 +397,22 @@ export default function Home() {
 
                 {/* Right Content - Main Results */}
                 <main className="flex-1 min-w-0 space-y-4 sm:space-y-6 lg:space-y-8">
+                  {warnings.length > 0 && (
+                    <article className="bg-amber-50 border border-amber-200 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-amber-700 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                        <div>
+                          <h3 className="text-base sm:text-lg font-semibold text-amber-900">Processing notes</h3>
+                          <ul className="mt-2 space-y-1 text-sm text-amber-800 list-disc list-inside">
+                            {warnings.map((warning, index) => (
+                              <li key={`${warning}-${index}`}>{warning}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </article>
+                  )}
+
                   
                   {/* Interactive Content View Section */}
                   <div id="statements-section">
