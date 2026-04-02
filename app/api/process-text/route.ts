@@ -7,10 +7,12 @@ export const runtime = 'nodejs'
 export const maxDuration = 300
 
 const MAX_TEXT_INPUT_CHARS = 200_000
+const MISSING_ABSTRACT_PATTERN = /no abstract available/i
 
 export async function POST(request: NextRequest) {
   try {
     const { text } = await request.json()
+    const warnings: string[] = []
 
     if (!text || typeof text !== 'string') {
       return NextResponse.json(
@@ -38,24 +40,27 @@ export async function POST(request: NextRequest) {
     let existingCitations: Citation[] = []
     try {
       existingCitations = extractCitations(trimmedText)
-    } catch (error) {
+    } catch {
       existingCitations = []
+      warnings.push('We could not extract inline citations from this text.')
     }
     
     // Extract statements
     let statements: StatementWithPosition[] = []
     try {
       statements = extractStatements(trimmedText)
-    } catch (error) {
+    } catch {
       statements = []
+      warnings.push('We could not extract candidate statements from this text.')
     }
     
     // Find related papers from statements
     let discoveredCitations: Citation[] = []
     try {
       discoveredCitations = await findRelatedPapersFromStatements(statements)
-    } catch (error) {
+    } catch {
       discoveredCitations = []
+      warnings.push('Statement-based source discovery was unavailable for this request.')
     }
     
     // Combine all citations
@@ -65,26 +70,30 @@ export async function POST(request: NextRequest) {
     let relatedPapers: RelatedPaper[] = []
     try {
       relatedPapers = await searchRelatedPapers(allCitations, statements)
-    } catch (error) {
+    } catch {
       relatedPapers = []
+      warnings.push('Academic database search was unavailable for this request.')
     }
     
-    // Filter out papers with no abstract
-    const papersWithAbstract = relatedPapers.filter(paper => 
-      paper.abstract && 
-      paper.abstract.trim().length > 0 && 
-      !paper.abstract.toLowerCase().includes('no abstract available')
-    )
+    const normalizedPapers = relatedPapers.map((paper) => ({
+      ...paper,
+      abstract: paper.abstract?.trim() ? paper.abstract : 'No abstract available.'
+    }))
+
+    if (normalizedPapers.some((paper) => MISSING_ABSTRACT_PATTERN.test(paper.abstract))) {
+      warnings.push('Some sources do not provide abstracts, so those matches were ranked using titles and available metadata only.')
+    }
 
     return NextResponse.json({
       citations: allCitations,
-      relatedPapers: papersWithAbstract,
+      relatedPapers: normalizedPapers,
       statementsWithPositions: statements,
       textLength: trimmedText.length,
       pages: Math.ceil(trimmedText.length / 2000),
       statementsFound: statements.map(s => s.text),
       existingCitationsCount: existingCitations.length,
-      discoveredCitationsCount: discoveredCitations.length
+      discoveredCitationsCount: discoveredCitations.length,
+      warnings
     })
 
   } catch (error) {

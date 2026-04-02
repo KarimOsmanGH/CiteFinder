@@ -12,6 +12,13 @@ import {
 } from './constants'
 import { normalizeText, extractYear, extractAuthors, extractTitle } from './utils'
 
+interface CandidateSegment {
+  rawText: string
+  normalizedText: string
+  startIndex: number
+  endIndex: number
+}
+
 // Citation extraction patterns
 const CITATION_PATTERNS = [
   // APA style
@@ -104,38 +111,90 @@ export function extractStatements(text: string): StatementWithPosition[] {
     ? text.substring(0, MAX_TEXT_LENGTH) 
     : text
   
-  let normalized = normalizeText(processedText)
-  
-  if (!normalized.trim()) {
-    normalized = processedText
+  const buildSegments = (source: string, separator: RegExp, minLength = 1): CandidateSegment[] => {
+    const flags = separator.flags.includes('g') ? separator.flags : `${separator.flags}g`
+    const matcher = new RegExp(separator.source, flags)
+    const segments: CandidateSegment[] = []
+    let lastIndex = 0
+    let match: RegExpExecArray | null
+
+    const pushSegment = (start: number, end: number) => {
+      let segmentStart = start
+      let segmentEnd = end
+
+      while (segmentStart < segmentEnd && /\s/.test(source[segmentStart])) {
+        segmentStart++
+      }
+
+      while (segmentEnd > segmentStart && /\s/.test(source[segmentEnd - 1])) {
+        segmentEnd--
+      }
+
+      if (segmentEnd <= segmentStart) {
+        return
+      }
+
+      const rawText = source.slice(segmentStart, segmentEnd)
+      if (rawText.length < minLength) {
+        return
+      }
+
+      const normalizedText = normalizeText(rawText) || rawText.trim()
+      if (!normalizedText) {
+        return
+      }
+
+      segments.push({
+        rawText,
+        normalizedText,
+        startIndex: segmentStart,
+        endIndex: segmentEnd
+      })
+    }
+
+    while ((match = matcher.exec(source)) !== null) {
+      pushSegment(lastIndex, match.index)
+      lastIndex = match.index + match[0].length
+    }
+
+    pushSegment(lastIndex, source.length)
+
+    return segments
   }
 
-  // Split into sentence candidates
-  let candidates = normalized
-    .split(/(?<=[.!?])\s+(?=[A-Z])/)
-    .filter(s => s && s.trim().length > 0)
+  // Split into sentence candidates while preserving original positions.
+  let candidates = buildSegments(processedText, /(?<=[.!?])\s+(?=[A-Z])/)
   
   if (candidates.length <= 1) {
-    candidates = normalized
-      .split(/\n+/)
-      .filter(s => s && s.trim().length > 20)
+    candidates = buildSegments(processedText, /\n+/, 20)
   }
   
   if (candidates.length === 0) {
-    candidates = [processedText.trim()]
+    const fallbackText = processedText.trim()
+    if (fallbackText) {
+      const startIndex = processedText.indexOf(fallbackText)
+      candidates = [{
+        rawText: fallbackText,
+        normalizedText: normalizeText(fallbackText) || fallbackText,
+        startIndex: startIndex >= 0 ? startIndex : 0,
+        endIndex: (startIndex >= 0 ? startIndex : 0) + fallbackText.length
+      }]
+    }
   }
   
   // Sample if too many candidates
   if (candidates.length > MAX_STATEMENT_CANDIDATES) {
     const step = Math.ceil(candidates.length / MAX_STATEMENT_CANDIDATES)
-    const sampled: string[] = []
+    const sampled: CandidateSegment[] = []
     for (let i = 0; i < candidates.length && sampled.length < MAX_STATEMENT_CANDIDATES; i += step) {
       sampled.push(candidates[i])
     }
     candidates = sampled
   }
   
-  for (const sentence of candidates) {
+  for (const candidate of candidates) {
+    const sentence = candidate.normalizedText
+
     // Skip invalid sentences
     if (
       sentence.split(' ').length < MIN_WORD_COUNT ||
@@ -168,13 +227,10 @@ export function extractStatements(text: string): StatementWithPosition[] {
           !/^(?:abstract|introduction|conclusion|references|bibliography|figure|table|appendix|methodology|materials|methods)/i.test(cleanStatement) &&
           FACTUAL_INDICATOR_PATTERN.test(cleanStatement)
         ) {
-          const startIndex = text.indexOf(cleanStatement)
-          const endIndex = startIndex + cleanStatement.length
-          
           statements.push({
             text: cleanStatement,
-            startIndex: startIndex >= 0 ? startIndex : 0,
-            endIndex: endIndex,
+            startIndex: candidate.startIndex,
+            endIndex: candidate.endIndex,
             confidence: 0.8
           })
         }
@@ -185,23 +241,23 @@ export function extractStatements(text: string): StatementWithPosition[] {
 
   // Fallback logic if no statements found
   if (statements.length === 0) {
-    const academicKeywords = /\b(?:study|research|analysis|method|result|conclusion|finding|data|experiment|test|evaluation|assessment|investigation)\b/gi
-    const academicSentences = candidates.filter(s => 
-      academicKeywords.test(s) && 
-      s.length >= 40 && 
-      s.split(/\s+/).length >= 6 &&
-      !/^(?:figure|table|doi:|http)/i.test(s.trim())
+    const academicKeywords = /\b(?:study|research|analysis|method|result|conclusion|finding|data|experiment|test|evaluation|assessment|investigation)\b/i
+    const academicSentences = candidates.filter(candidate =>
+      academicKeywords.test(candidate.normalizedText) &&
+      candidate.normalizedText.length >= 40 &&
+      candidate.normalizedText.split(/\s+/).length >= 6 &&
+      !/^(?:figure|table|doi:|http)/i.test(candidate.normalizedText.trim())
     )
     
-    for (const s of academicSentences) {
-      const withPunct = /[.!?]$/.test(s) ? s : s + '.'
-      const startIndex = text.indexOf(withPunct)
-      const endIndex = startIndex + withPunct.length
+    for (const candidate of academicSentences) {
+      const withPunct = /[.!?]$/.test(candidate.normalizedText)
+        ? candidate.normalizedText
+        : `${candidate.normalizedText}.`
       
       statements.push({
         text: withPunct,
-        startIndex: startIndex >= 0 ? startIndex : 0,
-        endIndex: endIndex,
+        startIndex: candidate.startIndex,
+        endIndex: candidate.endIndex,
         confidence: 0.7
       })
     }
@@ -209,23 +265,23 @@ export function extractStatements(text: string): StatementWithPosition[] {
     // Second fallback: substantial sentences
     if (statements.length === 0) {
       const substantialSentences = candidates
-        .filter(s => 
-          s.length >= 35 && 
-          s.split(/\s+/).length >= 5 &&
-          !/^(?:see discussions|doi:|citations:|reads:|author|preprint|publication|figure|table)/i.test(s.trim()) &&
-          !/^(?:https?:\/\/|www\.)/i.test(s.trim())
+        .filter(candidate => 
+          candidate.normalizedText.length >= 35 && 
+          candidate.normalizedText.split(/\s+/).length >= 5 &&
+          !/^(?:see discussions|doi:|citations:|reads:|author|preprint|publication|figure|table)/i.test(candidate.normalizedText.trim()) &&
+          !/^(?:https?:\/\/|www\.)/i.test(candidate.normalizedText.trim())
         )
         .slice(0, 10)
         
-      for (const s of substantialSentences) {
-        const withPunct = /[.!?]$/.test(s) ? s : s + '.'
-        const startIndex = text.indexOf(withPunct)
-        const endIndex = startIndex + withPunct.length
+      for (const candidate of substantialSentences) {
+        const withPunct = /[.!?]$/.test(candidate.normalizedText)
+          ? candidate.normalizedText
+          : `${candidate.normalizedText}.`
         
         statements.push({
           text: withPunct,
-          startIndex: startIndex >= 0 ? startIndex : 0,
-          endIndex: endIndex,
+          startIndex: candidate.startIndex,
+          endIndex: candidate.endIndex,
           confidence: 0.6
         })
       }
@@ -234,20 +290,18 @@ export function extractStatements(text: string): StatementWithPosition[] {
 
   // Ultimate fallback
   if (statements.length === 0 && processedText.trim().length > 20) {
-    let userStatement = processedText.trim()
+    let userStatement = normalizeText(processedText.trim()) || processedText.trim()
     if (userStatement.length > 300) {
       userStatement = userStatement.substring(0, 300) + '...'
     }
     if (!/[.!?]$/.test(userStatement)) {
       userStatement += '.'
     }
-    const startIndex = text.indexOf(userStatement)
-    const endIndex = startIndex + userStatement.length
     
     statements.push({
       text: userStatement,
-      startIndex: startIndex >= 0 ? startIndex : 0,
-      endIndex: endIndex,
+      startIndex: 0,
+      endIndex: Math.min(processedText.length, userStatement.length),
       confidence: 0.5
     })
   }
@@ -262,8 +316,9 @@ export function extractStatements(text: string): StatementWithPosition[] {
     const end = Math.min(text.length, statement.endIndex + CONTEXT_RADIUS)
     const snippet = text.slice(start, end)
     const beforeLength = Math.max(statement.startIndex - start, 0)
+    const highlightLength = Math.max(statement.endIndex - statement.startIndex, 0)
     const contextBefore = snippet.slice(0, beforeLength)
-    const contextAfter = snippet.slice(beforeLength + statement.text.length)
+    const contextAfter = snippet.slice(beforeLength + highlightLength)
 
     return {
       ...statement,

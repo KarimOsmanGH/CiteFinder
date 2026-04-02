@@ -13,6 +13,7 @@ interface RelatedPapersProps {
   onPaperSelection?: (paper: RelatedPaper, isSelected: boolean) => void
   selectedStatement?: StatementWithPosition | null
   onClearStatementSelection?: () => void
+  warnings?: string[]
 }
 
 export default function RelatedPapers({ 
@@ -21,7 +22,8 @@ export default function RelatedPapers({
   selectedPapers = [], 
   onPaperSelection, 
   selectedStatement, 
-  onClearStatementSelection 
+  onClearStatementSelection,
+  warnings = []
 }: RelatedPapersProps) {
   const [sortBy, setSortBy] = useState<'similarity' | 'year' | 'title'>('similarity')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
@@ -70,6 +72,22 @@ export default function RelatedPapers({
   if (limitedPapers.length > 0 || statementsFound.length === 0) {
     return (
       <div className="space-y-8">
+        {warnings.length > 0 && (
+          <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 sm:p-6">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
+              <div>
+                <h3 className="text-sm sm:text-base font-semibold text-amber-900">Search completed with warnings</h3>
+                <ul className="mt-2 space-y-1 text-sm text-amber-800 list-disc list-inside">
+                  {warnings.map((warning, index) => (
+                    <li key={`${warning}-${index}`}>{warning}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Selected Statement Indicator */}
         {selectedStatement && (
           <div className="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-6">

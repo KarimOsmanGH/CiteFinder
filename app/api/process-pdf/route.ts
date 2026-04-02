@@ -12,6 +12,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const file = formData.get('pdf') as File
+    const warnings: string[] = []
 
     if (!file) {
       return NextResponse.json(
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
     try {
       existingCitations = extractCitations(text)
     } catch (error) {
+      warnings.push('We could not extract existing citations from the PDF.')
       existingCitations = []
     }
     
@@ -72,6 +74,7 @@ export async function POST(request: NextRequest) {
     try {
       statements = extractStatements(text)
     } catch (error) {
+      warnings.push('We could not extract supporting statements from the PDF.')
       statements = []
     }
     
@@ -80,6 +83,7 @@ export async function POST(request: NextRequest) {
     try {
       discoveredCitations = await findRelatedPapersFromStatements(statements)
     } catch (error) {
+      warnings.push('We could not match statements to supporting papers from every source.')
       discoveredCitations = []
     }
     
@@ -91,25 +95,20 @@ export async function POST(request: NextRequest) {
     try {
       relatedPapers = await searchRelatedPapers(allCitations, statements)
     } catch (error) {
+      warnings.push('We could not finish searching all academic databases for related papers.')
       relatedPapers = []
     }
-    
-    // Filter out papers with no abstract
-    const papersWithAbstract = relatedPapers.filter(paper => 
-      paper.abstract && 
-      paper.abstract.trim().length > 0 && 
-      !paper.abstract.toLowerCase().includes('no abstract available')
-    )
 
     return NextResponse.json({
       citations: allCitations,
-      relatedPapers: papersWithAbstract,
+      relatedPapers,
       statementsWithPositions: statements,
       textLength: text.length,
       pages: Math.ceil(text.length / 2000),
       statementsFound: statements.map(s => s.text),
       existingCitationsCount: existingCitations.length,
       discoveredCitationsCount: discoveredCitations.length,
+      warnings,
       fileName: file.name,
       pdfUrl: ''
     })
