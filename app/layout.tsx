@@ -1,12 +1,27 @@
 import type { Metadata } from 'next'
+import { Fraunces, Outfit } from 'next/font/google'
 import './globals.css'
 import Footer from '@/components/Footer'
 import { Providers } from './providers'
 
+const display = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-display',
+  display: 'swap',
+  weight: ['500', '600', '700'],
+})
+
+const sans = Outfit({
+  subsets: ['latin'],
+  variable: '--font-sans',
+  display: 'swap',
+  weight: ['400', '500', '600', '700'],
+})
+
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://citefinder.app'
 
 export const metadata: Metadata = {
-  title: 'Academic Source Finder | Statements, Sources, and Citations',
+  title: 'CiteFinder | Academic Source Finder',
   description: "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
   keywords: [
     'academic source finder',
@@ -34,16 +49,16 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    title: 'Academic Source Finder',
+    title: 'CiteFinder | Academic Source Finder',
     description: "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
     url: '/',
-    siteName: 'Academic Source Finder',
+    siteName: 'CiteFinder',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Academic Source Finder - Statements, Sources, Citations',
+        alt: 'CiteFinder - Statements, Sources, Citations',
       },
     ],
     locale: 'en_US',
@@ -51,7 +66,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Academic Source Finder',
+    title: 'CiteFinder | Academic Source Finder',
     description: "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
     images: ['/og-image.png'],
     creator: '@citefinder',
@@ -81,13 +96,13 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${display.variable} ${sans.variable}`}>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="icon" href="/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <meta name="theme-color" content="#667eea" />
+        <meta name="theme-color" content="#0B2420" />
         
         {/* Structured Data */}
         <script
@@ -96,7 +111,7 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "WebApplication",
-              "name": "Academic Source Finder",
+              "name": "CiteFinder",
               "description": "Automatically extract statements from your paper, find sources from the world's largest academic databases, and generate citations.",
               "url": siteUrl,
               "applicationCategory": "EducationalApplication",
@@ -114,7 +129,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased">
+      <body className="font-sans antialiased">
         <Providers>
           {children}
           <Footer />
