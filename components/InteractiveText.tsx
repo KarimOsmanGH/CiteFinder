@@ -1,6 +1,6 @@
 'use client'
 
-import { Search, ExternalLink, CheckCircle } from 'lucide-react'
+import { ExternalLink } from 'lucide-react'
 import { RelatedPaper, StatementWithPosition } from '@/types'
 
 interface InteractiveTextProps {
@@ -16,97 +16,66 @@ export default function InteractiveText({
 
   if (sortedStatements.length === 0) {
     return (
-      <div className="bg-surface border border-ink/10 rounded-xl p-6 text-center">
-        <p className="text-ink-muted">No statements were extracted from this document.</p>
-      </div>
+      <p className="text-center text-ink-muted">No statements were extracted from this document.</p>
     )
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="bg-surface border border-ink/10 rounded-lg sm:rounded-xl p-3 sm:p-4 lg:p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-ink rounded-lg flex items-center justify-center">
-              <Search className="w-5 h-5 text-white" aria-hidden="true" />
-            </div>
-            <div>
-              <h3 className="text-lg font-display font-semibold text-ink">Contextual Statement View</h3>
-              <p className="text-sm text-ink-muted">Review each extracted claim with nearby context</p>
-            </div>
-          </div>
-        </div>
+    <div className="max-h-[28rem] space-y-5 overflow-y-auto pr-1">
+      {sortedStatements.map((statement, index) => {
+        const supportingPapers = relatedPapers.filter(paper => paper.statement === statement.text)
+        const topPapers = supportingPapers.slice(0, 3)
 
-        <div className="space-y-4 max-h-[28rem] overflow-y-auto pr-1">
-          {sortedStatements.map((statement, index) => {
-            const supportingPapers = relatedPapers.filter(paper => paper.statement === statement.text)
-            
-            return (
-              <article
-                key={`${statement.text.slice(0, 20)}-${statement.startIndex}-${index}`}
-                className="border border-ink/10 rounded-xl p-4 bg-surface"
-              >
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-mist text-ink font-semibold flex items-center justify-center">
-                      {index + 1}
-                    </div>
-                    <span className="text-sm font-semibold text-ink tracking-wide">
-                      Statement {index + 1}
+        return (
+          <div
+            key={`${statement.text.slice(0, 20)}-${statement.startIndex}-${index}`}
+            className="border-b border-ink/10 pb-5 last:border-b-0 last:pb-0"
+          >
+            <div className="mb-2 flex items-baseline justify-between gap-3">
+              <h3 className="text-sm font-semibold text-ink">
+                Statement {index + 1}
+              </h3>
+              <span className="shrink-0 text-xs text-ink-muted">
+                {supportingPapers.length} paper{supportingPapers.length === 1 ? '' : 's'}
+              </span>
+            </div>
+
+            <p className="text-sm leading-relaxed text-ink-soft">
+              {statement.contextBefore && <span className="text-ink-muted">{statement.contextBefore}</span>}
+              <mark className="rounded bg-brass/25 px-1 py-0.5 font-semibold text-ink">
+                {statement.text}
+              </mark>
+              {statement.contextAfter && <span className="text-ink-muted">{statement.contextAfter}</span>}
+            </p>
+
+            {topPapers.length > 0 && (
+              <ul className="mt-3 space-y-1.5">
+                {topPapers.map((paper) => (
+                  <li key={paper.id} className="flex items-start gap-2 text-xs text-ink-muted">
+                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-teal" aria-hidden="true" />
+                    <span className="min-w-0">
+                      {paper.url ? (
+                        <a
+                          href={paper.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 font-medium text-teal hover:underline"
+                        >
+                          <span className="line-clamp-1">{paper.title}</span>
+                          <ExternalLink className="h-3 w-3 shrink-0" aria-hidden="true" />
+                        </a>
+                      ) : (
+                        <span className="line-clamp-1 font-medium text-ink-soft">{paper.title}</span>
+                      )}
+                      <span className="text-ink-muted"> · {paper.year} · {paper.similarity}%</span>
                     </span>
-                  </div>
-                  <div className="text-sm font-medium text-ink-muted">
-                    {supportingPapers.length} supporting paper{supportingPapers.length === 1 ? '' : 's'}
-                  </div>
-                </div>
-
-                <div className="rounded-lg border border-ink/10 bg-mist-soft p-3">
-                  <p className="text-sm leading-relaxed text-ink-soft">
-                    {statement.contextBefore && <span>{statement.contextBefore}</span>}
-                    <mark className="rounded bg-brass/25 px-1 py-0.5 font-semibold text-ink">
-                      {statement.text}
-                    </mark>
-                    {statement.contextAfter && <span>{statement.contextAfter}</span>}
-                  </p>
-                </div>
-
-                {supportingPapers.length > 0 ? (
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-semibold text-teal">
-                      <CheckCircle className="w-4 h-4" aria-hidden="true" />
-                      Top supporting papers
-                    </div>
-                    {supportingPapers.slice(0, 3).map((paper) => (
-                      <div key={paper.id} className="rounded-lg border border-teal/20 bg-mist-soft p-3">
-                        <p className="text-sm font-semibold text-ink">{paper.title}</p>
-                        <p className="text-xs text-ink-muted">
-                          {paper.authors.join(', ')} • {paper.year} • {paper.similarity}% match
-                        </p>
-                        {paper.url && (
-                          <a
-                            href={paper.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-2 inline-flex items-center text-xs text-teal hover:underline"
-                          >
-                            <ExternalLink className="w-3 h-3 mr-1" aria-hidden="true" />
-                            View paper
-                          </a>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="mt-3 flex items-center gap-2 text-sm text-ink-muted">
-                    <CheckCircle className="h-4 w-4 text-ink-muted/60" aria-hidden="true" />
-                    No supporting papers found yet
-                  </div>
-                )}
-              </article>
-            )
-          })}
-        </div>
-      </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )
+      })}
     </div>
   )
 }
