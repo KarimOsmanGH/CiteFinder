@@ -1,19 +1,15 @@
 'use client'
 
 import { ExternalLink, Search, CheckCircle, AlertCircle, BookOpen } from 'lucide-react'
-import { useState, useMemo } from 'react'
-import { RelatedPaper, StatementWithPosition } from '@/types'
+import { RelatedPaper } from '@/types'
 import { SIMILARITY_THRESHOLDS } from '@/lib/constants'
-import { extractKeyTermsFromStatement, extractSupportingQuote } from '@/lib/utils'
+import { extractSupportingQuote } from '@/lib/utils'
 
 interface RelatedPapersProps {
   papers: RelatedPaper[]
   statementsFound?: string[]
   selectedPapers?: RelatedPaper[]
   onPaperSelection?: (paper: RelatedPaper, isSelected: boolean) => void
-  selectedStatement?: StatementWithPosition | null
-  onClearStatementSelection?: () => void
-  warnings?: string[]
 }
 
 export default function RelatedPapers({ 
@@ -21,110 +17,27 @@ export default function RelatedPapers({
   statementsFound = [], 
   selectedPapers = [], 
   onPaperSelection, 
-  selectedStatement, 
-  onClearStatementSelection,
-  warnings = []
 }: RelatedPapersProps) {
-  const [sortBy, setSortBy] = useState<'similarity' | 'year' | 'title'>('similarity')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [filterByStatement, setFilterByStatement] = useState<string>('all')
-  const [showOnlySelected, setShowOnlySelected] = useState(false)
+  const filteredPapers = papers
+    .filter(paper => paper.similarity >= SIMILARITY_THRESHOLDS.MIN_DISPLAY)
+    .sort((a, b) => b.similarity - a.similarity)
+
+  const generalPapers = filteredPapers.filter(paper => !paper.statement)
   
-  // Filter papers with quality threshold
-  const filteredPapers = papers.filter(paper => paper.similarity >= SIMILARITY_THRESHOLDS.MIN_DISPLAY)
-  
-  // Apply additional filters and sorting
-  const processedPapers = useMemo(() => {
-    let result = [...filteredPapers]
-    
-    if (selectedStatement) {
-      result = result.filter(paper => paper.statement === selectedStatement.text)
-    } else if (filterByStatement !== 'all') {
-      result = result.filter(paper => paper.statement === filterByStatement)
-    }
-    
-    if (showOnlySelected) {
-      result = result.filter(paper => selectedPapers.some(p => p.id === paper.id))
-    }
-    
-    result.sort((a, b) => {
-      let comparison = 0
-      switch (sortBy) {
-        case 'similarity':
-          comparison = a.similarity - b.similarity
-          break
-        case 'year':
-          comparison = parseInt(a.year) - parseInt(b.year)
-          break
-        case 'title':
-          comparison = a.title.localeCompare(b.title)
-          break
-      }
-      return sortOrder === 'asc' ? comparison : -comparison
-    })
-    
-    return result
-  }, [filteredPapers, selectedStatement, filterByStatement, showOnlySelected, selectedPapers, sortBy, sortOrder])
-  
-  const limitedPapers = processedPapers
-  const generalPapers = limitedPapers.filter(paper => !paper.statement)
-  
-  if (limitedPapers.length > 0 || statementsFound.length === 0) {
+  if (filteredPapers.length > 0 || statementsFound.length === 0) {
     return (
       <div className="space-y-8">
-        {warnings.length > 0 && (
-          <div className="bg-amber-50 border-2 border-amber-200 rounded-xl p-4 sm:p-6">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" aria-hidden="true" />
-              <div>
-                <h3 className="text-sm sm:text-base font-semibold text-amber-900">Search completed with warnings</h3>
-                <ul className="mt-2 space-y-1 text-sm text-amber-800 list-disc list-inside">
-                  {warnings.map((warning, index) => (
-                    <li key={`${warning}-${index}`}>{warning}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Selected Statement Indicator */}
-        {selectedStatement && (
-          <div className="border border-teal/25 bg-mist-soft rounded-xl p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <CheckCircle className="w-6 h-6 text-teal mr-3" aria-hidden="true" />
-                <div>
-                  <h4 className="text-lg font-bold text-ink">Selected Statement</h4>
-                  <p className="text-ink-soft text-sm mt-1">Showing papers that support this statement</p>
-                </div>
-              </div>
-              <button
-                onClick={onClearStatementSelection}
-                className="px-3 py-1 text-sm bg-green-100 hover:bg-green-200 text-ink rounded-lg transition-colors"
-              >
-                Clear Selection
-              </button>
-            </div>
-            <div className="mt-3 p-3 bg-white rounded-lg border border-teal/20">
-              <p className="text-ink italic">&ldquo;{selectedStatement.text}&rdquo;</p>
-            </div>
-          </div>
-        )}
-        
-        {/* Statements and Papers */}
         {statementsFound.map((statement, index) => (
           <StatementSection
             key={index}
             statement={statement}
             index={index}
-            papers={limitedPapers.filter(paper => paper.statement === statement)}
+            papers={filteredPapers.filter(paper => paper.statement === statement)}
             selectedPapers={selectedPapers}
             onPaperSelection={onPaperSelection}
           />
         ))}
 
-        {/* General Papers Section */}
         {generalPapers.length > 0 && (
           <GeneralPapersSection
             papers={generalPapers}
@@ -133,34 +46,13 @@ export default function RelatedPapers({
           />
         )}
         
-        {/* Summary Footer */}
-        <div className="border border-ink/10 bg-mist-soft rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8">
-          <div className="flex flex-col gap-4 sm:gap-6">
-            <div>
-              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-ink mb-1 sm:mb-2">Selection Summary</h3>
-              <p className="text-ink-muted text-sm sm:text-base lg:text-lg">
-                {selectedPapers.length} of {limitedPapers.length} papers selected for references
-              </p>
-            </div>
-            <div>
-              <div className="border border-teal/20 bg-mist rounded-lg sm:rounded-xl p-3 sm:p-4">
-                <p className="text-ink font-semibold mb-1 text-sm sm:text-base">Next Step</p>
-                <p className="text-ink-soft text-xs sm:text-sm">
-                  Use the References Generator below to create your formatted bibliography
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        {/* Quality Threshold Notice */}
         {filteredPapers.length === 0 && papers.length > 0 && (
-          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-8">
-            <div className="flex items-center mb-4">
-              <AlertCircle className="w-8 h-8 text-yellow-600 mr-4" aria-hidden="true" />
-              <h3 className="text-xl font-semibold text-yellow-800">Quality Threshold Not Met</h3>
+          <div className="rounded-2xl border border-brass/30 bg-brass/10 p-6 sm:p-8">
+            <div className="mb-3 flex items-center gap-3">
+              <AlertCircle className="h-6 w-6 text-brass-deep" aria-hidden="true" />
+              <h3 className="text-lg font-semibold text-ink">Quality Threshold Not Met</h3>
             </div>
-            <p className="text-yellow-700 text-base">
+            <p className="text-sm text-ink-soft sm:text-base">
               Found {papers.length} papers, but none meet the {SIMILARITY_THRESHOLDS.MIN_DISPLAY}% similarity threshold for quality academic citations. 
               The statements above were extracted from your content and may need additional research.
             </p>
@@ -170,14 +62,13 @@ export default function RelatedPapers({
     )
   }
   
-  // No papers found
   return (
-    <div className="text-center py-16">
-      <div className="w-20 h-20 bg-mist rounded-2xl flex items-center justify-center mx-auto mb-6">
-        <Search className="w-10 h-10 text-ink-muted" aria-hidden="true" />
+    <div className="py-12 text-center sm:py-16">
+      <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-mist sm:h-20 sm:w-20">
+        <Search className="h-8 w-8 text-ink-muted sm:h-10 sm:w-10" aria-hidden="true" />
       </div>
-      <h3 className="text-2xl font-semibold text-ink mb-4">No High-Quality Matches Found</h3>
-      <p className="text-ink-muted text-lg mb-6">
+      <h3 className="mb-3 text-xl font-semibold text-ink sm:text-2xl">No High-Quality Matches Found</h3>
+      <p className="text-base text-ink-muted sm:text-lg">
         {papers.length > 0 
           ? `Found ${papers.length} papers, but none meet the ${SIMILARITY_THRESHOLDS.MIN_DISPLAY}% similarity threshold.`
           : 'No related papers were found in the academic databases.'
@@ -187,7 +78,6 @@ export default function RelatedPapers({
   )
 }
 
-// Statement Section Component
 interface StatementSectionProps {
   statement: string
   index: number
@@ -198,29 +88,26 @@ interface StatementSectionProps {
 
 function StatementSection({ statement, index, papers, selectedPapers, onPaperSelection }: StatementSectionProps) {
   return (
-    <div className="space-y-4">
-      {/* Statement Card */}
-      <div className="relative overflow-hidden rounded-xl border border-teal/20 bg-mist-soft p-4 sm:p-6 lg:p-8">
-        <div className="hidden" aria-hidden="true" />
-        <div className="flex flex-col sm:flex-row items-start gap-4">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-ink flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-lg sm:text-xl font-bold">{index + 1}</span>
+    <div className="space-y-3">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:gap-4">
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-ink text-sm font-bold text-white">
+          {index + 1}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="mb-1 flex flex-wrap items-center gap-2">
+            <h3 className="font-display text-base font-semibold tracking-tight text-ink sm:text-lg">
+              Statement {index + 1}
+            </h3>
+            <span className="text-xs text-ink-muted sm:text-sm">
+              {papers.length} supporting paper{papers.length !== 1 ? 's' : ''}
+            </span>
           </div>
-          <div className="flex-1">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-3">
-              <h3 className="text-lg sm:text-xl font-display font-semibold tracking-tight text-ink">Statement {index + 1}</h3>
-              <div className="px-3 py-1 bg-mist-deep text-ink text-xs sm:text-sm font-semibold rounded-md w-fit">
-                {papers.length} supporting paper{papers.length !== 1 ? 's' : ''}
-              </div>
-            </div>
-            <p className="text-sm sm:text-base lg:text-lg leading-relaxed text-ink-soft font-medium">
-              {statement}
-            </p>
-          </div>
+          <p className="text-sm leading-relaxed text-ink-soft sm:text-base">
+            {statement}
+          </p>
         </div>
       </div>
       
-      {/* Papers Table */}
       {papers.length > 0 ? (
         <PapersTable 
           papers={papers}
@@ -229,13 +116,9 @@ function StatementSection({ statement, index, papers, selectedPapers, onPaperSel
           onPaperSelection={onPaperSelection}
         />
       ) : (
-        <div className="bg-mist-soft border border-ink/10 rounded-xl p-6 sm:p-10 text-center">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-mist rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6">
-            <Search className="w-8 h-8 sm:w-10 sm:h-10 text-ink-muted" aria-hidden="true" />
-          </div>
-          <h4 className="text-lg sm:text-xl font-semibold text-ink-soft mb-2 sm:mb-3">No Supporting Papers Found</h4>
-          <p className="text-sm sm:text-base text-ink-muted max-w-md mx-auto">
-            We couldn&apos;t find academic papers that strongly support this statement.
+        <div className="rounded-xl border border-ink/10 bg-mist-soft px-4 py-6 text-center">
+          <p className="text-sm text-ink-muted">
+            No strongly supporting papers found for this statement.
           </p>
         </div>
       )}
@@ -243,7 +126,6 @@ function StatementSection({ statement, index, papers, selectedPapers, onPaperSel
   )
 }
 
-// General Papers Section
 interface GeneralPapersSectionProps {
   papers: RelatedPaper[]
   selectedPapers: RelatedPaper[]
@@ -252,19 +134,18 @@ interface GeneralPapersSectionProps {
 
 function GeneralPapersSection({ papers, selectedPapers, onPaperSelection }: GeneralPapersSectionProps) {
   return (
-    <div className="space-y-4">
-      <div className="relative overflow-hidden rounded-xl border border-teal/20 bg-mist-soft p-4 sm:p-6 lg:p-8">
-        <div className="hidden" aria-hidden="true" />
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl bg-teal flex items-center justify-center flex-shrink-0">
-            <BookOpen className="w-6 h-6 text-white" aria-hidden="true" />
-          </div>
-          <div>
-            <h3 className="text-lg sm:text-xl font-display font-semibold tracking-tight text-ink">General Supporting Papers</h3>
-            <p className="text-sm sm:text-base text-ink-muted">
-              These papers are relevant but were not matched to a specific statement
-            </p>
-          </div>
+    <div className="space-y-3">
+      <div className="flex items-start gap-3">
+        <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-teal text-white">
+          <BookOpen className="h-4 w-4" aria-hidden="true" />
+        </span>
+        <div>
+          <h3 className="font-display text-base font-semibold tracking-tight text-ink sm:text-lg">
+            General Supporting Papers
+          </h3>
+          <p className="text-sm text-ink-muted">
+            Relevant papers not matched to a specific statement
+          </p>
         </div>
       </div>
 
@@ -277,7 +158,6 @@ function GeneralPapersSection({ papers, selectedPapers, onPaperSelection }: Gene
   )
 }
 
-// Papers Table Component
 interface PapersTableProps {
   papers: RelatedPaper[]
   statement?: string
@@ -287,9 +167,8 @@ interface PapersTableProps {
 
 function PapersTable({ papers, statement, selectedPapers, onPaperSelection }: PapersTableProps) {
   return (
-    <div className="bg-surface border border-ink/10 rounded-xl overflow-hidden">
-      {/* Table Header - Desktop */}
-      <div className="hidden md:grid md:grid-cols-12 bg-mist border-b border-ink/10 px-4 py-3 font-semibold text-ink text-sm">
+    <div className="overflow-hidden rounded-xl border border-ink/10 bg-surface">
+      <div className="hidden border-b border-ink/10 bg-mist px-4 py-3 text-sm font-semibold text-ink md:grid md:grid-cols-12">
         <div className="col-span-1 flex items-center justify-center">Select</div>
         <div className="col-span-5">Title</div>
         <div className="col-span-2 text-center">Year</div>
@@ -297,8 +176,7 @@ function PapersTable({ papers, statement, selectedPapers, onPaperSelection }: Pa
         <div className="col-span-2 text-center">Actions</div>
       </div>
       
-      {/* Table Body */}
-      <div className="overflow-y-auto max-h-[600px]">
+      <div className="max-h-[600px] overflow-y-auto">
         {papers.map((paper) => {
           const isSelected = selectedPapers.some(p => p.id === paper.id)
           const supportingQuote = paper.supportingQuote || 
@@ -307,36 +185,35 @@ function PapersTable({ papers, statement, selectedPapers, onPaperSelection }: Pa
           return (
             <div
               key={paper.id}
-              className={`border-b border-ink/8 last:border-b-0 transition-all duration-200 ${
+              className={`border-b border-ink/8 transition-colors last:border-b-0 ${
                 isSelected ? 'bg-mist-soft' : 'hover:bg-mist-soft/60'
               }`}
             >
-              {/* Desktop View */}
-              <div className="hidden md:grid md:grid-cols-12 px-4 py-4 items-center gap-4">
+              <div className="hidden items-center gap-4 px-4 py-4 md:grid md:grid-cols-12">
                 <div className="col-span-1 flex items-center justify-center">
                   <input
                     type="checkbox"
                     checked={isSelected}
                     onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
-                    className="w-5 h-5 text-teal bg-white border-2 border-gray-300 rounded focus:ring-green-500 focus:ring-2 hover:bg-green-50 transition-colors cursor-pointer"
+                    className="h-5 w-5 cursor-pointer rounded border-2 border-ink/20 text-teal focus:ring-2 focus:ring-teal/40"
                     aria-label={isSelected ? `Remove ${paper.title} from references` : `Add ${paper.title} to references`}
                   />
                 </div>
                 
                 <div className="col-span-5">
-                  <h4 className="font-bold text-ink text-sm leading-tight line-clamp-3">
+                  <h4 className="line-clamp-3 text-sm font-semibold leading-tight text-ink">
                     {paper.title}
                   </h4>
                 </div>
                 
                 <div className="col-span-2 text-center">
-                  <span className="inline-block px-2 py-1 bg-mist text-ink text-xs font-semibold rounded">
+                  <span className="inline-block rounded bg-mist px-2 py-1 text-xs font-semibold text-ink">
                     {paper.year}
                   </span>
                 </div>
                 
                 <div className="col-span-2 text-center">
-                  <span className="inline-block px-2 py-1 bg-mist-deep text-ink text-xs font-bold rounded">
+                  <span className="inline-block rounded bg-mist-deep px-2 py-1 text-xs font-bold text-ink">
                     {paper.similarity}%
                   </span>
                 </div>
@@ -347,49 +224,46 @@ function PapersTable({ papers, statement, selectedPapers, onPaperSelection }: Pa
                       href={paper.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-1 text-xs font-medium text-teal bg-mist border border-teal/20 rounded hover:bg-mist-deep transition-colors"
+                      className="inline-flex items-center rounded border border-teal/20 bg-mist px-3 py-1 text-xs font-medium text-teal transition-colors hover:bg-mist-deep"
                     >
-                      <ExternalLink className="w-3 h-3 mr-1" aria-hidden="true" />
+                      <ExternalLink className="mr-1 h-3 w-3" aria-hidden="true" />
                       View
                     </a>
                   )}
                 </div>
               </div>
               
-              {/* Mobile View */}
-              <div className="md:hidden p-4 space-y-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3 flex-1">
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
-                      className="w-5 h-5 mt-1 text-teal bg-white border-2 border-gray-300 rounded focus:ring-green-500 focus:ring-2 hover:bg-green-50 transition-colors cursor-pointer flex-shrink-0"
-                      aria-label={isSelected ? `Remove ${paper.title} from references` : `Add ${paper.title} to references`}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-ink text-sm mb-2 leading-tight">
-                        {paper.title}
-                      </h4>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="inline-block px-2 py-1 bg-mist text-ink text-xs font-semibold rounded">
-                          {paper.year}
-                        </span>
-                        <span className="inline-block px-2 py-1 bg-mist-deep text-ink text-xs font-bold rounded">
-                          {paper.similarity}% match
-                        </span>
-                      </div>
+              <div className="space-y-3 p-4 md:hidden">
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => onPaperSelection?.(paper, e.target.checked)}
+                    className="mt-1 h-5 w-5 flex-shrink-0 cursor-pointer rounded border-2 border-ink/20 text-teal focus:ring-2 focus:ring-teal/40"
+                    aria-label={isSelected ? `Remove ${paper.title} from references` : `Add ${paper.title} to references`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <h4 className="mb-2 text-sm font-semibold leading-tight text-ink">
+                      {paper.title}
+                    </h4>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="inline-block rounded bg-mist px-2 py-1 text-xs font-semibold text-ink">
+                        {paper.year}
+                      </span>
+                      <span className="inline-block rounded bg-mist-deep px-2 py-1 text-xs font-bold text-ink">
+                        {paper.similarity}% match
+                      </span>
                     </div>
                   </div>
                 </div>
                 
                 {supportingQuote && (
-                  <div className="bg-green-50 border border-teal/20 rounded-lg p-3">
-                    <div className="flex items-center mb-2">
-                      <CheckCircle className="w-4 h-4 text-teal mr-2 flex-shrink-0" aria-hidden="true" />
+                  <div className="rounded-lg border border-teal/20 bg-mist-soft p-3">
+                    <div className="mb-2 flex items-center">
+                      <CheckCircle className="mr-2 h-4 w-4 flex-shrink-0 text-teal" aria-hidden="true" />
                       <p className="text-xs font-bold text-ink">Evidence</p>
                     </div>
-                    <pre className="text-xs text-ink bg-white/60 border border-teal/20 rounded-md p-2 overflow-auto whitespace-pre-wrap break-words font-mono leading-relaxed">
+                    <pre className="overflow-auto whitespace-pre-wrap break-words rounded-md border border-teal/20 bg-white/60 p-2 font-mono text-xs leading-relaxed text-ink">
                       <code>{supportingQuote}</code>
                     </pre>
                   </div>
@@ -401,24 +275,23 @@ function PapersTable({ papers, statement, selectedPapers, onPaperSelection }: Pa
                       href={paper.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center px-3 py-2 text-xs font-medium text-teal bg-mist border border-teal/20 rounded hover:bg-mist-deep transition-colors"
+                      className="inline-flex items-center rounded border border-teal/20 bg-mist px-3 py-2 text-xs font-medium text-teal transition-colors hover:bg-mist-deep"
                     >
-                      <ExternalLink className="w-3 h-3 mr-1" aria-hidden="true" />
+                      <ExternalLink className="mr-1 h-3 w-3" aria-hidden="true" />
                       {paper.url.includes('doi.org') ? 'View DOI' : 'Open Paper'}
                     </a>
                   </div>
                 )}
               </div>
               
-              {/* Supporting Evidence - Desktop */}
               {supportingQuote && (
-                <div className="hidden md:block px-4 pb-4 pt-0">
-                  <div className="bg-green-50 border border-teal/20 rounded-lg p-3">
-                    <div className="flex items-center mb-2">
-                      <CheckCircle className="w-4 h-4 text-teal mr-2" aria-hidden="true" />
+                <div className="hidden px-4 pb-4 pt-0 md:block">
+                  <div className="rounded-lg border border-teal/20 bg-mist-soft p-3">
+                    <div className="mb-2 flex items-center">
+                      <CheckCircle className="mr-2 h-4 w-4 text-teal" aria-hidden="true" />
                       <p className="text-xs font-bold text-ink">Supporting Evidence</p>
                     </div>
-                    <pre className="text-xs text-ink bg-white/60 border border-teal/20 rounded-md p-2 overflow-auto whitespace-pre-wrap break-words font-mono leading-relaxed">
+                    <pre className="overflow-auto whitespace-pre-wrap break-words rounded-md border border-teal/20 bg-white/60 p-2 font-mono text-xs leading-relaxed text-ink">
                       <code>{supportingQuote}</code>
                     </pre>
                   </div>

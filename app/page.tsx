@@ -166,17 +166,32 @@ export default function Home() {
           
           <div className="flex items-center gap-1 sm:gap-2">
             <button 
-              onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => {
+                if (currentStep === 'results' || currentStep === 'processing') {
+                  handleBackToUpload()
+                } else {
+                  document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })
+                }
+              }}
               className="px-3 py-2 text-sm font-medium text-ink-soft transition-colors duration-200 hover:text-ink sm:px-4"
             >
               Home
             </button>
-            <button 
-              onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-3 py-2 text-sm font-medium text-ink-soft transition-colors duration-200 hover:text-ink sm:px-4"
-            >
-              FAQ
-            </button>
+            {currentStep === 'upload' ? (
+              <button 
+                onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })}
+                className="px-3 py-2 text-sm font-medium text-ink-soft transition-colors duration-200 hover:text-ink sm:px-4"
+              >
+                FAQ
+              </button>
+            ) : (
+              <a
+                href="/faq"
+                className="px-3 py-2 text-sm font-medium text-ink-soft transition-colors duration-200 hover:text-ink sm:px-4"
+              >
+                FAQ
+              </a>
+            )}
           </div>
         </nav>
 
@@ -403,16 +418,13 @@ export default function Home() {
                   <div id="statements-section">
                     {statementsWithPositions.length > 0 && (
                       <article className="panel rounded-2xl p-5 sm:p-6 lg:p-8">
-                        <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
-                          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-ink text-white" aria-hidden="true">
-                            <BookOpen className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <h2 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">
-                              {searchMode === 'pdf' ? 'Interactive PDF View' : 'Interactive Text View'}
-                            </h2>
-                            <p className="text-sm text-ink-muted sm:text-base">Highlighted statements with supporting papers</p>
-                          </div>
+                        <header className="mb-5">
+                          <h2 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+                            Extracted Statements
+                          </h2>
+                          <p className="mt-1 text-sm text-ink-muted sm:text-base">
+                            Each claim shown in context, with top matching papers
+                          </p>
                         </header>
                         <InteractiveText 
                           statementsWithPositions={statementsWithPositions}
@@ -423,27 +435,21 @@ export default function Home() {
 
                     {searchMode === 'text' && statementsWithPositions.length === 0 && statementsFound.length > 0 && (
                       <article className="panel rounded-2xl p-5 sm:p-6 lg:p-8">
-                        <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
-                          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-ink text-white" aria-hidden="true">
-                            <BookOpen className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <h2 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">
-                              Extracted Statements
-                            </h2>
-                            <p className="text-sm text-ink-muted sm:text-base">Review the statements extracted from your text</p>
-                          </div>
+                        <header className="mb-5">
+                          <h2 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+                            Extracted Statements
+                          </h2>
+                          <p className="mt-1 text-sm text-ink-muted sm:text-base">
+                            Review the statements extracted from your text
+                          </p>
                         </header>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           {statementsFound.map((statement, index) => (
-                            <div key={index} className="rounded-xl border border-teal/15 bg-mist-soft p-4">
-                              <div className="mb-2 flex items-center gap-2">
-                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal text-xs font-bold text-white">
-                                  {index + 1}
-                                </span>
-                                <span className="text-sm font-medium text-teal">Statement {index + 1}</span>
+                            <div key={index} className="border-b border-ink/10 pb-4 last:border-b-0 last:pb-0">
+                              <div className="mb-1 flex items-baseline justify-between gap-3">
+                                <h3 className="text-sm font-semibold text-ink">Statement {index + 1}</h3>
                               </div>
-                              <p className="leading-relaxed text-ink-soft">{statement}</p>
+                              <p className="text-sm leading-relaxed text-ink-soft sm:text-base">{statement}</p>
                             </div>
                           ))}
                         </div>
@@ -491,61 +497,63 @@ export default function Home() {
           )}
         </section>
 
-        {/* FAQ */}
-        <section id="faq" className="py-16 sm:py-20" aria-labelledby="faq-heading">
-          <div className="mx-auto max-w-3xl">
-            <div className="mb-10 text-center sm:mb-12">
-              <h2 id="faq-heading" className="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
-                Questions
-              </h2>
-              <p className="mt-3 text-ink-muted">
-                Common questions about using CiteFinder for your research.
-              </p>
-            </div>
+        {/* FAQ — only on the upload/landing view, not search results */}
+        {currentStep === 'upload' && (
+          <section id="faq" className="py-16 sm:py-20" aria-labelledby="faq-heading">
+            <div className="mx-auto max-w-3xl">
+              <div className="mb-10 text-center sm:mb-12">
+                <h2 id="faq-heading" className="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+                  Questions
+                </h2>
+                <p className="mt-3 text-ink-muted">
+                  Common questions about using CiteFinder for your research.
+                </p>
+              </div>
 
-            <div className="divide-y divide-ink/10 border-y border-ink/10" role="list">
-              {FAQ_ITEMS.map((item, index) => (
-                <div key={item.question} role="listitem">
-                  <button
-                    onClick={() => toggleFaq(index)}
-                    className="flex w-full items-center justify-between gap-4 py-5 text-left transition-colors hover:text-teal"
-                    aria-expanded={expandedFaq === index}
-                    aria-controls={`faq-content-${index}`}
-                  >
-                    <h3 className="font-display text-lg font-semibold tracking-tight text-ink sm:text-xl">
-                      {item.question}
-                    </h3>
-                    {expandedFaq === index ? (
-                      <ChevronUp className="h-5 w-5 flex-shrink-0 text-ink-muted" aria-hidden="true" />
-                    ) : (
-                      <ChevronDown className="h-5 w-5 flex-shrink-0 text-ink-muted" aria-hidden="true" />
+              <div className="divide-y divide-ink/10 border-y border-ink/10" role="list">
+                {FAQ_ITEMS.map((item, index) => (
+                  <div key={item.question} role="listitem">
+                    <button
+                      onClick={() => toggleFaq(index)}
+                      className="flex w-full items-center justify-between gap-4 py-5 text-left transition-colors hover:text-teal"
+                      aria-expanded={expandedFaq === index}
+                      aria-controls={`faq-content-${index}`}
+                    >
+                      <h3 className="font-display text-lg font-semibold tracking-tight text-ink sm:text-xl">
+                        {item.question}
+                      </h3>
+                      {expandedFaq === index ? (
+                        <ChevronUp className="h-5 w-5 flex-shrink-0 text-ink-muted" aria-hidden="true" />
+                      ) : (
+                        <ChevronDown className="h-5 w-5 flex-shrink-0 text-ink-muted" aria-hidden="true" />
+                      )}
+                    </button>
+                    {expandedFaq === index && (
+                      <div id={`faq-content-${index}`} className="animate-fade-in pb-5 pr-8">
+                        {item.preface && (
+                          <p className="mb-3 leading-relaxed text-ink-soft">{item.preface}</p>
+                        )}
+                        {item.answer && (
+                          <p className="leading-relaxed text-ink-soft">{item.answer}</p>
+                        )}
+                        {item.list && (
+                          <ul className="space-y-2 text-ink-soft">
+                            {item.list.map((entry) => (
+                              <li key={entry.label} className="flex items-center gap-3">
+                                <span className={`h-2.5 w-2.5 rounded-full ${entry.color}`} aria-hidden="true" />
+                                <span><strong className="font-semibold text-ink">{entry.label}</strong> — {entry.detail}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                     )}
-                  </button>
-                  {expandedFaq === index && (
-                    <div id={`faq-content-${index}`} className="animate-fade-in pb-5 pr-8">
-                      {item.preface && (
-                        <p className="mb-3 leading-relaxed text-ink-soft">{item.preface}</p>
-                      )}
-                      {item.answer && (
-                        <p className="leading-relaxed text-ink-soft">{item.answer}</p>
-                      )}
-                      {item.list && (
-                        <ul className="space-y-2 text-ink-soft">
-                          {item.list.map((entry) => (
-                            <li key={entry.label} className="flex items-center gap-3">
-                              <span className={`h-2.5 w-2.5 rounded-full ${entry.color}`} aria-hidden="true" />
-                              <span><strong className="font-semibold text-ink">{entry.label}</strong> — {entry.detail}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
     </main>
   )
