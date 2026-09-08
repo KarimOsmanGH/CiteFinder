@@ -32,10 +32,10 @@ export default function PDFUploader({ onFileUpload }: PDFUploaderProps) {
     <section className="w-full" aria-label="PDF Upload Interface">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-300 hover-lift ${
+        className={`cursor-pointer rounded-2xl border border-dashed p-8 text-center transition-all duration-300 sm:p-10 ${
           isDragActive
-            ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-50 shadow-glow'
-            : 'border-gray-300 hover:border-blue-400 hover:bg-gradient-to-br from-gray-50 to-blue-50'
+            ? 'border-teal bg-teal/5'
+            : 'border-ink/20 hover:border-teal/50 hover:bg-mist-soft/60'
         }`}
         role="button"
         tabIndex={0}
@@ -44,30 +44,27 @@ export default function PDFUploader({ onFileUpload }: PDFUploaderProps) {
         <input {...getInputProps()} aria-label="PDF file input" />
         
         <div className="flex flex-col items-center">
-          <div className="mb-4">
+          <div className="mb-5" aria-hidden="true">
             {isDragActive ? (
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-glow" aria-hidden="true">
-                <Upload className="w-8 h-8 text-white" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-teal text-white">
+                <Upload className="h-7 w-7" />
               </div>
             ) : (
-              <div className="w-16 h-16 bg-gradient-to-br from-gray-400 to-gray-500 rounded-xl flex items-center justify-center" aria-hidden="true">
-                <FileText className="w-8 h-8 text-white" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-ink text-white">
+                <FileText className="h-7 w-7" />
               </div>
             )}
           </div>
           
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
+          <h3 className="mb-2 font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">
             {isDragActive ? 'Drop your PDF here' : 'Upload your PDF'}
           </h3>
           
-          <p className="text-base text-gray-600 mb-4 max-w-md">
-            Drag and drop your PDF file (max 50MB) here, or click to browse and select your research paper
+          <p className="max-w-md text-sm leading-relaxed text-ink-muted sm:text-base">
+            Drag and drop a research paper (max 50MB), or click to browse.
           </p>
-          
-          {/* Removed informational box (PDF Format / 50MB Max / Instant Processing) as requested */}
-          
         </div>
       </div>
     </section>
   )
-} 
+}

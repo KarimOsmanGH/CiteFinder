@@ -142,7 +142,7 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
           <h4 className="font-semibold text-gray-900 mb-2">Selected Papers ({selectedPapers.length})</h4>
           <div className="space-y-2">
             {selectedPapers.map((paper, index) => (
-              <div key={paper.id} className="text-sm text-gray-600 border-l-2 border-blue-200 pl-3">
+              <div key={paper.id} className="text-sm text-gray-600 border-l-2 border-teal/30 pl-3">
                 <div className="font-medium">{index + 1}. {paper.title}</div>
                 <div className="text-xs text-gray-500">
                   {paper.authors.join(', ')} • {paper.year} • {Math.round(paper.similarity)}% match
@@ -209,7 +209,7 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
                 onClick={() => setSelectedFormat(option.value as ReferenceFormat)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                   selectedFormat === option.value
-                    ? 'bg-blue-500 text-white shadow-md'
+                    ? 'bg-ink text-white'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
                 title={option.description}
@@ -249,7 +249,7 @@ export default function ReferencesGenerator({ citations, selectedPapers = [] }: 
               </button>
               <button
                 onClick={downloadReferences}
-                className="inline-flex items-center px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-sm font-medium transition-all duration-200"
+                className="inline-flex items-center px-4 py-2 bg-mist hover:bg-mist-deep text-ink rounded-lg text-sm font-medium transition-all duration-200"
               >
                 <Download className="w-4 h-4 mr-2" aria-hidden="true" />
                 Download

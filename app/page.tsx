@@ -1,13 +1,48 @@
 'use client'
 
 import { useState } from 'react'
-import { FileText, Loader2, ChevronDown, ChevronUp, BookOpen, AlertTriangle } from 'lucide-react'
+import { FileText, Loader2, ChevronDown, ChevronUp, BookOpen, AlertTriangle, ArrowLeft } from 'lucide-react'
 import PDFUploader from '@/components/PDFUploader'
 import RelatedPapers from '@/components/RelatedPapers'
 import InteractiveText from '@/components/InteractiveText'
 import ReferencesGenerator from '@/components/ReferencesGenerator'
 import { useToast } from '@/components/ui/Toast'
 import { RelatedPaper, Citation, StatementWithPosition, ProcessResponse } from '@/types'
+
+type FaqItem = {
+  question: string
+  answer?: string
+  preface?: string
+  list?: { label: string; detail: string; color: string }[]
+}
+
+const FAQ_ITEMS: FaqItem[] = [
+  {
+    question: 'How do I use CiteFinder?',
+    answer:
+      "Upload a PDF or paste text. We automatically extract key statements that need academic backing, search the world's largest academic databases (arXiv, OpenAlex, CrossRef, PubMed) to find supporting sources, and generate citations and references for you.",
+  },
+  {
+    question: 'Which academic databases does CiteFinder search?',
+    preface: 'CiteFinder searches across major academic databases:',
+    list: [
+      { label: 'arXiv', detail: 'Computer science, physics, mathematics', color: 'bg-brass' },
+      { label: 'OpenAlex', detail: 'Comprehensive academic database', color: 'bg-teal' },
+      { label: 'CrossRef', detail: 'Journal articles and DOIs', color: 'bg-ink-soft' },
+      { label: 'PubMed', detail: 'Biomedical and life sciences', color: 'bg-ink-muted' },
+    ],
+  },
+  {
+    question: 'Can I generate formatted references?',
+    answer:
+      'Yes! CiteFinder includes a References Generator that formats your selected papers into APA, MLA, Chicago, Harvard, or BibTeX formats. You can copy or download the formatted references.',
+  },
+  {
+    question: 'Is my data secure?',
+    answer:
+      'Yes! We never store your PDF files or text content. All processing happens temporarily, and your documents are deleted immediately after processing. Your research data remains private and secure.',
+  },
+]
 
 export default function Home() {
   const { showToast } = useToast()
@@ -118,63 +153,64 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-blue-100">
-      <div className="relative container mx-auto px-4 py-8">
+    <main className="site-shell">
+      <div className="relative container mx-auto px-4 pb-8 pt-6 sm:pt-8">
         {/* Navigation */}
-        <nav className="flex justify-between items-center mb-4" role="navigation" aria-label="Main navigation">
-          <div className="flex items-center space-x-3 sm:space-x-6 lg:space-x-8">
-            {/* Logo */}
-            <div className="flex items-center">
-              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center mr-2 sm:mr-3">
-                <FileText className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-white" aria-hidden="true" />
-              </div>
-              <span className="text-base sm:text-lg lg:text-xl font-bold text-gray-900">CiteFinder</span>
-            </div>
-            
-            {/* Menu Items */}
-            <div className="flex space-x-2 sm:space-x-4">
-              <button 
-                onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 text-xs sm:text-sm lg:text-base text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200"
-              >
-                Home
-              </button>
-              <button 
-                onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-2 sm:px-3 lg:px-4 py-1.5 sm:py-2 text-xs sm:text-sm lg:text-base text-gray-700 hover:text-gray-900 font-medium transition-colors duration-200"
-              >
-                FAQ
-              </button>
-            </div>
+        <nav className="mb-6 flex items-center justify-between sm:mb-8" role="navigation" aria-label="Main navigation">
+          <a href="#upload" className="group flex items-center gap-2.5">
+            <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-ink text-white transition-transform duration-300 group-hover:scale-105 sm:h-10 sm:w-10" aria-hidden="true">
+              <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
+            </span>
+            <span className="brand-mark text-lg text-ink sm:text-xl">CiteFinder</span>
+          </a>
+          
+          <div className="flex items-center gap-1 sm:gap-2">
+            <button 
+              onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-3 py-2 text-sm font-medium text-ink-muted transition-colors duration-200 hover:text-ink sm:px-4"
+            >
+              Home
+            </button>
+            <button 
+              onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })}
+              className="px-3 py-2 text-sm font-medium text-ink-muted transition-colors duration-200 hover:text-ink sm:px-4"
+            >
+              FAQ
+            </button>
           </div>
         </nav>
 
-        {/* Header */}
-        <header className="text-center mb-8 sm:mb-12 lg:mb-16 animate-fade-in-up px-4">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold gradient-text mb-4 sm:mb-6 lg:mb-8 mt-8 sm:mt-12 lg:mt-16 leading-tight sm:leading-relaxed py-2 sm:py-4">
-            Academic Source Finder
-          </h1>
-          <p className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed">
-            Automatically extract statements from your paper, find sources from the world&apos;s largest academic databases, and generate citations.
-          </p>
-        </header>
+        {/* Hero — brand first, one composition */}
+        {currentStep === 'upload' && (
+          <header className="relative mx-auto mb-10 max-w-4xl text-center sm:mb-14">
+            <div
+              className="pointer-events-none absolute inset-x-0 -top-6 mx-auto h-[min(70vw,420px)] max-w-3xl rounded-[40%] bg-[radial-gradient(ellipse_at_center,rgba(31,107,92,0.14),transparent_70%)] animate-drift"
+              aria-hidden="true"
+            />
+            <p className="brand-mark animate-fade-up text-[clamp(2.75rem,10vw,5.5rem)] font-bold text-ink">
+              CiteFinder
+            </p>
+            <div className="section-rule mx-auto mt-5 max-w-[8rem] animate-rule-draw animate-delay-1" aria-hidden="true" />
+            <h1 className="mt-6 animate-fade-up animate-delay-1 font-display text-xl font-semibold tracking-tight text-ink-soft sm:text-2xl md:text-3xl">
+              Find sources for every claim.
+            </h1>
+            <p className="mx-auto mt-4 max-w-2xl animate-fade-up animate-delay-2 text-base leading-relaxed text-ink-muted sm:text-lg">
+              Extract statements from your paper, search the world&apos;s largest academic databases, and generate citations.
+            </p>
+          </header>
+        )}
 
         {/* Main Content */}
-        <section id="upload" className="max-w-6xl mx-auto" aria-label="Main Application">
+        <section id="upload" className="mx-auto max-w-6xl" aria-label="Main Application">
           {currentStep === 'upload' && (
-            <section className="animate-fade-in-up" aria-label="Search Options">
-              {/* Search Mode Toggle */}
-              <div className="flex justify-center mb-8">
-                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-1 border border-gray-300 shadow-sm" role="tablist">
+            <section className="animate-fade-up animate-delay-3" aria-label="Search Options">
+              <div className="mb-6 flex justify-center sm:mb-8">
+                <div className="mode-toggle rounded-xl" role="tablist">
                   <button
                     role="tab"
                     aria-selected={searchMode === 'pdf'}
                     onClick={() => setSearchMode('pdf')}
-                    className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                      searchMode === 'pdf'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
+                    className="rounded-lg"
                   >
                     Upload PDF
                   </button>
@@ -182,38 +218,36 @@ export default function Home() {
                     role="tab"
                     aria-selected={searchMode === 'text'}
                     onClick={() => setSearchMode('text')}
-                    className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${
-                      searchMode === 'text'
-                        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
-                    }`}
+                    className="rounded-lg"
                   >
                     Enter Text
                   </button>
                 </div>
               </div>
               
-              {/* PDF Upload Option */}
               {searchMode === 'pdf' && (
                 <div 
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-4 hover-lift animate-fade-in max-w-2xl mx-auto border border-gray-200"
+                  className="panel mx-auto max-w-2xl animate-fade-in rounded-2xl p-4 sm:p-5"
                   role="tabpanel"
-                  aria-labelledby="Upload PDF"
+                  aria-label="Upload PDF"
                 >
                   <PDFUploader onFileUpload={handleFileUpload} />
                 </div>
               )}
 
-              {/* Text Search Option */}
               {searchMode === 'text' && (
                 <div 
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-8 hover-lift animate-fade-in border border-gray-200"
+                  className="panel mx-auto max-w-3xl animate-fade-in rounded-2xl p-6 sm:p-8"
                   role="tabpanel"
-                  aria-labelledby="Enter Text"
+                  aria-label="Enter Text"
                 >
-                  <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Enter Your Text</h3>
-                    <p className="text-gray-600">Paste your content and our AI will identify statements that need academic backing, then find sources to support them</p>
+                  <div className="mb-5 text-center">
+                    <h2 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">
+                      Paste your draft
+                    </h2>
+                    <p className="mt-2 text-sm text-ink-muted sm:text-base">
+                      We&apos;ll flag claims that need backing and find supporting sources.
+                    </p>
                   </div>
                   <div className="space-y-4">
                     <label htmlFor="search-text" className="sr-only">Enter your academic text</label>
@@ -221,13 +255,13 @@ export default function Home() {
                       id="search-text"
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
-                      placeholder="Paste your paper content here... Our AI will find academic sources to support your ideas and generate proper citations."
-                      className="w-full h-48 p-4 border border-gray-200 rounded-xl resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-900"
+                      placeholder="Paste your paper content here..."
+                      className="h-48 w-full resize-none rounded-xl border border-ink/10 bg-surface p-4 text-ink placeholder:text-ink-muted/50 focus:border-teal focus:ring-2 focus:ring-teal/30"
                     />
                     <button
                       onClick={handleTextSearch}
-                      disabled={!searchText.trim()}
-                      className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white font-semibold py-4 px-8 rounded-xl transition-all duration-300 hover-lift shadow-glow disabled:cursor-not-allowed"
+                      disabled={!searchText.trim() || isProcessing}
+                      className="btn-primary w-full rounded-xl px-8 py-3.5 text-base"
                     >
                       Find Sources & Generate Citations
                     </button>
@@ -239,25 +273,22 @@ export default function Home() {
 
           {currentStep === 'processing' && (
             <section className="animate-fade-in" aria-label="Processing Status">
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft p-12 text-center border border-gray-200">
-                <div className="relative mb-8">
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto animate-pulse-slow" role="status" aria-label="Processing">
-                    <Loader2 className="w-10 h-10 text-white animate-spin" />
+              <div className="panel mx-auto max-w-xl rounded-2xl p-10 text-center sm:p-12">
+                <div className="relative mb-8 inline-flex">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-ink animate-pulse-slow" role="status" aria-label="Processing">
+                    <Loader2 className="h-8 w-8 animate-spin text-white" />
                   </div>
-                  <div className="absolute inset-0 w-20 h-20 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full opacity-20 animate-ping mx-auto" aria-hidden="true"></div>
                 </div>
-                <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                  Processing your {searchMode === 'pdf' ? 'PDF' : 'text'}...
+                <h2 className="font-display text-2xl font-semibold tracking-tight text-ink sm:text-3xl">
+                  Processing your {searchMode === 'pdf' ? 'PDF' : 'text'}…
                 </h2>
-                <p className="text-lg text-gray-600 max-w-md mx-auto">
-                  Extracting citations and searching across academic databases. This may take a few moments.
+                <p className="mx-auto mt-3 max-w-md text-ink-muted">
+                  Extracting statements and searching academic databases. This may take a moment.
                 </p>
-                
-                {/* Progress indicators */}
-                <div className="flex justify-center space-x-2 mt-8" aria-label="Progress indicators" role="status">
-                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" aria-hidden="true"></div>
-                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.2s'}} aria-hidden="true"></div>
-                  <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse" style={{animationDelay: '0.4s'}} aria-hidden="true"></div>
+                <div className="mt-8 flex justify-center gap-2" aria-label="Progress indicators" role="status">
+                  <div className="h-2 w-2 rounded-full bg-teal animate-pulse" aria-hidden="true" />
+                  <div className="h-2 w-2 rounded-full bg-teal animate-pulse" style={{ animationDelay: '0.2s' }} aria-hidden="true" />
+                  <div className="h-2 w-2 rounded-full bg-teal animate-pulse" style={{ animationDelay: '0.4s' }} aria-hidden="true" />
                 </div>
               </div>
             </section>
@@ -265,145 +296,101 @@ export default function Home() {
 
           {currentStep === 'results' && (
             <section className="animate-fade-in" aria-label="Results">
-              {/* Back to Upload Button */}
-              <div className="text-center mb-8">
+              <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
+                <div>
+                  <p className="brand-mark text-2xl text-ink sm:text-3xl">CiteFinder</p>
+                  <p className="mt-1 text-sm text-ink-muted">Your sources are ready to review</p>
+                </div>
                 <button
                   onClick={handleBackToUpload}
-                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-semibold rounded-xl transition-all duration-300 hover-lift shadow-glow"
+                  className="inline-flex items-center gap-2 rounded-xl border border-ink/15 bg-surface px-5 py-2.5 text-sm font-semibold text-ink transition-colors hover:border-ink/30 hover:bg-mist-soft"
                 >
-                  ← Back to Upload
+                  <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+                  Back to Upload
                 </button>
               </div>
 
-              {/* Two-Column Layout */}
-              <div className="flex flex-col lg:flex-row gap-4 sm:gap-6 lg:gap-8">
-                
-                {/* Left Sidebar - Progress & Navigation */}
-                <aside className="w-full lg:w-80 flex-shrink-0" aria-label="Progress sidebar">
-                  <div className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:sticky lg:top-8 border border-gray-200">
-                    <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center">
-                      <span className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-2 sm:mr-3">
-                        <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" aria-hidden="true" />
+              <div className="flex flex-col gap-6 lg:flex-row lg:gap-8">
+                <aside className="w-full flex-shrink-0 lg:w-72" aria-label="Progress sidebar">
+                  <div className="panel rounded-2xl p-5 lg:sticky lg:top-8">
+                    <h3 className="mb-5 flex items-center gap-2.5 font-display text-lg font-semibold text-ink">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink text-white" aria-hidden="true">
+                        <FileText className="h-4 w-4" />
                       </span>
-                      Your Progress
+                      Progress
                     </h3>
                     
-                    <div className="grid grid-cols-2 lg:grid-cols-1 gap-3 sm:gap-4 lg:gap-6">
-                      {/* Step 1: Statements */}
-                      <div>
-                        <div className="flex items-center mb-2 lg:mb-3">
-                          <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3 flex-shrink-0" aria-hidden="true">
-                            ✓
+                    <div className="grid grid-cols-2 gap-3 lg:grid-cols-1 lg:gap-5">
+                      {[
+                        { id: 'statements-section', title: 'Statements', meta: `${statementsFound.length} extracted`, done: statementsFound.length > 0, action: 'View', enabled: true },
+                        { id: 'papers-section', title: 'Papers', meta: `${relatedPapers.length} found`, done: relatedPapers.length > 0, action: 'View', enabled: true },
+                        { id: null, title: 'Selection', meta: `${selectedPapers.length} selected`, done: selectedPapers.length > 0, action: 'Select papers', enabled: false },
+                        { id: 'references-section', title: 'Generate', meta: 'Create refs', done: selectedPapers.length > 0, action: selectedPapers.length > 0 ? 'Generate' : 'Select first', enabled: selectedPapers.length > 0 },
+                      ].map((step) => (
+                        <div key={step.title}>
+                          <div className="mb-2 flex items-center gap-2.5">
+                            <div
+                              className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white ${
+                                step.done ? 'bg-teal' : 'bg-ink-muted/40'
+                              }`}
+                              aria-hidden="true"
+                            >
+                              {step.done ? '✓' : '·'}
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="truncate text-sm font-semibold text-ink">{step.title}</h4>
+                              <p className="text-xs text-ink-muted">{step.meta}</p>
+                            </div>
                           </div>
-                          <div className="min-w-0">
-                            <h4 className="font-semibold text-gray-900 text-xs sm:text-sm truncate">Step 1: Statements</h4>
-                            <p className="text-xs text-gray-600">{statementsFound.length} extracted</p>
-                          </div>
+                          {step.id ? (
+                            <button
+                              onClick={() => document.getElementById(step.id!)?.scrollIntoView({ behavior: 'smooth' })}
+                              disabled={!step.enabled}
+                              className={`w-full rounded-lg px-3 py-2 text-left text-xs transition-colors sm:text-sm ${
+                                step.enabled
+                                  ? 'bg-mist text-teal hover:bg-mist-deep'
+                                  : 'cursor-not-allowed bg-mist-soft text-ink-muted/50'
+                              }`}
+                            >
+                              {step.action} →
+                            </button>
+                          ) : (
+                            <div className="rounded-lg bg-mist px-3 py-2 text-xs text-teal sm:text-sm">
+                              {step.action}
+                            </div>
+                          )}
                         </div>
-                        <button
-                          onClick={() => document.getElementById('statements-section')?.scrollIntoView({ behavior: 'smooth' })}
-                          className="w-full text-left px-3 sm:px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs sm:text-sm transition-colors"
-                        >
-                          View →
-                        </button>
-                      </div>
-
-                      {/* Step 2: Papers */}
-                      <div>
-                        <div className="flex items-center mb-2 lg:mb-3">
-                          <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3 flex-shrink-0 ${
-                            relatedPapers.length > 0 ? 'bg-green-500' : 'bg-gray-400'
-                          }`} aria-hidden="true">
-                            {relatedPapers.length > 0 ? '✓' : '2'}
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="font-semibold text-gray-900 text-xs sm:text-sm truncate">Step 2: Papers</h4>
-                            <p className="text-xs text-gray-600">{relatedPapers.length} found</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => document.getElementById('papers-section')?.scrollIntoView({ behavior: 'smooth' })}
-                          className="w-full text-left px-3 sm:px-4 py-2 bg-green-50 hover:bg-green-100 text-green-700 rounded-lg text-xs sm:text-sm transition-colors"
-                        >
-                          View →
-                        </button>
-                      </div>
-
-                      {/* Step 3: Selection */}
-                      <div>
-                        <div className="flex items-center mb-2 lg:mb-3">
-                          <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3 flex-shrink-0 ${
-                            selectedPapers.length > 0 ? 'bg-green-500' : 'bg-gray-400'
-                          }`} aria-hidden="true">
-                            {selectedPapers.length > 0 ? '✓' : '3'}
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="font-semibold text-gray-900 text-xs sm:text-sm truncate">Step 3: Selection</h4>
-                            <p className="text-xs text-gray-600">{selectedPapers.length} selected</p>
-                          </div>
-                        </div>
-                        <div className="px-3 sm:px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-xs sm:text-sm">
-                          Select papers
-                        </div>
-                      </div>
-
-                      {/* Step 4: Generate */}
-                      <div>
-                        <div className="flex items-center mb-2 lg:mb-3">
-                          <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm mr-2 sm:mr-3 flex-shrink-0 ${
-                            selectedPapers.length > 0 ? 'bg-green-500' : 'bg-gray-400'
-                          }`} aria-hidden="true">
-                            {selectedPapers.length > 0 ? '✓' : '4'}
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="font-semibold text-gray-900 text-xs sm:text-sm truncate">Step 4: Generate</h4>
-                            <p className="text-xs text-gray-600">Create refs</p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => document.getElementById('references-section')?.scrollIntoView({ behavior: 'smooth' })}
-                          className={`w-full text-left px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors ${
-                            selectedPapers.length > 0 
-                              ? 'bg-blue-50 hover:bg-blue-100 text-blue-700' 
-                              : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                          }`}
-                          disabled={selectedPapers.length === 0}
-                        >
-                          {selectedPapers.length > 0 ? 'Generate →' : 'Select first'}
-                        </button>
-                      </div>
+                      ))}
                     </div>
 
-                    {/* Quick Stats */}
-                    <div className="hidden sm:block mt-6 lg:mt-8 pt-4 lg:pt-6 border-t border-gray-200">
-                      <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2 sm:mb-3">Summary</h4>
-                      <div className="space-y-1 sm:space-y-2 text-xs sm:text-sm">
+                    <div className="mt-6 hidden border-t border-ink/10 pt-5 sm:block">
+                      <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">Summary</h4>
+                      <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Statements:</span>
-                          <span className="font-semibold text-gray-900">{statementsFound.length}</span>
+                          <span className="text-ink-muted">Statements</span>
+                          <span className="font-semibold text-ink">{statementsFound.length}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Papers Found:</span>
-                          <span className="font-semibold text-gray-900">{relatedPapers.length}</span>
+                          <span className="text-ink-muted">Papers</span>
+                          <span className="font-semibold text-ink">{relatedPapers.length}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Selected:</span>
-                          <span className="font-semibold text-green-600">{selectedPapers.length}</span>
+                          <span className="text-ink-muted">Selected</span>
+                          <span className="font-semibold text-teal">{selectedPapers.length}</span>
                         </div>
                       </div>
                     </div>
                   </div>
                 </aside>
 
-                {/* Right Content - Main Results */}
-                <main className="flex-1 min-w-0 space-y-4 sm:space-y-6 lg:space-y-8">
+                <div className="min-w-0 flex-1 space-y-6">
                   {warnings.length > 0 && (
-                    <article className="bg-amber-50 border border-amber-200 rounded-xl sm:rounded-2xl p-4 sm:p-6">
+                    <article className="rounded-2xl border border-brass/30 bg-brass/10 p-4 sm:p-6">
                       <div className="flex items-start gap-3">
-                        <AlertTriangle className="w-5 h-5 text-amber-700 mt-0.5 flex-shrink-0" aria-hidden="true" />
+                        <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-brass-deep" aria-hidden="true" />
                         <div>
-                          <h3 className="text-base sm:text-lg font-semibold text-amber-900">Processing notes</h3>
-                          <ul className="mt-2 space-y-1 text-sm text-amber-800 list-disc list-inside">
+                          <h3 className="text-base font-semibold text-ink sm:text-lg">Processing notes</h3>
+                          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-ink-soft">
                             {warnings.map((warning, index) => (
                               <li key={`${warning}-${index}`}>{warning}</li>
                             ))}
@@ -413,20 +400,18 @@ export default function Home() {
                     </article>
                   )}
 
-                  
-                  {/* Interactive Content View Section */}
                   <div id="statements-section">
                     {statementsWithPositions.length > 0 && (
-                      <article className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
-                        <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                      <article className="panel rounded-2xl p-5 sm:p-6 lg:p-8">
+                        <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+                          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-ink text-white" aria-hidden="true">
+                            <BookOpen className="h-5 w-5" />
                           </div>
                           <div>
-                            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                            <h2 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">
                               {searchMode === 'pdf' ? 'Interactive PDF View' : 'Interactive Text View'}
                             </h2>
-                            <p className="text-sm sm:text-base text-gray-600">Review your content with highlighted statements and supporting papers</p>
+                            <p className="text-sm text-ink-muted sm:text-base">Highlighted statements with supporting papers</p>
                           </div>
                         </header>
                         <InteractiveText 
@@ -436,34 +421,29 @@ export default function Home() {
                       </article>
                     )}
 
-                    {/* Fallback for text mode without highlights */}
                     {searchMode === 'text' && statementsWithPositions.length === 0 && statementsFound.length > 0 && (
-                      <article className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
-                        <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                            <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                      <article className="panel rounded-2xl p-5 sm:p-6 lg:p-8">
+                        <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+                          <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-ink text-white" aria-hidden="true">
+                            <BookOpen className="h-5 w-5" />
                           </div>
                           <div>
-                            <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                            <h2 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">
                               Extracted Statements
                             </h2>
-                            <p className="text-sm sm:text-base text-gray-600">Review the statements extracted from your text</p>
+                            <p className="text-sm text-ink-muted sm:text-base">Review the statements extracted from your text</p>
                           </div>
                         </header>
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           {statementsFound.map((statement, index) => (
-                            <div key={index} className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <div className="flex items-center mb-2">
-                                    <span className="inline-flex items-center justify-center w-6 h-6 text-xs font-bold bg-blue-600 text-white rounded-full mr-2">
-                                      {index + 1}
-                                    </span>
-                                    <span className="text-sm font-medium text-blue-800">Statement {index + 1}</span>
-                                  </div>
-                                  <p className="text-gray-800 leading-relaxed">{statement}</p>
-                                </div>
+                            <div key={index} className="rounded-xl border border-teal/15 bg-mist-soft p-4">
+                              <div className="mb-2 flex items-center gap-2">
+                                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-teal text-xs font-bold text-white">
+                                  {index + 1}
+                                </span>
+                                <span className="text-sm font-medium text-teal">Statement {index + 1}</span>
                               </div>
+                              <p className="leading-relaxed text-ink-soft">{statement}</p>
                             </div>
                           ))}
                         </div>
@@ -471,17 +451,16 @@ export default function Home() {
                     )}
                   </div>
 
-                  {/* Supporting Papers Section */}
-                  <article id="papers-section" className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
-                    <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                        <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <article id="papers-section" className="panel rounded-2xl p-5 sm:p-6 lg:p-8">
+                    <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+                      <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-teal text-white" aria-hidden="true">
+                        <BookOpen className="h-5 w-5" />
                       </div>
                       <div>
-                        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                        <h2 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">
                           Supporting Papers
                         </h2>
-                        <p className="text-sm sm:text-base text-gray-600">Select academic papers to support your statements and claims</p>
+                        <p className="text-sm text-ink-muted sm:text-base">Select papers to back your claims</p>
                       </div>
                     </header>
                     <RelatedPapers 
@@ -492,149 +471,78 @@ export default function Home() {
                     />
                   </article>
 
-                  {/* References Generator Section */}
-                  <article id="references-section" className="bg-white/90 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-soft p-4 sm:p-6 lg:p-8 hover-lift border border-gray-200">
-                    <header className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6 lg:mb-8">
-                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0" aria-hidden="true">
-                        <FileText className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
+                  <article id="references-section" className="panel rounded-2xl p-5 sm:p-6 lg:p-8">
+                    <header className="mb-6 flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-4">
+                      <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-ink text-white" aria-hidden="true">
+                        <FileText className="h-5 w-5" />
                       </div>
                       <div>
-                        <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">
+                        <h2 className="font-display text-xl font-semibold tracking-tight text-ink sm:text-2xl">
                           References Generator
                         </h2>
-                        <p className="text-sm sm:text-base text-gray-600">Generate formatted references from your selected papers</p>
+                        <p className="text-sm text-ink-muted sm:text-base">Format references from your selected papers</p>
                       </div>
                     </header>
                     <ReferencesGenerator citations={citations} selectedPapers={selectedPapers} />
                   </article>
-                </main>
+                </div>
               </div>
             </section>
           )}
         </section>
 
-        {/* FAQ Section */}
-        <section id="faq" className="py-16" aria-labelledby="faq-heading">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 id="faq-heading" className="text-4xl font-bold gradient-text mb-6">
-                Frequently Asked Questions
+        {/* FAQ */}
+        <section id="faq" className="py-16 sm:py-20" aria-labelledby="faq-heading">
+          <div className="mx-auto max-w-3xl">
+            <div className="mb-10 text-center sm:mb-12">
+              <h2 id="faq-heading" className="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+                Questions
               </h2>
-              <p className="text-xl text-gray-600">
+              <p className="mt-3 text-ink-muted">
                 Common questions about using CiteFinder for your research.
               </p>
             </div>
 
-            <div className="space-y-4" role="list">
-              {/* FAQ Item 1 */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
-                <button
-                  onClick={() => toggleFaq(0)}
-                  className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
-                  aria-expanded={expandedFaq === 0}
-                  aria-controls="faq-content-0"
-                >
-                  <h3 className="text-xl font-bold text-gray-900">
-                    How do I use CiteFinder?
-                  </h3>
-                  {expandedFaq === 0 ? (
-                    <ChevronUp className="w-6 h-6 text-gray-600" aria-hidden="true" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-gray-600" aria-hidden="true" />
+            <div className="divide-y divide-ink/10 border-y border-ink/10" role="list">
+              {FAQ_ITEMS.map((item, index) => (
+                <div key={item.question} role="listitem">
+                  <button
+                    onClick={() => toggleFaq(index)}
+                    className="flex w-full items-center justify-between gap-4 py-5 text-left transition-colors hover:text-teal"
+                    aria-expanded={expandedFaq === index}
+                    aria-controls={`faq-content-${index}`}
+                  >
+                    <h3 className="font-display text-lg font-semibold tracking-tight text-ink sm:text-xl">
+                      {item.question}
+                    </h3>
+                    {expandedFaq === index ? (
+                      <ChevronUp className="h-5 w-5 flex-shrink-0 text-ink-muted" aria-hidden="true" />
+                    ) : (
+                      <ChevronDown className="h-5 w-5 flex-shrink-0 text-ink-muted" aria-hidden="true" />
+                    )}
+                  </button>
+                  {expandedFaq === index && (
+                    <div id={`faq-content-${index}`} className="animate-fade-in pb-5 pr-8">
+                      {item.preface && (
+                        <p className="mb-3 leading-relaxed text-ink-soft">{item.preface}</p>
+                      )}
+                      {item.answer && (
+                        <p className="leading-relaxed text-ink-soft">{item.answer}</p>
+                      )}
+                      {item.list && (
+                        <ul className="space-y-2 text-ink-soft">
+                          {item.list.map((entry) => (
+                            <li key={entry.label} className="flex items-center gap-3">
+                              <span className={`h-2.5 w-2.5 rounded-full ${entry.color}`} aria-hidden="true" />
+                              <span><strong className="font-semibold text-ink">{entry.label}</strong> — {entry.detail}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
                   )}
-                </button>
-                {expandedFaq === 0 && (
-                  <div id="faq-content-0" className="px-6 pb-6">
-                    <p className="text-gray-700 leading-relaxed">
-                      Upload a PDF or paste text. We automatically extract key statements that need academic backing, search the world&apos;s largest academic databases (arXiv, OpenAlex, CrossRef, PubMed) to find supporting sources, and generate citations and references for you.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* FAQ Item 2 */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
-                <button
-                  onClick={() => toggleFaq(1)}
-                  className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
-                  aria-expanded={expandedFaq === 1}
-                  aria-controls="faq-content-1"
-                >
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Which academic databases does CiteFinder search?
-                  </h3>
-                  {expandedFaq === 1 ? (
-                    <ChevronUp className="w-6 h-6 text-gray-600" aria-hidden="true" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-gray-600" aria-hidden="true" />
-                  )}
-                </button>
-                {expandedFaq === 1 && (
-                  <div id="faq-content-1" className="px-6 pb-6">
-                    <p className="text-gray-700 leading-relaxed mb-4">
-                      CiteFinder searches across major academic databases:
-                    </p>
-                    <ul className="space-y-2 text-gray-700">
-                      <li className="flex items-center"><span className="w-3 h-3 bg-orange-500 rounded-full mr-3"></span><strong>arXiv</strong> - Computer science, physics, mathematics</li>
-                      <li className="flex items-center"><span className="w-3 h-3 bg-blue-500 rounded-full mr-3"></span><strong>OpenAlex</strong> - Comprehensive academic database</li>
-                      <li className="flex items-center"><span className="w-3 h-3 bg-green-500 rounded-full mr-3"></span><strong>CrossRef</strong> - Journal articles and DOIs</li>
-                      <li className="flex items-center"><span className="w-3 h-3 bg-purple-500 rounded-full mr-3"></span><strong>PubMed</strong> - Biomedical and life sciences</li>
-                    </ul>
-                  </div>
-                )}
-              </div>
-
-              {/* FAQ Item 3 */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
-                <button
-                  onClick={() => toggleFaq(2)}
-                  className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
-                  aria-expanded={expandedFaq === 2}
-                  aria-controls="faq-content-2"
-                >
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Can I generate formatted references?
-                  </h3>
-                  {expandedFaq === 2 ? (
-                    <ChevronUp className="w-6 h-6 text-gray-600" aria-hidden="true" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-gray-600" aria-hidden="true" />
-                  )}
-                </button>
-                {expandedFaq === 2 && (
-                  <div id="faq-content-2" className="px-6 pb-6">
-                    <p className="text-gray-700 leading-relaxed">
-                      Yes! CiteFinder includes a References Generator that formats your selected papers into APA, MLA, Chicago, Harvard, or BibTeX formats. You can copy or download the formatted references.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* FAQ Item 4 */}
-              <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-soft overflow-hidden border border-gray-200">
-                <button
-                  onClick={() => toggleFaq(3)}
-                  className="w-full p-6 text-left flex items-center justify-between hover:bg-white/20 transition-colors"
-                  aria-expanded={expandedFaq === 3}
-                  aria-controls="faq-content-3"
-                >
-                  <h3 className="text-xl font-bold text-gray-900">
-                    Is my data secure?
-                  </h3>
-                  {expandedFaq === 3 ? (
-                    <ChevronUp className="w-6 h-6 text-gray-600" aria-hidden="true" />
-                  ) : (
-                    <ChevronDown className="w-6 h-6 text-gray-600" aria-hidden="true" />
-                  )}
-                </button>
-                {expandedFaq === 3 && (
-                  <div id="faq-content-3" className="px-6 pb-6">
-                    <p className="text-gray-700 leading-relaxed">
-                      Yes! We never store your PDF files or text content. All processing happens temporarily, and your documents are deleted immediately after processing. Your research data remains private and secure.
-                    </p>
-                  </div>
-                )}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
