@@ -1,6 +1,6 @@
 'use client'
 
-import { ExternalLink, Search, CheckCircle, AlertCircle, BookOpen } from 'lucide-react'
+import { ExternalLink, Search, AlertCircle, BookOpen } from 'lucide-react'
 import { RelatedPaper } from '@/types'
 import { SIMILARITY_THRESHOLDS } from '@/lib/constants'
 import { extractSupportingQuote } from '@/lib/utils'
@@ -259,13 +259,10 @@ function PapersTable({ papers, statement, selectedPapers, onPaperSelection }: Pa
                 
                 {supportingQuote && (
                   <div className="rounded-lg border border-teal/20 bg-mist-soft p-3">
-                    <div className="mb-2 flex items-center">
-                      <CheckCircle className="mr-2 h-4 w-4 flex-shrink-0 text-teal" aria-hidden="true" />
-                      <p className="text-xs font-bold text-ink">Evidence</p>
-                    </div>
-                    <pre className="overflow-auto whitespace-pre-wrap break-words rounded-md border border-teal/20 bg-white/60 p-2 font-mono text-xs leading-relaxed text-ink">
-                      <code>{supportingQuote}</code>
-                    </pre>
+                    <p className="mb-1 text-xs font-semibold text-teal">Evidence</p>
+                    <p className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-ink-soft">
+                      {supportingQuote}
+                    </p>
                   </div>
                 )}
                 
@@ -287,13 +284,10 @@ function PapersTable({ papers, statement, selectedPapers, onPaperSelection }: Pa
               {supportingQuote && (
                 <div className="hidden px-4 pb-4 pt-0 md:block">
                   <div className="rounded-lg border border-teal/20 bg-mist-soft p-3">
-                    <div className="mb-2 flex items-center">
-                      <CheckCircle className="mr-2 h-4 w-4 text-teal" aria-hidden="true" />
-                      <p className="text-xs font-bold text-ink">Supporting Evidence</p>
-                    </div>
-                    <pre className="overflow-auto whitespace-pre-wrap break-words rounded-md border border-teal/20 bg-white/60 p-2 font-mono text-xs leading-relaxed text-ink">
-                      <code>{supportingQuote}</code>
-                    </pre>
+                    <p className="mb-1 text-xs font-semibold text-teal">Supporting Evidence</p>
+                    <p className="whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-ink-soft">
+                      {supportingQuote}
+                    </p>
                   </div>
                 </div>
               )}

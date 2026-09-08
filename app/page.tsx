@@ -378,23 +378,6 @@ export default function Home() {
                       ))}
                     </div>
 
-                    <div className="mt-6 hidden border-t border-ink/10 pt-5 sm:block">
-                      <h4 className="mb-3 text-xs font-semibold uppercase tracking-wider text-ink-muted">Summary</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-ink-muted">Statements</span>
-                          <span className="font-semibold text-ink">{statementsFound.length}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-ink-muted">Papers</span>
-                          <span className="font-semibold text-ink">{relatedPapers.length}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-ink-muted">Selected</span>
-                          <span className="font-semibold text-teal">{selectedPapers.length}</span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
                 </aside>
 
