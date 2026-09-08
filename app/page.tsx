@@ -167,50 +167,47 @@ export default function Home() {
           <div className="flex items-center gap-1 sm:gap-2">
             <button 
               onClick={() => document.getElementById('upload')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-3 py-2 text-sm font-medium text-ink-muted transition-colors duration-200 hover:text-ink sm:px-4"
+              className="px-3 py-2 text-sm font-medium text-ink-soft transition-colors duration-200 hover:text-ink sm:px-4"
             >
               Home
             </button>
             <button 
               onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })}
-              className="px-3 py-2 text-sm font-medium text-ink-muted transition-colors duration-200 hover:text-ink sm:px-4"
+              className="px-3 py-2 text-sm font-medium text-ink-soft transition-colors duration-200 hover:text-ink sm:px-4"
             >
               FAQ
             </button>
           </div>
         </nav>
 
-        {/* Hero — brand first, one composition */}
+        {/* Hero + upload as one first-viewport composition */}
         {currentStep === 'upload' && (
-          <header className="relative mx-auto mb-10 max-w-4xl text-center sm:mb-14">
-            <div
-              className="pointer-events-none absolute inset-x-0 -top-6 mx-auto h-[min(70vw,420px)] max-w-3xl rounded-[40%] bg-[radial-gradient(ellipse_at_center,rgba(31,107,92,0.14),transparent_70%)] animate-drift"
-              aria-hidden="true"
-            />
-            <p className="brand-mark animate-fade-up text-[clamp(2.75rem,10vw,5.5rem)] font-bold text-ink">
-              CiteFinder
-            </p>
-            <div className="section-rule mx-auto mt-5 max-w-[8rem] animate-rule-draw animate-delay-1" aria-hidden="true" />
-            <h1 className="mt-6 animate-fade-up animate-delay-1 font-display text-xl font-semibold tracking-tight text-ink-soft sm:text-2xl md:text-3xl">
-              Find sources for every claim.
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl animate-fade-up animate-delay-2 text-base leading-relaxed text-ink-muted sm:text-lg">
-              Extract statements from your paper, search the world&apos;s largest academic databases, and generate citations.
-            </p>
-          </header>
-        )}
+          <div className="flex min-h-[calc(100vh-5.5rem)] flex-col justify-center pb-16">
+            <header className="relative mx-auto mb-8 max-w-4xl text-center sm:mb-10">
+              <div
+                className="pointer-events-none absolute inset-x-0 -top-8 mx-auto h-[min(70vw,440px)] max-w-3xl rounded-[40%] bg-[radial-gradient(ellipse_at_center,rgba(31,107,92,0.16),transparent_70%)] animate-drift"
+                aria-hidden="true"
+              />
+              <p className="brand-mark animate-fade-up text-[clamp(3rem,11vw,6rem)] font-semibold text-ink">
+                CiteFinder
+              </p>
+              <div className="section-rule mx-auto mt-5 max-w-[7rem] animate-rule-draw animate-delay-1" aria-hidden="true" />
+              <h1 className="mt-5 animate-fade-up animate-delay-1 font-sans text-lg font-medium tracking-tight text-ink-soft sm:text-xl md:text-2xl">
+                Find sources for every claim.
+              </h1>
+              <p className="mx-auto mt-3 max-w-xl animate-fade-up animate-delay-2 text-sm leading-relaxed text-ink-muted sm:text-base">
+                Extract statements from your paper, search the world&apos;s largest academic databases, and generate citations.
+              </p>
+            </header>
 
-        {/* Main Content */}
-        <section id="upload" className="mx-auto max-w-6xl" aria-label="Main Application">
-          {currentStep === 'upload' && (
-            <section className="animate-fade-up animate-delay-3" aria-label="Search Options">
-              <div className="mb-6 flex justify-center sm:mb-8">
-                <div className="mode-toggle rounded-xl" role="tablist">
+            <section id="upload" className="mx-auto w-full max-w-6xl animate-fade-up animate-delay-3" aria-label="Search Options">
+              <div className="mb-5 flex justify-center">
+                <div className="mode-toggle rounded-lg" role="tablist">
                   <button
                     role="tab"
                     aria-selected={searchMode === 'pdf'}
                     onClick={() => setSearchMode('pdf')}
-                    className="rounded-lg"
+                    className="rounded-md"
                   >
                     Upload PDF
                   </button>
@@ -218,7 +215,7 @@ export default function Home() {
                     role="tab"
                     aria-selected={searchMode === 'text'}
                     onClick={() => setSearchMode('text')}
-                    className="rounded-lg"
+                    className="rounded-md"
                   >
                     Enter Text
                   </button>
@@ -256,7 +253,7 @@ export default function Home() {
                       value={searchText}
                       onChange={(e) => setSearchText(e.target.value)}
                       placeholder="Paste your paper content here..."
-                      className="h-48 w-full resize-none rounded-xl border border-ink/10 bg-surface p-4 text-ink placeholder:text-ink-muted/50 focus:border-teal focus:ring-2 focus:ring-teal/30"
+                      className="h-40 w-full resize-none rounded-xl border border-ink/10 bg-surface p-4 text-ink placeholder:text-ink-muted/50 focus:border-teal focus:ring-2 focus:ring-teal/30 sm:h-48"
                     />
                     <button
                       onClick={handleTextSearch}
@@ -269,8 +266,11 @@ export default function Home() {
                 </div>
               )}
             </section>
-          )}
+          </div>
+        )}
 
+        {/* Main Content */}
+        <section className="mx-auto max-w-6xl" aria-label="Main Application">
           {currentStep === 'processing' && (
             <section className="animate-fade-in" aria-label="Processing Status">
               <div className="panel mx-auto max-w-xl rounded-2xl p-10 text-center sm:p-12">

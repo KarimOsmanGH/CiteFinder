@@ -77,15 +77,16 @@
 
   .brand-mark {
     font-family: var(--font-display), Georgia, serif;
-    letter-spacing: -0.03em;
-    line-height: 0.95;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+    font-optical-sizing: auto;
   }
 
   .section-rule {
-    height: 1px;
+    height: 2px;
     width: 100%;
     transform-origin: left center;
-    background: linear-gradient(90deg, var(--brass), transparent 80%);
+    background: linear-gradient(90deg, var(--brass) 0%, var(--brass-soft) 45%, transparent 100%);
   }
 
   .panel {
@@ -96,18 +97,19 @@
 
   .btn-primary {
     @apply inline-flex items-center justify-center font-semibold transition-all duration-300;
-    background: linear-gradient(135deg, var(--teal) 0%, var(--ink-soft) 100%);
+    background: var(--ink);
     color: white;
   }
 
   .btn-primary:hover:not(:disabled) {
-    filter: brightness(1.06);
+    background: var(--teal-deep, #164F44);
     transform: translateY(-1px);
   }
 
   .btn-primary:disabled {
-    @apply cursor-not-allowed opacity-50;
-    filter: grayscale(0.3);
+    @apply cursor-not-allowed;
+    background: color-mix(in srgb, var(--ink-muted) 45%, white);
+    color: color-mix(in srgb, white 85%, transparent);
   }
 
   .mode-toggle {

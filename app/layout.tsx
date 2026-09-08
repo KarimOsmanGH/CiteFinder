@@ -1,17 +1,17 @@
 import type { Metadata } from 'next'
-import { Syne, DM_Sans } from 'next/font/google'
+import { Fraunces, Outfit } from 'next/font/google'
 import './globals.css'
 import Footer from '@/components/Footer'
 import { Providers } from './providers'
 
-const display = Syne({
+const display = Fraunces({
   subsets: ['latin'],
   variable: '--font-display',
   display: 'swap',
-  weight: ['500', '600', '700', '800'],
+  weight: ['500', '600', '700'],
 })
 
-const sans = DM_Sans({
+const sans = Outfit({
   subsets: ['latin'],
   variable: '--font-sans',
   display: 'swap',
